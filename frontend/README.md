@@ -22,6 +22,20 @@ Calm Tech dashboard for the AETHON agent swarm economy on Somnia Agentic L1.
 | `/leaderboard` | `/v1/leaderboard` |
 | `/governance` | `/v1/circuit-breaker`, WS `circuit_breaker` |
 
+## Vercel Deployment
+
+1. In Vercel project settings, set **Root Directory** to `frontend` (recommended),  
+   **or** leave root empty — the repo root `vercel.json` builds `frontend/` automatically.
+2. **Framework Preset:** Vite
+3. **Build Command:** `npm run build`
+4. **Output Directory:** `dist`
+5. Add **Environment Variables** (Production):
+   - `VITE_API_URL` = your backend URL + `/v1` (e.g. `https://api.example.com/v1`)
+   - `VITE_WS_URL` = your backend WebSocket URL
+   - `VITE_API_KEY` = your API key
+
+The backend API must be deployed separately (Docker/Railway/Fly.io). Vercel hosts the static frontend only.
+
 ## Development
 
 ```bash
