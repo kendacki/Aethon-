@@ -14,16 +14,50 @@ const Home = styled("main", {
   width: "100%",
 });
 
-const Hero = styled("section", {
+const HeroSection = styled("section", {
+  width: "100%",
   minHeight: "calc(62vh - 5rem)",
-  display: "flex",
-  alignItems: "center",
+  position: "relative",
+  overflow: "hidden",
+  background: "#000000",
+});
+
+const HeroBg = styled("div", {
+  position: "absolute",
+  inset: 0,
+  backgroundImage: "url(/hero-bg.png)",
+  backgroundSize: "cover",
+  backgroundPosition: "65% center",
+  backgroundRepeat: "no-repeat",
+  "@md": {
+    backgroundSize: "cover",
+    backgroundPosition: "center center",
+  },
+  "@lg": {
+    backgroundSize: "110% auto",
+    backgroundPosition: "right center",
+  },
+});
+
+const HeroScrim = styled("div", {
+  position: "absolute",
+  inset: 0,
+  background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.88) 38%, rgba(0,0,0,0.45) 62%, rgba(0,0,0,0.2) 100%)",
+  "@md": {
+    background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.82) 42%, rgba(0,0,0,0.35) 68%, transparent 100%)",
+  },
+});
+
+const HeroInner = styled("div", {
+  position: "relative",
+  zIndex: 1,
   maxWidth: "1200px",
   margin: "0 auto",
   padding: "$10 $6",
-  width: "100%",
+  minHeight: "calc(62vh - 5rem)",
+  display: "flex",
+  alignItems: "center",
   boxSizing: "border-box",
-  position: "relative",
 });
 
 const HeroContent = styled("div", {
@@ -47,18 +81,6 @@ const HeroSub = styled("p", {
   lineHeight: 1.6,
   marginTop: "$3",
   maxWidth: "22rem",
-});
-
-const DataBars = styled("div", {
-  position: "absolute",
-  right: "$6",
-  top: "50%",
-  transform: "translateY(-50%)",
-  display: "none",
-  gap: "4px",
-  alignItems: "flex-end",
-  opacity: 0.25,
-  "@lg": { display: "flex" },
 });
 
 const StatsSection = styled(Section, {
@@ -123,28 +145,21 @@ export default function OverviewPage() {
 
   return (
     <Home>
-      <Hero>
-        <DataBars aria-hidden>
-          {Array.from({ length: 24 }).map((_, i) => (
-            <motion.div
-              key={i}
-              style={{ width: 3, background: "#fff", borderRadius: 2 }}
-              animate={{ height: [20, 40 + Math.random() * 80, 20] }}
-              transition={{ duration: 1.5 + i * 0.05, repeat: Infinity, ease: "easeInOut" }}
-            />
-          ))}
-        </DataBars>
-
-        <HeroContent as={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <HeroHeading>Autonomous agents</HeroHeading>
-          <HeroSub>Self organizing fleets on chain.</HeroSub>
-          <ActionRow>
-            <Button variant="primary" as={Link} to="/agents">
-              View Fleet <IconArrowRight size={ICON_SM} />
-            </Button>
-          </ActionRow>
-        </HeroContent>
-      </Hero>
+      <HeroSection>
+        <HeroBg aria-hidden />
+        <HeroScrim aria-hidden />
+        <HeroInner>
+          <HeroContent as={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+            <HeroHeading>Autonomous agents</HeroHeading>
+            <HeroSub>Self organizing fleets on chain.</HeroSub>
+            <ActionRow>
+              <Button variant="primary" as={Link} to="/agents">
+                View Fleet <IconArrowRight size={ICON_SM} />
+              </Button>
+            </ActionRow>
+          </HeroContent>
+        </HeroInner>
+      </HeroSection>
 
       <StatsSection>
         <Grid cols={4}>
