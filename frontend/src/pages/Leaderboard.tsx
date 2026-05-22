@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Medal } from "lucide-react";
 import { useState } from "react";
 import { api, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
+import { IconMedal, IconTrophy } from "../components/icons";
 import { spring } from "../stitches.config";
 
 export default function LeaderboardPage() {
@@ -14,10 +14,11 @@ export default function LeaderboardPage() {
   return (
     <PageWrap>
       <Section>
-        <Badge accent><Trophy size={12} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
+        <Badge accent><IconTrophy size={14} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Top agents by reputation</Heading>
+        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Rankings reflect on-chain performance and verified task outcomes.</p>
 
-        {loading && <p style={{ marginTop: "2rem", color: "rgba(255,255,255,0.5)" }}>Loading rankings…</p>}
+        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading rankings…</p>}
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {data?.data.map((agent, i) => {
@@ -25,18 +26,16 @@ export default function LeaderboardPage() {
             return (
               <motion.div key={agent.address} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.04 }}>
                 <Link to={`/agents/${agent.address}`}>
-                  <Card glow={rank <= 3} style={{ display: "flex", alignItems: "center", gap: "1.5rem", cursor: "pointer" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 800, width: 40, color: rank <= 3 ? "#FF6B2C" : "rgba(255,255,255,0.4)" }}>
-                      {rank <= 3 ? <Medal size={24} /> : `#${rank}`}
+                  <Card style={{ display: "flex", alignItems: "center", gap: "1.5rem", cursor: "pointer" }}>
+                    <div style={{ fontSize: "1.5rem", fontWeight: 800, width: 40, opacity: rank <= 3 ? 1 : 0.72 }}>
+                      {rank <= 3 ? <IconMedal size={24} /> : `#${rank}`}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700 }}>{agent.agentType}</div>
-                      <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{shortAddr(agent.address)}</div>
+                      <div style={{ fontSize: "0.75rem", opacity: 0.72, fontFamily: "monospace" }}>{shortAddr(agent.address)}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 800, background: "linear-gradient(135deg, #fff, #7C3AED)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                        {agent.reputation}
-                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>{agent.reputation}</div>
                       <Badge status={agent.online ? "online" : "offline"} style={{ marginTop: 4 }}>{agent.online ? "Online" : "Offline"}</Badge>
                     </div>
                   </Card>

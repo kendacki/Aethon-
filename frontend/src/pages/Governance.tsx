@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, Clock } from "lucide-react";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
+import { IconAlert, IconClock, IconShield } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -19,7 +19,7 @@ export default function GovernancePage() {
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      setToast("Guardian reset circuit — 1h timelock enforced");
+      setToast("Guardian reset circuit — timelock enforced");
       reload();
     }
   }, [lastEvent, reload]);
@@ -27,25 +27,25 @@ export default function GovernancePage() {
   return (
     <PageWrap>
       <Section>
-        <Badge accent={cb?.paused ? "orange" : true}>
-          <Shield size={12} style={{ display: "inline", marginRight: 4 }} />
+        <Badge accent>
+          <IconShield size={14} style={{ display: "inline", marginRight: 4 }} />
           Governance
         </Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Circuit breaker & guardian</Heading>
-        <p style={{ color: "rgba(255,255,255,0.6)", marginTop: "0.5rem", maxWidth: 560 }}>
-          The guardian multisig controls circuit reset after a 1-hour timelock. Three consecutive task failures trigger a system-wide halt.
+        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety controls</Heading>
+        <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82 }}>
+          The guardian multisig manages circuit resets after a one-hour timelock. Three consecutive task failures halt the system.
         </p>
 
         {loading && <p style={{ marginTop: "2rem" }}>Loading…</p>}
 
         {cb && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <Card glow={cb.paused ? "orange" : true} style={{ marginTop: "2rem", borderColor: cb.paused ? "rgba(239,68,68,0.4)" : undefined }}>
+            <Card style={{ marginTop: "2rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : undefined }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                {cb.paused ? <AlertTriangle size={32} color="#EF4444" /> : <Shield size={32} color="#22C55E" />}
+                {cb.paused ? <IconAlert size={32} /> : <IconShield size={32} />}
                 <div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "SYSTEM HALTED" : "System Operational"}</div>
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem" }}>
+                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System Halted" : "System Operational"}</div>
+                  <div style={{ opacity: 0.72, fontSize: "0.875rem" }}>
                     {cb.paused ? "Circuit breaker active — awaiting guardian reset" : "All contracts accepting transactions"}
                   </div>
                 </div>
@@ -55,15 +55,15 @@ export default function GovernancePage() {
             <Grid cols={3} style={{ marginTop: "2rem" }}>
               <Card>
                 <StatValue style={{ fontSize: "2rem" }}>{cb.consecutiveFailures}/{cb.threshold}</StatValue>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem", marginTop: 8 }}>Consecutive Failures</div>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Consecutive Failures</div>
               </Card>
               <Card>
-                <Clock size={20} color="#7C3AED" style={{ marginBottom: 8 }} />
+                <IconClock size={24} style={{ marginBottom: 8 }} />
                 <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem", marginTop: 4 }}>Reset Timelock</div>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset Timelock</div>
               </Card>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: "0.875rem", color: "rgba(255,255,255,0.5)" }}>Guardian Multisig</div>
+                <div style={{ fontWeight: 700, fontSize: "0.875rem", opacity: 0.72 }}>Guardian Multisig</div>
                 <div style={{ fontFamily: "monospace", fontSize: "0.75rem", marginTop: 8, wordBreak: "break-all" }}>
                   0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6
                 </div>
@@ -71,17 +71,17 @@ export default function GovernancePage() {
             </Grid>
 
             <Card style={{ marginTop: "2rem" }}>
-              <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Security Audit Status</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Security Posture</h3>
               <div style={{ display: "grid", gap: "0.75rem" }}>
                 {[
-                  "17/17 vulnerabilities fixed (4 CRITICAL, 5 HIGH, 5 MEDIUM, 3 LOW)",
-                  "12/12 attack vectors blocked in simulation",
-                  "AccessControl on reputation mutations (CRIT-003)",
-                  "Coalition dissolution auth restricted (CRIT-004)",
-                  "Platform fee routed to treasury (HIGH-005)",
+                  "17/17 audit findings resolved (4 critical, 5 high, 5 medium, 3 low)",
+                  "12/12 attack simulations blocked",
+                  "AccessControl enforced on reputation mutations",
+                  "Coalition dissolution restricted to authorized parties",
+                  "Platform fees routed to treasury",
                 ].map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ ...spring, delay: i * 0.05 }} style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.7)", display: "flex", gap: 8 }}>
-                    <span style={{ color: "#22C55E" }}>✓</span> {item}
+                  <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ ...spring, delay: i * 0.05 }} style={{ fontSize: "0.875rem", opacity: 0.82, display: "flex", gap: 8 }}>
+                    <span>✓</span> {item}
                   </motion.div>
                 ))}
               </div>

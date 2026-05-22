@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { Zap } from "lucide-react";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
+import { IconTask } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 
@@ -15,6 +15,16 @@ const statusColor: Record<string, "online" | "offline" | undefined> = {
   FAILED: "offline",
   EXPIRED: "offline",
 };
+
+const filterBtn = (active: boolean) => ({
+  padding: "0.5rem 1rem",
+  borderRadius: 999,
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  background: active ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+  color: "#FFFFFF",
+  border: `1px solid ${active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.12)"}`,
+});
 
 export default function TasksPage() {
   const [page, setPage] = useState(0);
@@ -31,7 +41,7 @@ export default function TasksPage() {
   useEffect(() => {
     if (!lastEvent) return;
     if (["TASK_SUBMITTED", "TASK_ASSIGNED", "TASK_COMPLETED", "TASK_FAILED", "TASK_EXPIRED", "TASK_RELAYED"].includes(lastEvent.type)) {
-      setToast(`Live: ${lastEvent.type.replace("TASK_", "")}`);
+      setToast(`Live update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
       reload();
     }
   }, [lastEvent, reload]);
@@ -59,34 +69,23 @@ export default function TasksPage() {
       <Section>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <Badge accent="orange">Task Market</Badge>
-            <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Live task emission</Heading>
-            <p style={{ color: "rgba(255,255,255,0.6)", marginTop: "0.5rem" }}>
-              Real-time on-chain tasks via WebSocket · {connected ? "Connected" : "Reconnecting…"}
+            <Badge accent>Task Market</Badge>
+            <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Open work queue</Heading>
+            <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
+              Real-time task feed · {connected ? "Connected" : "Reconnecting…"}
             </p>
           </div>
         </div>
 
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "2rem", flexWrap: "wrap" }}>
           {STATUSES.map((s) => (
-            <button
-              key={s || "all"}
-              onClick={() => { setStatus(s); setPage(0); }}
-              style={{
-                padding: "0.5rem 1rem",
-                borderRadius: 999,
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                background: status === s ? "rgba(255,107,44,0.2)" : "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
+            <button key={s || "all"} onClick={() => { setStatus(s); setPage(0); }} style={filterBtn(status === s)}>
               {s || "All"}
             </button>
           ))}
         </div>
 
-        {loading && tasks.length === 0 && <p style={{ marginTop: "2rem", color: "rgba(255,255,255,0.5)" }}>Loading tasks…</p>}
+        {loading && tasks.length === 0 && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading tasks…</p>}
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <AnimatePresence mode="popLayout">
@@ -102,10 +101,10 @@ export default function TasksPage() {
                 <Card>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      <Zap size={20} color="#FF6B2C" />
+                      <IconTask size={24} />
                       <div>
                         <div style={{ fontWeight: 700 }}>Task #{task.id}</div>
-                        <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)" }}>
+                        <div style={{ fontSize: "0.75rem", opacity: 0.72 }}>
                           {shortAddr(task.submitter)} · Complexity {task.complexity}
                         </div>
                       </div>
@@ -114,7 +113,7 @@ export default function TasksPage() {
                       <Badge status={statusColor[task.status]}>{task.status}</Badge>
                       <span style={{ fontWeight: 600 }}>{formatEth(task.reward)}</span>
                       {task.coalitionAddr && (
-                        <Link to={`/coalitions/${task.coalitionAddr}`} style={{ fontSize: "0.75rem", color: "#7C3AED" }}>
+                        <Link to={`/coalitions/${task.coalitionAddr}`} style={{ fontSize: "0.75rem", opacity: 0.82, textDecoration: "underline" }}>
                           Coalition →
                         </Link>
                       )}
@@ -129,7 +128,7 @@ export default function TasksPage() {
         {data && data.pagination.total > 20 && (
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center" }}>
             <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>← Prev</button>
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>Page {page + 1}</span>
+            <span style={{ opacity: 0.72 }}>Page {page + 1}</span>
             <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next →</button>
           </div>
         )}

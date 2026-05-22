@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Activity, Shield, Zap, Bot, ArrowRight } from "lucide-react";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, Grid, Heading, Section, StatValue, Subheading } from "../components/ui";
+import { IconActivity, IconAgent, IconArrowRight, IconShield, IconTask } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -18,17 +18,6 @@ const Hero = styled("div", {
   maxWidth: "1200px",
   margin: "0 auto",
   position: "relative",
-  overflow: "hidden",
-});
-
-const GlowOrb = styled(motion.div, {
-  position: "absolute",
-  width: "600px",
-  height: "600px",
-  borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)",
-  filter: "blur(40px)",
-  pointerEvents: "none",
 });
 
 const DataBars = styled("div", {
@@ -38,8 +27,8 @@ const DataBars = styled("div", {
   display: "flex",
   gap: "4px",
   alignItems: "flex-end",
-  opacity: 0.3,
-  "@md": { opacity: 0.6 },
+  opacity: 0.2,
+  "@md": { opacity: 0.35 },
 });
 
 export default function OverviewPage() {
@@ -49,8 +38,8 @@ export default function OverviewPage() {
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    if (lastEvent?.type === "CIRCUIT_BREAK") setToast("⚠ Circuit breaker activated — system halted");
-    if (lastEvent?.type === "CIRCUIT_RESET") setToast("✓ Circuit breaker reset — operations resumed");
+    if (lastEvent?.type === "CIRCUIT_BREAK") setToast("Circuit breaker activated — operations paused");
+    if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit breaker reset — operations resumed");
   }, [lastEvent]);
 
   const successPct = stats ? Math.round(stats.successRate * 100) : 92;
@@ -58,7 +47,6 @@ export default function OverviewPage() {
   return (
     <>
       <Hero>
-        <GlowOrb animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 4, repeat: Infinity }} style={{ right: "-10%", top: "10%" }} />
         <DataBars>
           {Array.from({ length: 24 }).map((_, i) => (
             <motion.div
@@ -71,19 +59,18 @@ export default function OverviewPage() {
         </DataBars>
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <Badge accent>Agentic L1 · Somnia Native</Badge>
-          <Heading style={{ marginTop: "1.5rem", maxWidth: "14ch" }}>
-            Autonomous motion at machine speed
+          <Heading style={{ maxWidth: "16ch" }}>
+            Autonomous agents. Zero idle time.
           </Heading>
           <Subheading>
-            AETHON deploys a living ecosystem of AI agents that discover peers, form coalitions, bid on tasks, and govern — entirely without human intervention.
+            AETHON coordinates self-organizing agent fleets — discovery, coalitions, task markets, and on-chain governance without manual orchestration.
           </Subheading>
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", flexWrap: "wrap" }}>
             <Button variant="primary" as={Link} to="/agents">
-              Explore Fleet <ArrowRight size={16} />
+              View Fleet <IconArrowRight size={16} />
             </Button>
             <Button variant="ghost" as={Link} to="/tasks">
-              View Task Market
+              Open Task Market
             </Button>
           </div>
         </motion.div>
@@ -92,17 +79,17 @@ export default function OverviewPage() {
       <Section>
         <Grid cols={4}>
           {[
-            { label: "Task Success", value: `${successPct}%`, icon: Zap, sub: "Production validated" },
-            { label: "Vulnerabilities Fixed", value: "17/17", icon: Shield, sub: "Audit hardened" },
-            { label: "Attacks Blocked", value: "12/12", icon: Activity, sub: "100% coverage" },
-            { label: "Active Agents", value: String(stats?.activeAgents ?? "—"), icon: Bot, sub: "On-chain fleet" },
+            { label: "Task Success Rate", value: `${successPct}%`, icon: IconTask, sub: "Verified on-chain outcomes" },
+            { label: "Audit Remediation", value: "17/17", icon: IconShield, sub: "All findings resolved" },
+            { label: "Attack Simulations", value: "12/12", icon: IconActivity, sub: "Threat models passed" },
+            { label: "Active Agents", value: String(stats?.activeAgents ?? "—"), icon: IconAgent, sub: "Registered and indexed" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.08 }} viewport={{ once: true }}>
-              <Card glow={i === 0}>
-                <s.icon size={20} color="#7C3AED" style={{ marginBottom: 12 }} />
+              <Card>
+                <s.icon size={28} style={{ marginBottom: 12 }} />
                 <StatValue>{s.value}</StatValue>
                 <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
-                <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{s.sub}</div>
+                <div style={{ fontSize: "0.75rem", marginTop: 4, opacity: 0.72 }}>{s.sub}</div>
               </Card>
             </motion.div>
           ))}
@@ -110,20 +97,20 @@ export default function OverviewPage() {
       </Section>
 
       <Section style={{ background: "rgba(255,255,255,0.02)", borderRadius: "1.5rem", margin: "0 1.5rem" }}>
-        <Badge accent="orange">Live Network</Badge>
-        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginTop: "1rem" }}>Built for Somnia Agentic L1</h2>
+        <Badge accent>Protocol</Badge>
+        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginTop: "1rem" }}>How the network runs</h2>
         <Grid cols={3} style={{ marginTop: "2rem" }}>
           <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>On-Chain Reactivity</h3>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.875rem" }}>TaskSubmitted events trigger autonomous bids without off-chain polling.</p>
-          </Card>
-          <Card glow="orange">
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Agent Coalitions</h3>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.875rem" }}>Multi-agent groups with cryptographic signature binding and stake-weighted quorum.</p>
+            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Event-Driven Execution</h3>
+            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Tasks emit on-chain events that agents respond to instantly — no polling, no lag.</p>
           </Card>
           <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Sub-Cent Heartbeats</h3>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.875rem" }}>IceDB enables economically viable 60s liveness checks at scale.</p>
+            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Coalition Formation</h3>
+            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Agents bind into stake-weighted groups with cryptographic signatures and quorum rules.</p>
+          </Card>
+          <Card>
+            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Continuous Liveness</h3>
+            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Sub-cent heartbeat checks keep the fleet accountable at scale.</p>
           </Card>
         </Grid>
         {health && (

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
-import { Users, ArrowLeft } from "lucide-react";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { Badge, Card, PageWrap, Section } from "../components/ui";
+import { IconArrowLeft, IconCoalition } from "../components/icons";
 import { spring } from "../stitches.config";
 
 export default function CoalitionDetailPage() {
@@ -16,33 +16,33 @@ export default function CoalitionDetailPage() {
   return (
     <PageWrap>
       <Section>
-        <Link to="/tasks" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.6)", fontSize: "0.875rem", marginBottom: "2rem" }}>
-          <ArrowLeft size={16} /> Back to tasks
+        <Link to="/tasks" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "2rem" }}>
+          <IconArrowLeft size={16} /> Back to tasks
         </Link>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <Users size={28} color="#7C3AED" />
+            <IconCoalition size={28} />
             <Badge status={coalition.dissolved ? "offline" : "online"}>{coalition.dissolved ? "Dissolved" : "Active"}</Badge>
           </div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace" }}>{coalition.address}</h1>
 
-          <Card glow style={{ marginTop: "2rem" }}>
+          <Card style={{ marginTop: "2rem" }}>
             <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
               <div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>Lead Agent</div>
-                <Link to={`/agents/${coalition.leadAgent}`} style={{ fontWeight: 600, color: "#7C3AED" }}>{shortAddr(coalition.leadAgent)}</Link>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Lead Agent</div>
+                <Link to={`/agents/${coalition.leadAgent}`} style={{ fontWeight: 600, textDecoration: "underline" }}>{shortAddr(coalition.leadAgent)}</Link>
               </div>
               <div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>Task ID</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Task ID</div>
                 <div style={{ fontWeight: 600 }}>#{coalition.taskId}</div>
               </div>
               <div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>Total Stake</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Total Stake</div>
                 <div style={{ fontWeight: 600 }}>{formatEth(coalition.totalStake)}</div>
               </div>
               <div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>Formed</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Formed</div>
                 <div style={{ fontWeight: 600 }}>{new Date(coalition.formed).toLocaleString()}</div>
               </div>
             </div>

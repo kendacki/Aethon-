@@ -12,6 +12,6 @@ export const globalStyles = globalCss({
     lineHeight: 1.6,
   },
   a: { color: "inherit", textDecoration: "none" },
-  button: { fontFamily: "inherit", cursor: "pointer", border: "none", background: "none" },
-  "::selection": { background: "$purple", color: "$text" },
+  button: { fontFamily: "inherit", cursor: "pointer", border: "none", background: "none", color: "$text" },
+  "::selection": { background: "rgba(255,255,255,0.25)", color: "$text" },
 });

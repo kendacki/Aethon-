@@ -15,22 +15,38 @@ export const Button = styled("button", {
       primary: {
         background: "$text",
         color: "$bg",
-        "&:hover": { transform: "translateY(-1px)", boxShadow: "$glow" },
+        "&:hover": { transform: "translateY(-1px)", opacity: 0.92 },
+      },
+      outline: {
+        background: "transparent",
+        color: "$text",
+        border: "1px solid $text",
+        "&:hover": {
+          background: "rgba(255,255,255,0.08)",
+          transform: "translateY(-1px)",
+        },
+        "&:active": {
+          background: "$text",
+          color: "$bg",
+          transform: "translateY(0)",
+        },
       },
       accent: {
-        background: "linear-gradient(135deg, $purple, $orange)",
+        background: "transparent",
         color: "$text",
-        "&:hover": { transform: "translateY(-1px)", boxShadow: "$glowOrange" },
+        border: "1px solid $borderStrong",
+        "&:hover": { borderColor: "$text", background: "rgba(255,255,255,0.06)" },
       },
       ghost: {
         background: "transparent",
         color: "$text",
         border: "1px solid $borderStrong",
-        "&:hover": { borderColor: "$purple", background: "$bgGlass" },
+        "&:hover": { borderColor: "$text", background: "rgba(255,255,255,0.06)" },
       },
       danger: {
-        background: "$danger",
+        background: "transparent",
         color: "$text",
+        border: "1px solid $borderStrong",
       },
     },
     size: {
@@ -48,11 +64,9 @@ export const Card = styled("div", {
   background: "$bgCard",
   border: "1px solid $border",
   backdropFilter: "blur(12px)",
+  transition: "border-color $fast",
+  "&:hover": { borderColor: "$borderStrong" },
   variants: {
-    glow: {
-      true: { boxShadow: "$glow", borderColor: "$purpleGlow" },
-      orange: { boxShadow: "$glowOrange", borderColor: "$orangeGlow" },
-    },
     light: {
       true: {
         background: "#FFFFFF",
@@ -71,19 +85,19 @@ export const Badge = styled("span", {
   fontWeight: "$medium",
   padding: "$1 $3",
   borderRadius: "$pill",
-  background: "$bgGlass",
+  background: "rgba(255,255,255,0.06)",
   border: "1px solid $border",
-  color: "$textMuted",
+  color: "$text",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   variants: {
     accent: {
-      true: { background: "rgba(124,58,237,0.15)", color: "$purple", borderColor: "$purpleGlow" },
-      orange: { background: "rgba(255,107,44,0.15)", color: "$orange", borderColor: "$orangeGlow" },
+      true: { background: "rgba(255,255,255,0.08)", color: "$text", borderColor: "$borderStrong" },
+      orange: { background: "rgba(255,255,255,0.08)", color: "$text", borderColor: "$borderStrong" },
     },
     status: {
-      online: { background: "rgba(34,197,94,0.15)", color: "$success", borderColor: "rgba(34,197,94,0.3)" },
-      offline: { background: "rgba(239,68,68,0.15)", color: "$danger", borderColor: "rgba(239,68,68,0.3)" },
+      online: { background: "rgba(255,255,255,0.1)", color: "$text", borderColor: "$borderStrong" },
+      offline: { background: "rgba(255,255,255,0.04)", color: "$textDim", borderColor: "$border" },
     },
   },
 });
@@ -114,27 +128,33 @@ export const Heading = styled("h1", {
   fontSize: "$hero",
   lineHeight: 1.1,
   letterSpacing: "-0.03em",
+  color: "$text",
 });
 
 export const Subheading = styled("p", {
   fontSize: "$lg",
-  color: "$textMuted",
+  color: "$text",
   maxWidth: "36rem",
   lineHeight: 1.7,
   marginTop: "$4",
+  opacity: 0.82,
 });
 
 export const StatValue = styled("div", {
   fontSize: "$3xl",
   fontWeight: "$extrabold",
   letterSpacing: "-0.02em",
-  background: "linear-gradient(135deg, $text, $purple)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
+  color: "$text",
 });
 
 export const PageWrap = styled("div", {
   minHeight: "100vh",
   paddingTop: "5rem",
   paddingBottom: "$16",
+});
+
+export const Muted = styled("span", {
+  color: "$text",
+  opacity: 0.72,
+  fontSize: "$sm",
 });

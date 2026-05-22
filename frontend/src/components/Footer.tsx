@@ -19,16 +19,17 @@ const ColTitle = styled("div", {
   fontWeight: "$semibold",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
-  color: "$textDim",
+  opacity: 0.72,
   marginBottom: "$4",
 });
 
 const Link = styled("a", {
   display: "block",
   fontSize: "$sm",
-  color: "$textMuted",
+  color: "$text",
+  opacity: 0.72,
   marginBottom: "$2",
-  "&:hover": { color: "$text" },
+  "&:hover": { opacity: 1 },
 });
 
 export function SiteFooter() {
@@ -37,14 +38,14 @@ export function SiteFooter() {
       <Inner>
         <div>
           <img src="/logo-white.svg" alt="AETHON" style={{ height: 28, marginBottom: 16 }} />
-          <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.5)", maxWidth: 280, lineHeight: 1.7 }}>
-            Autonomous Emergent Trading & Hierarchical Operations Network — Somnia Agentic L1 native.
+          <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 280, lineHeight: 1.7 }}>
+            Autonomous Emergent Trading & Hierarchical Operations Network — a self-governing agent economy.
           </p>
         </div>
         <div>
           <ColTitle>Network</ColTitle>
           <Link href="https://shannon-explorer.somnia.network" target="_blank" rel="noreferrer">Explorer</Link>
-          <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Somnia Docs</Link>
+          <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Documentation</Link>
         </div>
         <div>
           <ColTitle>Protocol</ColTitle>
@@ -53,13 +54,13 @@ export function SiteFooter() {
           <Link href="/governance">Governance</Link>
         </div>
         <div>
-          <ColTitle>Status</ColTitle>
+          <ColTitle>Developers</ColTitle>
           <Link href="/v1/health">API Health</Link>
           <Link href="/docs">OpenAPI</Link>
         </div>
       </Inner>
-      <div style={{ maxWidth: 1200, margin: "2rem auto 0", fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>
-        © 2026 AETHON Protocol — Chain ID 50312
+      <div style={{ maxWidth: 1200, margin: "2rem auto 0", fontSize: "0.75rem", opacity: 0.5 }}>
+        © 2026 AETHON Protocol
       </div>
     </Footer>
   );

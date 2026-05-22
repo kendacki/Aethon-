@@ -37,15 +37,17 @@ const NavLink = styled(Link, {
   fontWeight: "$medium",
   padding: "$2 $4",
   borderRadius: "$pill",
-  color: "$textMuted",
+  color: "$text",
+  opacity: 0.72,
   transition: "all $fast",
   "&:hover, &[data-active=true]": {
     color: "$text",
+    opacity: 1,
     background: "$bgGlass",
   },
   variants: {
     active: {
-      true: { color: "$text", background: "rgba(124,58,237,0.2)" },
+      true: { color: "$text", opacity: 1, background: "rgba(255,255,255,0.1)" },
     },
   },
 });
@@ -75,7 +77,7 @@ export function Navbar() {
             </NavLink>
           ))}
         </Links>
-        <Button variant="accent" size="sm" as={Link} to="/tasks">
+        <Button variant="outline" size="sm" as={Link} to="/tasks">
           Launch Swarm
         </Button>
       </Inner>
@@ -104,17 +106,17 @@ export function LoadingScreen() {
       <motion.img
         src="/logo-white.svg"
         alt="AETHON"
-        style={{ height: 48 }}
-        animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        style={{ height: 56, width: "auto" }}
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        style={{ width: 120, height: 2, background: "rgba(255,255,255,0.1)", borderRadius: 999, overflow: "hidden" }}
+        style={{ width: 120, height: 2, background: "rgba(255,255,255,0.12)", borderRadius: 999, overflow: "hidden" }}
       >
         <motion.div
-          style={{ height: "100%", background: "linear-gradient(90deg, #7C3AED, #FF6B2C)", borderRadius: 999 }}
-          animate={{ x: ["-100%", "100%"] }}
-          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+          style={{ height: "100%", background: "#FFFFFF", borderRadius: 999, width: "40%" }}
+          animate={{ x: ["-100%", "250%"] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
     </motion.div>
@@ -133,6 +135,7 @@ const ToastWrap = styled(motion.div, {
   boxShadow: "$card",
   maxWidth: "22rem",
   fontSize: "$sm",
+  color: "$text",
 });
 
 export function Notification({ message, onClose }: { message: string; onClose: () => void }) {

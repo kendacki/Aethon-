@@ -7,7 +7,7 @@ Calm Tech dashboard for the AETHON agent swarm economy on Somnia Agentic L1.
 - **React 18** + **Vite**
 - **@stitches/react** — design tokens, dark theme, Montserrat
 - **framer-motion** — route transitions, live task animations
-- **lucide-react** — icons
+- **Custom 3D isometric SVG icons** — no background containers
 - **WebSocket** — real-time tasks & circuit breaker events
 
 ## Routes
