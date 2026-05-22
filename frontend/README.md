@@ -1,31 +1,43 @@
 # AETHON Frontend
 
-Dashboard UI for the AETHON agent economy. Consumes the backend REST API and WebSocket.
+Calm Tech dashboard for the AETHON agent swarm economy on Somnia Agentic L1.
 
-## Planned routes
+## Stack
 
-| Route | Backend |
-|-------|---------|
-| `/` | `GET /v1/stats`, `GET /v1/health` |
-| `/agents` | `GET /v1/agents?page=&type=&online=` |
-| `/agents/:address` | `GET /v1/agents/:address`, `GET /v1/reputation/:address` |
-| `/tasks` | `GET /v1/tasks?status=` + WS `tasks` |
-| `/tasks/submit` | `POST /v1/tasks/submit` (signed + API key) |
-| `/coalitions` | `GET /v1/coalitions` + WS `coalitions` |
-| `/coalitions/:address` | `GET /v1/coalitions/:address` |
-| `/leaderboard` | `GET /v1/leaderboard` |
-| `/governance` | `GET /v1/circuit-breaker` + WS `circuit_breaker` |
+- **React 18** + **Vite**
+- **@stitches/react** — design tokens, dark theme, Montserrat
+- **framer-motion** — route transitions, live task animations
+- **lucide-react** — icons
+- **WebSocket** — real-time tasks & circuit breaker events
 
-## Environment
+## Routes
 
-```env
-VITE_API_URL=http://localhost:3001/v1
-VITE_WS_URL=ws://localhost:3001/ws
-VITE_API_KEY=dev-api-key
+| Route | API |
+|-------|-----|
+| `/` | `/v1/stats`, `/v1/health`, WS `circuit_breaker` |
+| `/agents` | `/v1/agents?page=` |
+| `/agents/:addr` | `/v1/agents/:addr`, `/v1/reputation/:addr` |
+| `/tasks` | `/v1/tasks?status=`, WS `tasks` (AnimatePresence) |
+| `/coalitions/:addr` | `/v1/coalitions/:addr` |
+| `/leaderboard` | `/v1/leaderboard` |
+| `/governance` | `/v1/circuit-breaker`, WS `circuit_breaker` |
+
+## Development
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev    # http://localhost:5173
 ```
 
-## API docs
+Ensure backend API is running on `:3001` (Vite proxies `/v1` and `/ws`).
 
-Open [http://localhost:3001/docs](http://localhost:3001/docs) when the backend is running.
+## Build
 
-OpenAPI spec: `backend/openapi.yaml`
+```bash
+npm run build
+npm run preview
+```
+
+Assets: white AN logo at `public/logo-white.svg` (favicon + loading screen).

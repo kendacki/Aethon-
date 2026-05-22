@@ -11,7 +11,10 @@ Aethon/
 │   ├── src/agent/    # AgentCore, NonceMgr, Watchdog, CoalitionEngine
 │   ├── src/api/      # REST + WebSocket server
 │   └── scripts/      # Deployment scripts
-└── frontend/         # Dashboard UI (separate from backend)
+└── frontend/
+  .env.example
+  package.json
+  src/          # React + Stitches + Framer Motion
 ```
 
 ## Deployed Contracts (Somnia Shannon Testnet — v2)
