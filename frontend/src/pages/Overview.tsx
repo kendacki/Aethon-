@@ -9,26 +9,102 @@ import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
 import { styled } from "../stitches.config";
 
-const Hero = styled("div", {
-  minHeight: "90vh",
+const Home = styled("main", {
+  paddingTop: "5rem",
+  width: "100%",
+});
+
+const Hero = styled("section", {
+  minHeight: "calc(100vh - 5rem)",
   display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  padding: "$20 $6 $16",
+  alignItems: "center",
   maxWidth: "1200px",
   margin: "0 auto",
+  padding: "$16 $6",
+  width: "100%",
+  boxSizing: "border-box",
   position: "relative",
+});
+
+const HeroContent = styled("div", {
+  width: "100%",
+  maxWidth: "640px",
 });
 
 const DataBars = styled("div", {
   position: "absolute",
-  right: "5%",
-  top: "20%",
-  display: "flex",
+  right: "$6",
+  top: "50%",
+  transform: "translateY(-50%)",
+  display: "none",
   gap: "4px",
   alignItems: "flex-end",
-  opacity: 0.2,
-  "@md": { opacity: 0.35 },
+  opacity: 0.25,
+  "@lg": { display: "flex" },
+});
+
+const StatsSection = styled(Section, {
+  paddingTop: "$8",
+  paddingBottom: "$8",
+});
+
+const StatCell = styled(motion.div, {
+  height: "100%",
+});
+
+const StatCard = styled(Card, {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+});
+
+const ProtocolBand = styled("section", {
+  width: "100%",
+  background: "rgba(255,255,255,0.02)",
+  borderTop: "1px solid $border",
+  borderBottom: "1px solid $border",
+});
+
+const ProtocolInner = styled("div", {
+  maxWidth: "1200px",
+  margin: "0 auto",
+  padding: "$16 $6",
+  width: "100%",
+  boxSizing: "border-box",
+});
+
+const SectionTitle = styled("h2", {
+  fontSize: "$2xl",
+  fontWeight: "$extrabold",
+  marginTop: "$4",
+  letterSpacing: "-0.02em",
+});
+
+const CardTitle = styled("h3", {
+  fontWeight: "$bold",
+  marginBottom: "$2",
+});
+
+const CardBody = styled("p", {
+  fontSize: "$sm",
+  opacity: 0.82,
+  lineHeight: 1.65,
+});
+
+const ActionRow = styled("div", {
+  display: "flex",
+  gap: "$4",
+  marginTop: "$8",
+  flexWrap: "wrap",
+  alignItems: "center",
+});
+
+const StatusRow = styled(motion.div, {
+  marginTop: "$8",
+  display: "flex",
+  gap: "$4",
+  flexWrap: "wrap",
+  alignItems: "center",
 });
 
 export default function OverviewPage() {
@@ -70,9 +146,9 @@ export default function OverviewPage() {
   ];
 
   return (
-    <>
+    <Home>
       <Hero>
-        <DataBars>
+        <DataBars aria-hidden>
           {Array.from({ length: 24 }).map((_, i) => (
             <motion.div
               key={i}
@@ -83,68 +159,68 @@ export default function OverviewPage() {
           ))}
         </DataBars>
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <Heading style={{ maxWidth: "16ch" }}>
-            Autonomous agents. Zero idle time.
-          </Heading>
+        <HeroContent as={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+          <Heading>Autonomous agents. Zero idle time.</Heading>
           <Subheading>
             AETHON coordinates self-organizing agent fleets — discovery, coalitions, task markets, and on-chain governance without manual orchestration.
           </Subheading>
-          <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", flexWrap: "wrap" }}>
+          <ActionRow>
             <Button variant="primary" as={Link} to="/agents">
               View Fleet <IconArrowRight size={16} />
             </Button>
             <Button variant="ghost" as={Link} to="/tasks">
               Open Task Market
             </Button>
-          </div>
-        </motion.div>
+          </ActionRow>
+        </HeroContent>
       </Hero>
 
-      <Section>
+      <StatsSection>
         <Grid cols={4}>
           {statCards.map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.08 }} viewport={{ once: true }}>
-              <Card>
-                <s.icon size={28} style={{ marginBottom: 12 }} />
+            <StatCell key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.08 }} viewport={{ once: true }}>
+              <StatCard>
+                <s.icon size={28} style={{ marginBottom: 12, flexShrink: 0 }} />
                 <StatValue>{s.value}</StatValue>
                 <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
-                <div style={{ fontSize: "0.75rem", marginTop: 4, opacity: 0.72 }}>{s.sub}</div>
-              </Card>
-            </motion.div>
+                <div style={{ fontSize: "0.75rem", opacity: 0.72, marginTop: "auto", paddingTop: 8 }}>{s.sub}</div>
+              </StatCard>
+            </StatCell>
           ))}
         </Grid>
-      </Section>
+      </StatsSection>
 
-      <Section style={{ background: "rgba(255,255,255,0.02)", borderRadius: "1.5rem", margin: "0 1.5rem" }}>
-        <Badge accent>Protocol</Badge>
-        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginTop: "1rem" }}>How the network runs</h2>
-        <Grid cols={3} style={{ marginTop: "2rem" }}>
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Event-Driven Execution</h3>
-            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Tasks emit on-chain events that agents respond to instantly — no polling, no lag.</p>
-          </Card>
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Coalition Formation</h3>
-            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Agents bind into stake-weighted groups with cryptographic signatures and quorum rules.</p>
-          </Card>
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Continuous Liveness</h3>
-            <p style={{ fontSize: "0.875rem", opacity: 0.82 }}>Sub-cent heartbeat checks keep the fleet accountable at scale.</p>
-          </Card>
-        </Grid>
-        {health && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            <Badge status={health.synced ? "online" : "offline"}>{health.synced ? "Indexer Synced" : "Syncing…"}</Badge>
-            <Badge>Block {health.blockNumber.toLocaleString()}</Badge>
-            <Badge status={health.circuitBreakerPaused ? "offline" : "online"}>
-              Circuit {health.circuitBreakerPaused ? "HALTED" : "OK"}
-            </Badge>
-          </motion.div>
-        )}
-      </Section>
+      <ProtocolBand>
+        <ProtocolInner>
+          <Badge accent>Protocol</Badge>
+          <SectionTitle>How the network runs</SectionTitle>
+          <Grid cols={3} style={{ marginTop: "2rem" }}>
+            <Card>
+              <CardTitle>Event-Driven Execution</CardTitle>
+              <CardBody>Tasks emit on-chain events that agents respond to instantly — no polling, no lag.</CardBody>
+            </Card>
+            <Card>
+              <CardTitle>Coalition Formation</CardTitle>
+              <CardBody>Agents bind into stake-weighted groups with cryptographic signatures and quorum rules.</CardBody>
+            </Card>
+            <Card>
+              <CardTitle>Continuous Liveness</CardTitle>
+              <CardBody>Sub-cent heartbeat checks keep the fleet accountable at scale.</CardBody>
+            </Card>
+          </Grid>
+          {health && (
+            <StatusRow initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Badge status={health.synced ? "online" : "offline"}>{health.synced ? "Indexer Synced" : "Syncing…"}</Badge>
+              <Badge>Block {health.blockNumber.toLocaleString()}</Badge>
+              <Badge status={health.circuitBreakerPaused ? "offline" : "online"}>
+                Circuit {health.circuitBreakerPaused ? "HALTED" : "OK"}
+              </Badge>
+            </StatusRow>
+          )}
+        </ProtocolInner>
+      </ProtocolBand>
 
       <Notification message={toast} onClose={() => setToast("")} />
-    </>
+    </Home>
   );
 }

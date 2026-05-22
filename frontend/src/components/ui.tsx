@@ -82,6 +82,7 @@ export const Badge = styled("span", {
 export const Grid = styled("div", {
   display: "grid",
   gap: "$6",
+  alignItems: "stretch",
   variants: {
     cols: {
       2: { gridTemplateColumns: "1fr", "@md": { gridTemplateColumns: "repeat(2, 1fr)" } },
