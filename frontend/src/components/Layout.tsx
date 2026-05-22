@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "../stitches.config";
 import { Button } from "./ui";
+import { AethonLogo } from "./Logo";
 import { spring } from "../stitches.config";
 
 const Nav = styled("nav", {
@@ -51,7 +52,7 @@ const NavLink = styled(Link, {
   },
 });
 
-const Logo = styled("img", { height: "2rem", width: "auto" });
+const LogoLink = styled(Link, { display: "flex", alignItems: "center" });
 
 const links = [
   { to: "/", label: "Overview" },
@@ -66,9 +67,9 @@ export function Navbar() {
   return (
     <Nav>
       <Inner>
-        <Link to="/">
-          <Logo src="/logo-white.svg" alt="AETHON" />
-        </Link>
+        <LogoLink to="/">
+          <AethonLogo height={32} />
+        </LogoLink>
         <Links>
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} data-active={pathname === l.to || (l.to !== "/" && pathname.startsWith(l.to))}>
@@ -102,13 +103,12 @@ export function LoadingScreen() {
         gap: "1.5rem",
       }}
     >
-      <motion.img
-        src="/logo-white.svg"
-        alt="AETHON"
-        style={{ height: 56, width: "auto" }}
+      <motion.div
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-      />
+      >
+        <AethonLogo height={56} />
+      </motion.div>
       <motion.div
         style={{ width: 120, height: 2, background: "rgba(255,255,255,0.12)", borderRadius: 999, overflow: "hidden" }}
       >

@@ -1,4 +1,5 @@
 import { styled } from "../stitches.config";
+import { AethonLogo } from "./Logo";
 
 export const Footer = styled("footer", {
   marginTop: "auto",
@@ -51,7 +52,7 @@ export function SiteFooter() {
     <Footer>
       <Inner>
         <div>
-          <img src="/logo-white.svg" alt="AETHON" style={{ height: 28, marginBottom: 16 }} />
+          <AethonLogo height={28} style={{ marginBottom: 16 }} />
           <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 280, lineHeight: 1.7 }}>
             Autonomous Emergent Trading & Hierarchical Operations Network — a self-governing agent economy.
           </p>
