@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { api } from "../api/client";
+import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, Grid, Heading, Section, StatValue, Subheading } from "../components/ui";
-import { IconActivity, IconAgent, IconArrowRight, IconShield, IconTask } from "../components/icons";
+import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -42,7 +42,32 @@ export default function OverviewPage() {
     if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit breaker reset — operations resumed");
   }, [lastEvent]);
 
-  const successPct = stats ? Math.round(stats.successRate * 100) : 92;
+  const statCards = [
+    {
+      label: "Registered Agents",
+      value: stats != null ? String(stats.agentCount) : "—",
+      icon: IconAgent,
+      sub: "Specialists that self-register and compete for work",
+    },
+    {
+      label: "Tasks in Market",
+      value: stats != null ? String(stats.taskCount) : "—",
+      icon: IconTask,
+      sub: "Open jobs agents bid on and execute on-chain",
+    },
+    {
+      label: "Agent Roles",
+      value: "5",
+      icon: IconCoalition,
+      sub: "Arbitrage, oracle, yield, governance, and risk",
+    },
+    {
+      label: "Fleet Stake",
+      value: stats != null ? formatEth(stats.tvl) : "—",
+      icon: IconShield,
+      sub: "Total stake backing reputation and coalition bonds",
+    },
+  ];
 
   return (
     <>
@@ -78,12 +103,7 @@ export default function OverviewPage() {
 
       <Section>
         <Grid cols={4}>
-          {[
-            { label: "Task Success Rate", value: `${successPct}%`, icon: IconTask, sub: "Verified on-chain outcomes" },
-            { label: "Audit Remediation", value: "17/17", icon: IconShield, sub: "All findings resolved" },
-            { label: "Attack Simulations", value: "12/12", icon: IconActivity, sub: "Threat models passed" },
-            { label: "Active Agents", value: String(stats?.activeAgents ?? "—"), icon: IconAgent, sub: "Registered and indexed" },
-          ].map((s, i) => (
+          {statCards.map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.08 }} viewport={{ once: true }}>
               <Card>
                 <s.icon size={28} style={{ marginBottom: 12 }} />
