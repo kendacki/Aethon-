@@ -11,24 +11,15 @@ export const {
 } = createStitches({
   theme: {
     colors: {
-      bg: "#0A0A0A",
-      bgElevated: "#111111",
+      bg: "#000000",
+      bgElevated: "#000000",
       bgCard: "rgba(255,255,255,0.04)",
       bgGlass: "rgba(255,255,255,0.06)",
-      surface: "#161616",
-      surfaceLight: "#F5F5F5",
       border: "rgba(255,255,255,0.12)",
       borderStrong: "rgba(255,255,255,0.28)",
       text: "#FFFFFF",
       textMuted: "#FFFFFF",
       textDim: "rgba(255,255,255,0.72)",
-      purple: "#FFFFFF",
-      purpleGlow: "rgba(255,255,255,0.28)",
-      orange: "#FFFFFF",
-      orangeGlow: "rgba(255,255,255,0.28)",
-      success: "#FFFFFF",
-      warning: "#FFFFFF",
-      danger: "#FFFFFF",
     },
     fonts: {
       sans: "Montserrat, system-ui, sans-serif",
@@ -72,9 +63,6 @@ export const {
       xl: "1.25rem",
       pill: "9999px",
     },
-    shadows: {
-      card: "0 8px 32px rgba(0,0,0,0.4)",
-    },
     transitions: {
       fast: "150ms cubic-bezier(0.4, 0, 0.2, 1)",
       base: "250ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -86,18 +74,6 @@ export const {
     lg: "(min-width: 1024px)",
     xl: "(min-width: 1280px)",
   },
-  utils: {
-    glass: () => ({
-      background: "rgba(255,255,255,0.04)",
-      backdropFilter: "blur(12px)",
-      border: "1px solid rgba(255,255,255,0.08)",
-    }),
-  },
-});
-
-export const lightSection = css({
-  background: "$surfaceLight",
-  color: "#0A0A0A",
 });
 
 export const spring = { type: "spring" as const, stiffness: 380, damping: 28, mass: 0.8 };

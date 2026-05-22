@@ -18,8 +18,8 @@ export function IconAgent({ size = 24, ...props }: IconProps) {
       <path d="M24 6 L38 14 L38 26 L24 34 L24 22 L10 14 Z" fill="#FFFFFF" fillOpacity="0.65" />
       <path d="M24 6 L38 14 L24 22 L10 14 Z" fill="#FFFFFF" />
       <path d="M24 22 L38 26 L24 34 L10 26 Z" fill="#FFFFFF" fillOpacity="0.85" />
-      <circle cx="24" cy="17" r="3" fill="#0A0A0A" />
-      <path d="M20 21 H28" stroke="#0A0A0A" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="24" cy="17" r="3" fill="#000000" />
+      <path d="M20 21 H28" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -31,7 +31,7 @@ export function IconTask({ size = 24, ...props }: IconProps) {
       <path d="M24 12 L34 18 L34 30 L24 36 L24 24 L14 18 Z" fill="#FFFFFF" fillOpacity="0.7" />
       <path d="M24 12 L34 18 L24 24 L14 18 Z" fill="#FFFFFF" />
       <path d="M24 24 L34 30 L24 36 L14 30 Z" fill="#FFFFFF" fillOpacity="0.9" />
-      <path d="M22 20 L26 20 L26 26 L22 26 Z" fill="#0A0A0A" />
+      <path d="M22 20 L26 20 L26 26 L22 26 Z" fill="#000000" />
     </svg>
   );
 }
@@ -79,7 +79,7 @@ export function IconMedal({ size = 24, ...props }: IconProps) {
       <path d="M18 8 L21 8 L24 18 L27 8 L30 8 L24 20 Z" fill="#FFFFFF" />
       <circle cx="24" cy="30" r="10" fill="#FFFFFF" fillOpacity="0.45" />
       <circle cx="24" cy="30" r="10" fill="#FFFFFF" fillOpacity="0.75" clipPath="inset(0 50% 0 0)" />
-      <circle cx="24" cy="30" r="7" fill="#0A0A0A" />
+      <circle cx="24" cy="30" r="7" fill="#000000" />
       <circle cx="24" cy="30" r="4" fill="#FFFFFF" />
     </svg>
   );
@@ -113,8 +113,8 @@ export function IconAlert({ size = 24, ...props }: IconProps) {
     <svg {...base(size)} {...props}>
       <path d="M24 8 L40 36 H8 Z" fill="#FFFFFF" fillOpacity="0.5" />
       <path d="M24 8 L40 36 H8 Z" fill="#FFFFFF" fillOpacity="0.85" clipPath="inset(0 50% 0 0)" />
-      <path d="M24 18 V26" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="24" cy="31" r="1.5" fill="#0A0A0A" />
+      <path d="M24 18 V26" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="24" cy="31" r="1.5" fill="#000000" />
     </svg>
   );
 }
@@ -125,7 +125,7 @@ export function IconClock({ size = 24, ...props }: IconProps) {
       <ellipse cx="24" cy="26" rx="14" ry="6" fill="#FFFFFF" fillOpacity="0.25" />
       <circle cx="24" cy="24" r="14" fill="#FFFFFF" fillOpacity="0.45" />
       <circle cx="24" cy="24" r="14" fill="#FFFFFF" fillOpacity="0.75" clipPath="inset(0 50% 0 0)" />
-      <circle cx="24" cy="24" r="11" fill="#0A0A0A" />
+      <circle cx="24" cy="24" r="11" fill="#000000" />
       <path d="M24 16 V24 L30 28" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

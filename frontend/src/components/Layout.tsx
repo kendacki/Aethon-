@@ -11,8 +11,7 @@ const Nav = styled("nav", {
   right: 0,
   zIndex: 100,
   padding: "$4 $6",
-  backdropFilter: "blur(16px)",
-  background: "rgba(10,10,10,0.75)",
+  background: "rgba(0,0,0,0.92)",
   borderBottom: "1px solid $border",
 });
 
@@ -94,7 +93,7 @@ export function LoadingScreen() {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0A0A0A",
+        background: "#000000",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -130,9 +129,8 @@ const ToastWrap = styled(motion.div, {
   zIndex: 200,
   padding: "$4 $5",
   borderRadius: "$lg",
-  background: "$bgElevated",
+  background: "$bg",
   border: "1px solid $border",
-  boxShadow: "$card",
   maxWidth: "22rem",
   fontSize: "$sm",
   color: "$text",

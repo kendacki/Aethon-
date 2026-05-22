@@ -15,21 +15,14 @@ export const Button = styled("button", {
       primary: {
         background: "$text",
         color: "$bg",
-        "&:hover": { transform: "translateY(-1px)", opacity: 0.92 },
+        "&:hover": { opacity: 0.92 },
       },
       outline: {
         background: "transparent",
         color: "$text",
         border: "1px solid $text",
-        "&:hover": {
-          background: "rgba(255,255,255,0.08)",
-          transform: "translateY(-1px)",
-        },
-        "&:active": {
-          background: "$text",
-          color: "$bg",
-          transform: "translateY(0)",
-        },
+        "&:hover": { background: "rgba(255,255,255,0.08)" },
+        "&:active": { background: "$text", color: "$bg" },
       },
       accent: {
         background: "transparent",
@@ -42,11 +35,6 @@ export const Button = styled("button", {
         color: "$text",
         border: "1px solid $borderStrong",
         "&:hover": { borderColor: "$text", background: "rgba(255,255,255,0.06)" },
-      },
-      danger: {
-        background: "transparent",
-        color: "$text",
-        border: "1px solid $borderStrong",
       },
     },
     size: {
@@ -63,18 +51,8 @@ export const Card = styled("div", {
   padding: "$6",
   background: "$bgCard",
   border: "1px solid $border",
-  backdropFilter: "blur(12px)",
   transition: "border-color $fast",
   "&:hover": { borderColor: "$borderStrong" },
-  variants: {
-    light: {
-      true: {
-        background: "#FFFFFF",
-        color: "#0A0A0A",
-        border: "1px solid rgba(0,0,0,0.06)",
-      },
-    },
-  },
 });
 
 export const Badge = styled("span", {
@@ -92,12 +70,11 @@ export const Badge = styled("span", {
   letterSpacing: "0.06em",
   variants: {
     accent: {
-      true: { background: "rgba(255,255,255,0.08)", color: "$text", borderColor: "$borderStrong" },
-      orange: { background: "rgba(255,255,255,0.08)", color: "$text", borderColor: "$borderStrong" },
+      true: { background: "rgba(255,255,255,0.08)", borderColor: "$borderStrong" },
     },
     status: {
-      online: { background: "rgba(255,255,255,0.1)", color: "$text", borderColor: "$borderStrong" },
-      offline: { background: "rgba(255,255,255,0.04)", color: "$textDim", borderColor: "$border" },
+      online: { background: "rgba(255,255,255,0.1)", borderColor: "$borderStrong" },
+      offline: { background: "rgba(255,255,255,0.04)", opacity: 0.72, borderColor: "$border" },
     },
   },
 });
