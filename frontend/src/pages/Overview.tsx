@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, Grid, Section, StatValue } from "../components/ui";
-import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG, ICON_SM } from "../components/icons";
+import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -100,7 +100,7 @@ const StatCard = styled(Card, {
 
 const ActionRow = styled("div", {
   display: "flex",
-  marginTop: "$6",
+  marginTop: "$5",
   alignItems: "center",
 });
 
@@ -203,8 +203,8 @@ export default function OverviewPage() {
             <HeroHeading>Swarm Autonomous agents.</HeroHeading>
             <HeroSub>Self organizing fleets on chain.</HeroSub>
             <ActionRow>
-              <Button variant="primary" as={Link} to="/agents">
-                View Fleet <IconArrowRight size={ICON_SM} />
+              <Button variant="primary" size="sm" as={Link} to="/agents">
+                View Fleet <IconArrowRight size={16} />
               </Button>
             </ActionRow>
           </HeroContent>
