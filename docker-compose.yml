@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aethon
+      POSTGRES_PASSWORD: aethon
+      POSTGRES_DB: aethon
+    ports:
+      - "5432:5432"
+    volumes:
+      - aethon_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aethon"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ./backend
@@ -9,9 +25,13 @@ services:
       - ./backend/.env
     environment:
       - API_PORT=3001
+      - DATABASE_URL=postgresql://aethon:aethon@postgres:5432/aethon
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -22,8 +42,13 @@ services:
       dockerfile: Dockerfile.agent
     env_file:
       - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://aethon:aethon@postgres:5432/aethon
     depends_on:
       - api
     restart: unless-stopped
     profiles:
       - agents
+
+volumes:
+  aethon_pg:

@@ -12,5 +12,6 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
+COPY openapi.yaml ./
 EXPOSE 3001
 CMD ["node", "dist/api/server.js"]

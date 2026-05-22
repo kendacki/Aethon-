@@ -1,19 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
-import { store } from "../services/store.js";
+import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
-
-const API_KEY = process.env.API_KEY ?? "dev-api-key";
+import { relayer, verifyTaskSignature } from "../services/relayer.js";
+import { requireApiKey } from "./middleware.js";
 
 export const writeRouter = Router();
-
-function requireApiKey(req: { header: (name: string) => string | undefined }, res: { status: (n: number) => { json: (b: unknown) => void } }, next: () => void) {
-  const key = req.header("x-api-key");
-  if (key !== API_KEY) {
-    return res.status(401).json({ error: "Invalid API key" });
-  }
-  next();
-}
 
 const registerSchema = z.object({
   address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -21,47 +13,63 @@ const registerSchema = z.object({
   metadataURI: z.string().optional(),
 });
 
-writeRouter.post("/agents/register", requireApiKey, (req, res) => {
-  const parsed = registerSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+writeRouter.post("/agents/register", requireApiKey, async (req, res, next) => {
+  try {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const record = {
-    address: parsed.data.address,
-    agentType: parsed.data.agentType,
-    stake: "0",
-    reputation: 100,
-    online: false,
-    lastHeartbeat: new Date().toISOString(),
-    metadataURI: parsed.data.metadataURI,
-  };
-  store.upsertAgent(record);
-  eventBus.publish("agents", "AGENT_PREREGISTERED", record);
-  res.status(201).json({ data: record });
+    const record = {
+      address: parsed.data.address,
+      agentType: parsed.data.agentType,
+      stake: "0",
+      reputation: 100,
+      online: false,
+      lastHeartbeat: new Date().toISOString(),
+      metadataURI: parsed.data.metadataURI,
+    };
+    await repo.upsertAgent(record);
+    eventBus.publish("agents", "AGENT_PREREGISTERED", { ...record });
+    res.status(201).json({ data: record });
+  } catch (err) {
+    next(err);
+  }
 });
 
 const submitTaskSchema = z.object({
-  taskHash: z.string(),
+  taskHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
   complexity: z.number().int().min(1).max(5),
-  rewardWei: z.string(),
+  rewardWei: z.string().regex(/^\d+$/),
   submitter: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-  signature: z.string().optional(),
+  signature: z.string().regex(/^0x[a-fA-F0-9]+$/),
 });
 
-writeRouter.post("/tasks/submit", (req, res) => {
-  const parsed = submitTaskSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+writeRouter.post("/tasks/submit", requireApiKey, async (req, res, next) => {
+  try {
+    const parsed = submitTaskSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const id = ++store.taskCounter;
-  const task = {
-    id,
-    submitter: parsed.data.submitter,
-    taskHash: parsed.data.taskHash,
-    reward: parsed.data.rewardWei,
-    complexity: parsed.data.complexity,
-    deadline: new Date(Date.now() + 3_600_000).toISOString(),
-    status: "PENDING" as const,
-  };
-  store.upsertTask(task);
-  eventBus.publish("tasks", "TASK_SUBMITTED", { taskId: id, reward: parsed.data.rewardWei });
-  res.status(201).json({ data: task, note: "Queued for on-chain submission by agent runtime" });
+    const { submitter, taskHash, complexity, rewardWei, signature } = parsed.data;
+    if (!verifyTaskSignature(submitter, taskHash, complexity, rewardWei, signature)) {
+      return res.status(401).json({ error: "Invalid submitter signature" });
+    }
+
+    const hasRelayer = Boolean(
+      process.env.RELAYER_PRIVATE_KEY ?? process.env.AGENT_PRIVATE_KEY ?? process.env.DEPLOYER_PK
+    );
+
+    if (hasRelayer && process.env.TASK_MARKET_ADDR) {
+      const { taskId, txHash } = await relayer.submitImmediate({ taskHash, complexity, rewardWei });
+      res.status(201).json({ data: { taskId, txHash, status: "SUBMITTED_ON_CHAIN" } });
+      return;
+    }
+
+    const outboxId = await repo.enqueueTaskOutbox({ submitter, taskHash, complexity, rewardWei, signature });
+    eventBus.publish("tasks", "TASK_QUEUED", { outboxId, submitter });
+    res.status(202).json({
+      data: { outboxId, status: "QUEUED" },
+      note: "Task queued; relayer will submit on-chain when configured",
+    });
+  } catch (err) {
+    next(err);
+  }
 });

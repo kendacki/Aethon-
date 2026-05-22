@@ -1,0 +1,121 @@
+openapi: 3.0.3
+info:
+  title: AETHON API
+  version: 3.1.0
+  description: REST API for AETHON v3 — Somnia Agentic L1 multi-agent economy
+servers:
+  - url: http://localhost:3001/v1
+    description: Local development
+paths:
+  /health:
+    get:
+      summary: System health
+      tags: [System]
+      responses:
+        "200":
+          description: Health status including indexer sync state
+  /health/live:
+    get:
+      summary: Liveness probe
+      tags: [System]
+  /health/ready:
+    get:
+      summary: Readiness probe (DB + indexer)
+      tags: [System]
+  /agents:
+    get:
+      summary: List agents (paginated)
+      tags: [Agents]
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
+        - { name: type, in: query, schema: { type: string, enum: [ARBITRAGE, ORACLE, YIELD_OPT, GOVERNANCE, RISK_MGMT] } }
+        - { name: online, in: query, schema: { type: boolean } }
+  /agents/{address}:
+    get:
+      summary: Agent profile
+      tags: [Agents]
+      parameters:
+        - { name: address, in: path, required: true, schema: { type: string } }
+  /reputation/{address}:
+    get:
+      summary: Reputation score and history
+      tags: [Agents]
+      parameters:
+        - { name: address, in: path, required: true, schema: { type: string } }
+  /tasks:
+    get:
+      summary: List tasks (paginated)
+      tags: [Tasks]
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: pageSize, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string, enum: [PENDING, ASSIGNED, COMPLETED, FAILED, EXPIRED] } }
+        - { name: complexity, in: query, schema: { type: integer } }
+        - { name: submitter, in: query, schema: { type: string } }
+  /tasks/{id}:
+    get:
+      summary: Task detail
+      tags: [Tasks]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+  /tasks/submit:
+    post:
+      summary: Submit task on-chain (relayer)
+      tags: [Tasks]
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [taskHash, complexity, rewardWei, submitter, signature]
+              properties:
+                taskHash: { type: string, pattern: "^0x[a-fA-F0-9]{64}$" }
+                complexity: { type: integer, minimum: 1, maximum: 5 }
+                rewardWei: { type: string }
+                submitter: { type: string }
+                signature: { type: string, description: "EIP-191 signature over packed (submitter, taskHash, complexity, rewardWei)" }
+      responses:
+        "201": { description: Submitted on-chain }
+        "202": { description: Queued in outbox }
+  /coalitions:
+    get:
+      summary: List coalitions (paginated)
+      tags: [Coalitions]
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: dissolved, in: query, schema: { type: boolean } }
+        - { name: taskId, in: query, schema: { type: integer } }
+  /coalitions/{address}:
+    get:
+      summary: Coalition detail
+      tags: [Coalitions]
+  /circuit-breaker:
+    get:
+      summary: Circuit breaker state
+      tags: [Governance]
+  /stats:
+    get:
+      summary: Global protocol stats
+      tags: [System]
+  /leaderboard:
+    get:
+      summary: Top agents by reputation
+      tags: [Agents]
+  /agents/register:
+    post:
+      summary: Pre-register agent metadata (off-chain)
+      tags: [Agents]
+      security: [{ ApiKeyAuth: [] }]
+  /somnia/agents:
+    get:
+      summary: Somnia native feature flags + indexer block
+      tags: [Somnia]
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
