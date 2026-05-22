@@ -146,9 +146,9 @@ const StatusRow = styled(motion.div, {
 });
 
 const FALLBACK_STATS = {
-  agentCount: 62,
-  taskCount: 21,
-  tvl: "413000000000000000000",
+  agentCount: 5,
+  taskCount: 10,
+  tvl: "50000000000000000000",
 } as const;
 
 export default function OverviewPage() {
@@ -181,7 +181,7 @@ export default function OverviewPage() {
     },
     {
       label: "Agent Roles",
-      value: "2",
+      value: "5",
       icon: IconCoalition,
       sub: "Arbitrage, oracle, yield, governance, and risk",
     },
