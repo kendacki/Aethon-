@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
-import { IconTask } from "../components/icons";
+import { IconTask, ICON_MD } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 
@@ -72,7 +72,7 @@ export default function TasksPage() {
             <Badge accent>Task Market</Badge>
             <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Open work queue</Heading>
             <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-              Real-time task feed · {connected ? "Connected" : "Reconnecting…"}
+              Live task feed. {connected ? "Connected" : "Reconnecting"}
             </p>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function TasksPage() {
           ))}
         </div>
 
-        {loading && tasks.length === 0 && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading tasks…</p>}
+        {loading && tasks.length === 0 && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading tasks</p>}
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <AnimatePresence mode="popLayout">
@@ -101,7 +101,7 @@ export default function TasksPage() {
                 <Card>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      <IconTask size={24} />
+                      <IconTask size={ICON_MD} />
                       <div>
                         <div style={{ fontWeight: 700 }}>Task #{task.id}</div>
                         <div style={{ fontSize: "0.75rem", opacity: 0.72 }}>
@@ -114,7 +114,7 @@ export default function TasksPage() {
                       <span style={{ fontWeight: 600 }}>{formatEth(task.reward)}</span>
                       {task.coalitionAddr && (
                         <Link to={`/coalitions/${task.coalitionAddr}`} style={{ fontSize: "0.75rem", opacity: 0.82, textDecoration: "underline" }}>
-                          Coalition →
+                          View coalition
                         </Link>
                       )}
                     </div>
@@ -127,9 +127,9 @@ export default function TasksPage() {
 
         {data && data.pagination.total > 20 && (
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center" }}>
-            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>← Prev</button>
+            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Prev</button>
             <span style={{ opacity: 0.72 }}>Page {page + 1}</span>
-            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next →</button>
+            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next</button>
           </div>
         )}
       </Section>

@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { Badge, Card, Grid, PageWrap, Section, StatValue } from "../components/ui";
-import { IconArrowLeft, IconTrend } from "../components/icons";
+import { IconArrowLeft, IconTrend, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
 
 export default function AgentDetailPage() {
@@ -11,14 +11,14 @@ export default function AgentDetailPage() {
   const { data: agent, loading } = useFetch(() => api.agent(addr!), [addr]);
   const { data: rep } = useFetch(() => api.reputation(addr!), [addr]);
 
-  if (loading) return <PageWrap><Section>Loading agent…</Section></PageWrap>;
+  if (loading) return <PageWrap><Section>Loading agent</Section></PageWrap>;
   if (!agent) return <PageWrap><Section>Agent not found</Section></PageWrap>;
 
   return (
     <PageWrap>
       <Section>
         <Link to="/agents" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "2rem" }}>
-          <IconArrowLeft size={16} /> Back to fleet
+          <IconArrowLeft size={ICON_SM} /> Back to fleet
         </Link>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
@@ -46,7 +46,7 @@ export default function AgentDetailPage() {
           {rep && rep.history.length > 0 && (
             <Card style={{ marginTop: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
-                <IconTrend size={20} />
+                <IconTrend size={ICON_LG} />
                 <h2 style={{ fontWeight: 700 }}>Reputation History</h2>
               </div>
               {rep.history.map((h, i) => (
@@ -58,7 +58,7 @@ export default function AgentDetailPage() {
                   style={{ display: "flex", justifyContent: "space-between", padding: "0.75rem 0", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "0.875rem" }}
                 >
                   <span>{h.reason}</span>
-                  <span>{h.oldScore} → <strong>{h.newScore}</strong></span>
+                  <span>{h.oldScore} to <strong>{h.newScore}</strong></span>
                   <span style={{ opacity: 0.6 }}>{new Date(h.createdAt).toLocaleDateString()}</span>
                 </motion.div>
               ))}

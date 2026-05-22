@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
-import { IconMedal, IconTrophy } from "../components/icons";
+import { IconMedal, IconTrophy, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
 
 export default function LeaderboardPage() {
@@ -14,11 +14,11 @@ export default function LeaderboardPage() {
   return (
     <PageWrap>
       <Section>
-        <Badge accent><IconTrophy size={14} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
+        <Badge accent><IconTrophy size={ICON_SM} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Top agents by reputation</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Rankings reflect on-chain performance and verified task outcomes.</p>
+        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Rankings reflect on chain performance and verified task outcomes.</p>
 
-        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading rankings…</p>}
+        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading rankings</p>}
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {data?.data.map((agent, i) => {
@@ -28,7 +28,7 @@ export default function LeaderboardPage() {
                 <Link to={`/agents/${agent.address}`}>
                   <Card style={{ display: "flex", alignItems: "center", gap: "1.5rem", cursor: "pointer" }}>
                     <div style={{ fontSize: "1.5rem", fontWeight: 800, width: 40, opacity: rank <= 3 ? 1 : 0.72 }}>
-                      {rank <= 3 ? <IconMedal size={24} /> : `#${rank}`}
+                      {rank <= 3 ? <IconMedal size={ICON_LG} /> : `#${rank}`}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700 }}>{agent.agentType}</div>
@@ -47,8 +47,8 @@ export default function LeaderboardPage() {
 
         {data && data.pagination.total > 20 && (
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center" }}>
-            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>← Prev</button>
-            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next →</button>
+            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Prev</button>
+            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next</button>
           </div>
         )}
       </Section>

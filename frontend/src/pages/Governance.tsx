@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
-import { IconAlert, IconClock, IconShield } from "../components/icons";
+import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -15,11 +15,11 @@ export default function GovernancePage() {
 
   useEffect(() => {
     if (lastEvent?.type === "CIRCUIT_BREAK") {
-      setToast("Circuit breaker triggered — all operations halted");
+      setToast("Circuit breaker triggered. All operations halted.");
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      setToast("Guardian reset circuit — timelock enforced");
+      setToast("Guardian reset circuit. Timelock enforced.");
       reload();
     }
   }, [lastEvent, reload]);
@@ -28,25 +28,25 @@ export default function GovernancePage() {
     <PageWrap>
       <Section>
         <Badge accent>
-          <IconShield size={14} style={{ display: "inline", marginRight: 4 }} />
+          <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
           Governance
         </Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety controls</Heading>
         <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82 }}>
-          The guardian multisig manages circuit resets after a one-hour timelock. Three consecutive task failures halt the system.
+          The guardian multisig manages circuit resets after a one hour timelock. Three consecutive task failures halt the system.
         </p>
 
-        {loading && <p style={{ marginTop: "2rem" }}>Loading…</p>}
+        {loading && <p style={{ marginTop: "2rem" }}>Loading</p>}
 
         {cb && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
             <Card style={{ marginTop: "2rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : undefined }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                {cb.paused ? <IconAlert size={32} /> : <IconShield size={32} />}
+                {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
                 <div>
                   <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System Halted" : "System Operational"}</div>
                   <div style={{ opacity: 0.72, fontSize: "0.875rem" }}>
-                    {cb.paused ? "Circuit breaker active — awaiting guardian reset" : "All contracts accepting transactions"}
+                    {cb.paused ? "Circuit breaker active. Awaiting guardian reset." : "All contracts accepting transactions"}
                   </div>
                 </div>
               </div>
@@ -58,7 +58,7 @@ export default function GovernancePage() {
                 <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Consecutive Failures</div>
               </Card>
               <Card>
-                <IconClock size={24} style={{ marginBottom: 8 }} />
+                <IconClock size={ICON_LG} style={{ marginBottom: 8 }} />
                 <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
                 <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset Timelock</div>
               </Card>

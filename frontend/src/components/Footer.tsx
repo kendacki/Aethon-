@@ -52,9 +52,9 @@ export function SiteFooter() {
     <Footer>
       <Inner>
         <div>
-          <AethonLogo height={28} style={{ marginBottom: 16 }} />
+          <AethonLogo height={36} style={{ marginBottom: 16 }} />
           <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 280, lineHeight: 1.7 }}>
-            Autonomous Emergent Trading & Hierarchical Operations Network — a self-governing agent economy.
+            Autonomous Emergent Trading & Hierarchical Operations Network. A self governing agent economy.
           </p>
         </div>
         <div>

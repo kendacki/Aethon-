@@ -68,7 +68,7 @@ export function Navbar() {
     <Nav>
       <Inner>
         <LogoLink to="/">
-          <AethonLogo height={32} />
+          <AethonLogo height={40} />
         </LogoLink>
         <Links>
           {links.map((l) => (
@@ -107,7 +107,7 @@ export function LoadingScreen() {
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       >
-        <AethonLogo height={56} />
+        <AethonLogo height={72} />
       </motion.div>
       <motion.div
         style={{ width: 120, height: 2, background: "rgba(255,255,255,0.12)", borderRadius: 999, overflow: "hidden" }}

@@ -2,6 +2,11 @@ import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
+export const ICON_SM = 20;
+export const ICON_MD = 32;
+export const ICON_LG = 40;
+export const ICON_XL = 48;
+
 const base = (size: number) => ({
   width: size,
   height: size,
@@ -11,7 +16,7 @@ const base = (size: number) => ({
 });
 
 /** Isometric 3D icons — no background containers, white faces with depth shading */
-export function IconAgent({ size = 24, ...props }: IconProps) {
+export function IconAgent({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M24 6 L38 14 L38 26 L24 34 L10 26 L10 14 Z" fill="#FFFFFF" fillOpacity="0.35" />
@@ -24,7 +29,7 @@ export function IconAgent({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconTask({ size = 24, ...props }: IconProps) {
+export function IconTask({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M14 30 L24 36 L34 30 L34 18 L24 12 L14 18 Z" fill="#FFFFFF" fillOpacity="0.4" />
@@ -36,7 +41,7 @@ export function IconTask({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconShield({ size = 24, ...props }: IconProps) {
+export function IconShield({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M24 8 L36 14 V26 C36 32 30 38 24 40 C18 38 12 32 12 26 V14 Z" fill="#FFFFFF" fillOpacity="0.45" />
@@ -47,7 +52,7 @@ export function IconShield({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconActivity({ size = 24, ...props }: IconProps) {
+export function IconActivity({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M8 34 L16 22 L24 28 L32 14 L40 18" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -58,7 +63,7 @@ export function IconActivity({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconTrophy({ size = 24, ...props }: IconProps) {
+export function IconTrophy({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M16 14 H32 V22 C32 28 28 32 24 32 C20 32 16 28 16 22 Z" fill="#FFFFFF" fillOpacity="0.55" />
@@ -72,7 +77,7 @@ export function IconTrophy({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconMedal({ size = 24, ...props }: IconProps) {
+export function IconMedal({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M18 8 L24 18 L30 8" fill="#FFFFFF" fillOpacity="0.6" />
@@ -85,7 +90,7 @@ export function IconMedal({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconCoalition({ size = 24, ...props }: IconProps) {
+export function IconCoalition({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <circle cx="16" cy="20" r="7" fill="#FFFFFF" fillOpacity="0.55" />
@@ -98,7 +103,7 @@ export function IconCoalition({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconTrend({ size = 24, ...props }: IconProps) {
+export function IconTrend({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M10 34 L10 14 H14 V30 H34 V34 Z" fill="#FFFFFF" fillOpacity="0.35" />
@@ -108,7 +113,7 @@ export function IconTrend({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconAlert({ size = 24, ...props }: IconProps) {
+export function IconAlert({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M24 8 L40 36 H8 Z" fill="#FFFFFF" fillOpacity="0.5" />
@@ -119,7 +124,7 @@ export function IconAlert({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconClock({ size = 24, ...props }: IconProps) {
+export function IconClock({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <ellipse cx="24" cy="26" rx="14" ry="6" fill="#FFFFFF" fillOpacity="0.25" />
@@ -131,7 +136,7 @@ export function IconClock({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconArrowLeft({ size = 24, ...props }: IconProps) {
+export function IconArrowLeft({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M28 12 L16 24 L28 36" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -140,7 +145,7 @@ export function IconArrowLeft({ size = 24, ...props }: IconProps) {
   );
 }
 
-export function IconArrowRight({ size = 24, ...props }: IconProps) {
+export function IconArrowRight({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>
       <path d="M20 12 L32 24 L20 36" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

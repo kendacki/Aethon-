@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
-import { IconAgent } from "../components/icons";
+import { IconAgent, ICON_LG } from "../components/icons";
 import { spring } from "../stitches.config";
 
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
@@ -30,7 +30,7 @@ export default function AgentsPage() {
         <Badge accent>Agent Fleet</Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Registered specialists</Heading>
         <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-          Five agent types discover peers, register on-chain, and execute strategies autonomously.
+          Five agent types discover peers, register on chain, and execute strategies autonomously.
         </p>
 
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "2rem", flexWrap: "wrap" }}>
@@ -41,7 +41,7 @@ export default function AgentsPage() {
           ))}
         </div>
 
-        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading fleet…</p>}
+        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading fleet</p>}
 
         <Grid cols={3} style={{ marginTop: "2rem" }}>
           {data?.data.map((agent, i) => (
@@ -49,7 +49,7 @@ export default function AgentsPage() {
               <Link to={`/agents/${agent.address}`}>
                 <Card style={{ cursor: "pointer" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                    <IconAgent size={28} />
+                    <IconAgent size={ICON_LG} />
                     <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
                   </div>
                   <div style={{ fontWeight: 700, marginTop: "1rem" }}>{agent.agentType}</div>
@@ -66,9 +66,9 @@ export default function AgentsPage() {
 
         {data && data.pagination.total > 20 && (
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center" }}>
-            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>← Prev</button>
+            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>Prev</button>
             <span style={{ opacity: 0.72 }}>Page {page + 1}</span>
-            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next →</button>
+            <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>Next</button>
           </div>
         )}
       </Section>
