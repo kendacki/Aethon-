@@ -62,26 +62,25 @@ const HeroInner = styled("div", {
 
 const HeroContent = styled("div", {
   width: "100%",
-  maxWidth: "100%",
+  maxWidth: "480px",
 });
 
-const HeroLine = styled("h1", {
+const HeroHeading = styled("h1", {
   fontFamily: "$sans",
   fontWeight: "$extrabold",
-  fontSize: "clamp(1.5rem, 4vw, 2.25rem)",
-  lineHeight: 1.1,
+  fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
+  lineHeight: 1.15,
   letterSpacing: "-0.03em",
   color: "$text",
-  whiteSpace: "normal",
-  "@md": {
-    fontSize: "clamp(2.25rem, 4.5vw, 4rem)",
-    whiteSpace: "nowrap",
-  },
 });
 
-const HeroLineMuted = styled("span", {
-  fontWeight: "$semibold",
-  opacity: 0.82,
+const HeroSub = styled("p", {
+  fontSize: "$md",
+  color: "$text",
+  opacity: 0.8,
+  lineHeight: 1.6,
+  marginTop: "$3",
+  maxWidth: "22rem",
 });
 
 const StatsSection = styled(Section, {
@@ -201,9 +200,8 @@ export default function OverviewPage() {
         <HeroScrim aria-hidden />
         <HeroInner>
           <HeroContent as={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <HeroLine>
-              Swarm Autonomous agents. <HeroLineMuted>Self organizing fleets on chain.</HeroLineMuted>
-            </HeroLine>
+            <HeroHeading>Swarm Autonomous agents.</HeroHeading>
+            <HeroSub>Self organizing fleets on chain.</HeroSub>
             <ActionRow>
               <Button variant="primary" as={Link} to="/agents">
                 View Fleet <IconArrowRight size={ICON_SM} />
