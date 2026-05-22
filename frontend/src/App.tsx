@@ -18,6 +18,14 @@ const Shell = styled("div", {
   display: "flex",
   flexDirection: "column",
   background: "$bg",
+  position: "relative",
+});
+
+const Main = styled("div", {
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  paddingBottom: "$6",
 });
 
 function AnimatedRoutes() {
@@ -61,7 +69,9 @@ export default function App() {
         {!loading && (
           <>
             <Navbar />
-            <AnimatedRoutes />
+            <Main>
+              <AnimatedRoutes />
+            </Main>
             <SiteFooter />
           </>
         )}
