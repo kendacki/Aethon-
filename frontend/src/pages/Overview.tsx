@@ -6,7 +6,24 @@ import { Badge, Button, Card, Grid, Section, StatValue } from "../components/ui"
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
-import { spring } from "../stitches.config";
+import {
+  healthBadge,
+  healthSequence,
+  heroBgTransition,
+  heroButton,
+  heroItem,
+  heroScrimTransition,
+  heroSequence,
+  protocolCard,
+  protocolCards,
+  protocolContent,
+  protocolItem,
+  protocolPanel,
+  statCard,
+  statsSequence,
+  statValue,
+  viewportOnce,
+} from "../motion/overview";
 import { useState, useEffect } from "react";
 import { styled } from "../stitches.config";
 
@@ -99,7 +116,7 @@ const StatCard = styled(Card, {
   flexDirection: "column",
 });
 
-const ActionRow = styled("div", {
+const ActionRow = styled(motion.div, {
   display: "flex",
   marginTop: "$5",
   alignItems: "center",
@@ -121,6 +138,8 @@ const ProtocolGlass = styled(GlassPanel, {
   defaultVariants: { radius: "full" },
 });
 
+const ProtocolGlassMotion = motion(ProtocolGlass);
+
 const SectionTitle = styled("h2", {
   fontSize: "$2xl",
   fontWeight: "$extrabold",
@@ -139,6 +158,8 @@ const CardBody = styled("p", {
   lineHeight: 1.65,
 });
 
+const ProtocolCardMotion = motion(GlassCard);
+
 const StatusRow = styled(motion.div, {
   marginTop: "$8",
   display: "flex",
@@ -146,6 +167,23 @@ const StatusRow = styled(motion.div, {
   flexWrap: "wrap",
   alignItems: "center",
 });
+
+const BadgeMotion = motion(Badge);
+
+const PROTOCOL_FEATURES = [
+  {
+    title: "Event Driven Execution",
+    body: "Tasks emit on chain events that agents respond to instantly. No polling. No lag.",
+  },
+  {
+    title: "Coalition Formation",
+    body: "Agents bind into stake weighted groups with cryptographic signatures and quorum rules.",
+  },
+  {
+    title: "Continuous Liveness",
+    body: "Low cost heartbeat checks keep the fleet accountable at scale.",
+  },
+] as const;
 
 const FALLBACK_STATS = {
   agentCount: 5,
@@ -195,16 +233,44 @@ export default function OverviewPage() {
     },
   ];
 
+  const healthBadges = health
+    ? [
+        { key: "sync", status: health.synced ? ("online" as const) : ("offline" as const), label: health.synced ? "Indexer Synced" : "Syncing" },
+        { key: "block", label: `Block ${health.blockNumber.toLocaleString()}` },
+        {
+          key: "circuit",
+          status: health.circuitBreakerPaused ? ("offline" as const) : ("online" as const),
+          label: `Circuit ${health.circuitBreakerPaused ? "HALTED" : "OK"}`,
+        },
+      ]
+    : [];
+
   return (
     <Home>
       <HeroSection>
-        <HeroBg aria-hidden />
-        <HeroScrim aria-hidden />
+        <HeroBg
+          as={motion.div}
+          aria-hidden
+          initial={{ scale: 1.07, opacity: 0.4 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={heroBgTransition}
+        />
+        <HeroScrim
+          as={motion.div}
+          aria-hidden
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={heroScrimTransition}
+        />
         <HeroInner>
-          <HeroContent as={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <HeroHeading>Swarm Autonomous agents.</HeroHeading>
-            <HeroSub>Self organizing fleets on chain.</HeroSub>
-            <ActionRow>
+          <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
+            <motion.div variants={heroItem}>
+              <HeroHeading>Swarm Autonomous agents.</HeroHeading>
+            </motion.div>
+            <motion.div variants={heroItem}>
+              <HeroSub>Self organizing fleets on chain.</HeroSub>
+            </motion.div>
+            <ActionRow variants={heroButton}>
               <Button variant="primary" size="sm" as={Link} to="/agents">
                 View Fleet <IconArrowRight size={16} />
               </Button>
@@ -214,12 +280,14 @@ export default function OverviewPage() {
       </HeroSection>
 
       <StatsSection>
-        <Grid cols={4}>
-          {statCards.map((s, i) => (
-            <StatCell key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: i * 0.08 }} viewport={{ once: true }}>
+        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          {statCards.map((s) => (
+            <StatCell key={s.label} variants={statCard}>
               <StatCard>
                 <s.icon size={ICON_LG} style={{ marginBottom: 12, flexShrink: 0 }} />
-                <StatValue>{s.value}</StatValue>
+                <StatValue as={motion.div} key={s.value} variants={statValue} initial="hidden" animate="show">
+                  {s.value}
+                </StatValue>
                 <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
                 <div style={{ fontSize: "0.75rem", opacity: 0.72, marginTop: "auto", paddingTop: 8 }}>{s.sub}</div>
               </StatCard>
@@ -229,35 +297,33 @@ export default function OverviewPage() {
       </StatsSection>
 
       <ProtocolBand>
-        <ProtocolGlass>
-          <GlassContent>
-            <Badge accent>Protocol</Badge>
-            <SectionTitle>How the network runs</SectionTitle>
-            <Grid cols={3} style={{ marginTop: "2rem" }}>
-              <GlassCard>
-                <CardTitle>Event Driven Execution</CardTitle>
-                <CardBody>Tasks emit on chain events that agents respond to instantly. No polling. No lag.</CardBody>
-              </GlassCard>
-              <GlassCard>
-                <CardTitle>Coalition Formation</CardTitle>
-                <CardBody>Agents bind into stake weighted groups with cryptographic signatures and quorum rules.</CardBody>
-              </GlassCard>
-              <GlassCard>
-                <CardTitle>Continuous Liveness</CardTitle>
-                <CardBody>Low cost heartbeat checks keep the fleet accountable at scale.</CardBody>
-              </GlassCard>
+        <ProtocolGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
+            <motion.div variants={protocolItem}>
+              <Badge accent>Protocol</Badge>
+            </motion.div>
+            <motion.div variants={protocolItem}>
+              <SectionTitle>How the network runs</SectionTitle>
+            </motion.div>
+            <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
+              {PROTOCOL_FEATURES.map((feature) => (
+                <ProtocolCardMotion key={feature.title} variants={protocolCard}>
+                  <CardTitle>{feature.title}</CardTitle>
+                  <CardBody>{feature.body}</CardBody>
+                </ProtocolCardMotion>
+              ))}
             </Grid>
             {health && (
-              <StatusRow initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <Badge status={health.synced ? "online" : "offline"}>{health.synced ? "Indexer Synced" : "Syncing"}</Badge>
-                <Badge>Block {health.blockNumber.toLocaleString()}</Badge>
-                <Badge status={health.circuitBreakerPaused ? "offline" : "online"}>
-                  Circuit {health.circuitBreakerPaused ? "HALTED" : "OK"}
-                </Badge>
+              <StatusRow variants={healthSequence} initial="hidden" animate="show">
+                {healthBadges.map((badge) => (
+                  <BadgeMotion key={badge.key} variants={healthBadge} status={badge.status}>
+                    {badge.label}
+                  </BadgeMotion>
+                ))}
               </StatusRow>
             )}
           </GlassContent>
-        </ProtocolGlass>
+        </ProtocolGlassMotion>
       </ProtocolBand>
 
       <Notification message={toast} onClose={() => setToast("")} />
