@@ -1,9 +1,13 @@
 import { styled } from "../stitches.config";
 
 export const Footer = styled("footer", {
-  borderTop: "1px solid $border",
-  padding: "$12 $6",
   marginTop: "auto",
+  padding: "$12 $6 $8",
+  background: "rgba(0, 0, 0, 0.55)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.45)",
 });
 
 const Inner = styled("div", {
@@ -29,7 +33,17 @@ const Link = styled("a", {
   color: "$text",
   opacity: 0.72,
   marginBottom: "$2",
+  transition: "opacity 150ms ease",
   "&:hover": { opacity: 1 },
+});
+
+const Copyright = styled("div", {
+  maxWidth: "1200px",
+  margin: "$8 auto 0",
+  paddingTop: "$6",
+  borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+  fontSize: "$xs",
+  opacity: 0.5,
 });
 
 export function SiteFooter() {
@@ -59,9 +73,7 @@ export function SiteFooter() {
           <Link href="/docs">OpenAPI</Link>
         </div>
       </Inner>
-      <div style={{ maxWidth: 1200, margin: "2rem auto 0", fontSize: "0.75rem", opacity: 0.5 }}>
-        © 2026 AETHON Protocol
-      </div>
+      <Copyright>© 2026 AETHON Protocol</Copyright>
     </Footer>
   );
 }
