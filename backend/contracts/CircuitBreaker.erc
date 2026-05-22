@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: MIT
+// File: CircuitBreaker.erc  (AETHON v3.0 — Somnia Agentic L1)
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+contract CircuitBreaker is AccessControl {
+    bytes32 public constant REPORTER_ROLE = keccak256("REPORTER_ROLE");
+    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
+
+    uint256 public constant RESET_TIMELOCK = 1 hours;
+    uint256 public constant FAILURE_THRESHOLD = 3;
+
+    uint256 public consecutiveFailures;
+    bool public paused;
+    uint256 public pausedAt;
+    uint256 public totalBreaks;
+
+    event CircuitBroken(uint256 failures, uint256 timestamp);
+    event CircuitReset(address guardian, uint256 timestamp);
+
+    constructor(address admin, address guardian, address[] memory initialReporters) {
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(GUARDIAN_ROLE, guardian);
+        for (uint256 i; i < initialReporters.length; i++) {
+            _grantRole(REPORTER_ROLE, initialReporters[i]);
+        }
+    }
+
+    function reportFailure() external onlyRole(REPORTER_ROLE) {
+        consecutiveFailures++;
+        if (consecutiveFailures >= FAILURE_THRESHOLD && !paused) {
+            paused = true;
+            pausedAt = block.timestamp;
+            totalBreaks++;
+            emit CircuitBroken(consecutiveFailures, block.timestamp);
+        }
+    }
+
+    function reportSuccess() external onlyRole(REPORTER_ROLE) {
+        consecutiveFailures = 0;
+    }
+
+    function reset() external onlyRole(GUARDIAN_ROLE) {
+        require(paused, "Not paused");
+        require(block.timestamp >= pausedAt + RESET_TIMELOCK, "Reset timelock active");
+        paused = false;
+        consecutiveFailures = 0;
+        emit CircuitReset(msg.sender, block.timestamp);
+    }
+
+    function isPaused() external view returns (bool) {
+        return paused;
+    }
+}

@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: MIT
+// File: CoalitionManager.erc  (AETHON v3.0 — Somnia Agentic L1)
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./interfaces/IAgentRegistry.erc";
+import "./interfaces/IReputationEngine.erc";
+import "./interfaces/ICircuitBreaker.erc";
+
+contract CoalitionManager is ReentrancyGuard {
+    using ECDSA for bytes32;
+
+    struct Coalition {
+        address[] members;
+        address leadAgent;
+        uint256 formed;
+        uint256 taskId;
+        bool dissolved;
+        uint256 totalStake;
+    }
+
+    IAgentRegistry public registry;
+    IReputationEngine public repEngine;
+    ICircuitBreaker public circuitBreaker;
+
+    mapping(address => Coalition) public coalitions;
+
+    event CoalitionFormed(address indexed coalition, address lead, address[] members, uint256 taskId);
+    event CoalitionDissolved(address indexed coalition, string reason);
+    event RewardDistributed(address indexed coalition, uint256 total);
+
+    constructor(address _registry, address _repEngine, address _cb) {
+        registry = IAgentRegistry(_registry);
+        repEngine = IReputationEngine(_repEngine);
+        circuitBreaker = ICircuitBreaker(_cb);
+    }
+
+    function formCoalition(
+        address[] calldata _members,
+        uint256 _taskId,
+        bytes[] calldata _signatures
+    ) external returns (address coalitionAddr) {
+        require(_members.length >= 1 && _members.length <= 5, "Invalid size");
+        require(_signatures.length == _members.length, "Sig count mismatch");
+        bytes32 msgHash = keccak256(abi.encodePacked(_members, _taskId));
+        for (uint256 i; i < _members.length; i++) {
+            require(registry.isAgentActive(_members[i]), "Inactive member");
+            address signer = msgHash.toEthSignedMessageHash().recover(_signatures[i]);
+            require(signer == _members[i], "Invalid sig");
+        }
+        coalitionAddr = address(uint160(uint256(keccak256(abi.encodePacked(_members, _taskId)))));
+        require(coalitions[coalitionAddr].formed == 0, "Coalition already exists for this members+task");
+
+        uint256 totalStake;
+        for (uint256 i; i < _members.length; i++) {
+            totalStake += registry.getAgentStake(_members[i]);
+        }
+
+        coalitions[coalitionAddr] = Coalition({
+            members: _members,
+            leadAgent: _members[0],
+            formed: block.timestamp,
+            taskId: _taskId,
+            dissolved: false,
+            totalStake: totalStake
+        });
+        emit CoalitionFormed(coalitionAddr, _members[0], _members, _taskId);
+    }
+
+    function isValidCoalition(address _coalition, uint256 _complexity) external view returns (bool) {
+        Coalition storage c = coalitions[_coalition];
+        if (c.dissolved || c.formed == 0) return false;
+        if (c.members.length < _complexity) return false;
+        for (uint256 i; i < c.members.length; i++) {
+            if (!registry.isAgentActive(c.members[i])) return false;
+        }
+        return true;
+    }
+
+    function distributeReward(address _coalition) external payable nonReentrant {
+        Coalition storage c = coalitions[_coalition];
+        require(!c.dissolved, "Coalition dissolved");
+        uint256 n = c.members.length;
+        uint256 share = msg.value / n;
+        uint256 dust = msg.value % n;
+        for (uint256 i; i < n; i++) {
+            repEngine.applyBonus(c.members[i], 2);
+            uint256 amt = (i == n - 1) ? share + dust : share;
+            (bool ok,) = c.members[i].call{value: amt}("");
+            require(ok, "Payment failed");
+        }
+        emit RewardDistributed(_coalition, msg.value);
+    }
+
+    function dissolveCoalition(address _coalition, string calldata _reason) external {
+        Coalition storage c = coalitions[_coalition];
+        require(!c.dissolved, "Already dissolved");
+        require(
+            msg.sender == c.leadAgent || msg.sender == address(circuitBreaker),
+            "Not authorized to dissolve"
+        );
+        c.dissolved = true;
+        emit CoalitionDissolved(_coalition, _reason);
+    }
+}

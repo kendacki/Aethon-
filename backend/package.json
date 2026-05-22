@@ -1,0 +1,39 @@
+{
+  "name": "aethon-backend",
+  "version": "3.0.0",
+  "description": "AETHON v3.0 — Agent Runtime, REST API, WebSocket, and Somnia contract tooling",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev:api": "tsx watch src/api/server.ts",
+    "dev:agent": "tsx watch src/agent/index.ts",
+    "start:api": "node dist/api/server.js",
+    "start:agent": "node dist/agent/index.js",
+    "compile": "node scripts/sync-erc.cjs && hardhat compile",
+    "test:contracts": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy_v3.cjs --network somniaTestnet",
+    "deploy:local": "hardhat run scripts/deploy_v3.cjs --network hardhat"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^4.9.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.5",
+    "@types/ws": "^8.5.13",
+    "hardhat": "^2.22.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

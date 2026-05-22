@@ -1,0 +1,29 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Hardhat / Solidity
+cache/
+artifacts/
+typechain-types/
+contracts/**/*.sol
+
+# Logs & coverage
+*.log
+npm-debug.log*
+coverage/
+.nyc_output/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

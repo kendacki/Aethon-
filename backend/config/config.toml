@@ -1,0 +1,30 @@
+# config.toml — Somnia Node Configuration (AETHON v3.0 reference)
+
+[node]
+network       = "somnia-mainnet"
+chain_id      = 50312
+rpc_port      = 8545
+ws_port       = 8546
+p2p_port      = 30303
+
+[adp]
+enabled       = true
+adp_port      = 9090
+discovery_ttl = 300
+max_agents    = 10000
+
+[somnia_agents]
+enabled              = true
+api_query_enabled    = true
+reactivity_enabled   = true
+data_streams_enabled = true
+
+[performance]
+block_time_ms = 400
+max_gas       = 30000000
+priority_fee  = "1gwei"
+
+[security]
+enable_firewall = true
+allowed_rpc     = ["127.0.0.1", "10.0.0.0/8"]
+rate_limit_rps  = 500
