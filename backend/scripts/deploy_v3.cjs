@@ -48,6 +48,9 @@ async function main() {
 
   console.log("Deploying AETHON v3.0...");
   console.log("Deployer:", deployer.address);
+  console.log("Guardian:  ", guardian);
+  console.log("Treasury:   ", treasury);
+  console.log("Slash MSIG: ", multisig);
 
   const RepEngine = await ethers.getContractFactory("ReputationEngine");
   const repEngine = await RepEngine.deploy(deployer.address);
@@ -92,6 +95,7 @@ async function main() {
     chainId: Number((await ethers.provider.getNetwork()).chainId),
     deployedAt: new Date().toISOString(),
     deployer: deployer.address,
+    roles: { guardian, treasury, slashMultisig: multisig },
     addresses: {
       ReputationEngine: repEngineAddr,
       CircuitBreaker: cbAddr,

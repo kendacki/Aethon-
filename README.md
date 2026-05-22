@@ -14,19 +14,20 @@ Aethon/
 └── frontend/         # Dashboard UI (separate from backend)
 ```
 
-## Deployed Contracts (Somnia Shannon Testnet)
+## Deployed Contracts (Somnia Shannon Testnet — v2)
 
 | Contract | Address |
 |----------|---------|
-| ReputationEngine | `0x019Fee1a689A8Edc6A9B6357054F5b8551e4f16E` |
-| CircuitBreaker | `0xBCA203Ea98C106Af57Fa1d1E756faF3075905C1A` |
-| AgentRegistry | `0xeB7765Aea20611039E0D521C4c3Be7aD2E0eE052` |
-| CoalitionManager | `0xE4A221E12B9216F6E891df166ceAd7A5C72f32bf` |
-| TaskMarket | `0xf836e1D3Fc709A81E26B512E7914AdEd64fcDdc1` |
+| ReputationEngine | `0x12763B8867c90C557f619e4ef426290f8757B9CF` |
+| CircuitBreaker | `0x3716d9027c70C3dc3eCa4FaE842ba96aC5114295` |
+| AgentRegistry | `0x198E4465d07EdB5A31226172874C9214f6307929` |
+| CoalitionManager | `0x4334D6Cbabb89Be5f9580eD7DA4C7D7e3A653B11` |
+| TaskMarket | `0xb08F31f3394E712b2D248D0bc4eA986D2c94ca4b` |
 
-Deployer: `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6`  
+**Roles (all `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6`):** Guardian · Treasury · Slash Multisig
+
 Full record: `backend/deployments/somniaTestnet-50312.json`  
-Explorer: [TaskMarket on Shannon Explorer](https://shannon-explorer.somnia.network/address/0xf836e1D3Fc709A81E26B512E7914AdEd64fcDdc1)
+Explorer: [TaskMarket on Shannon Explorer](https://shannon-explorer.somnia.network/address/0xb08F31f3394E712b2D248D0bc4eA986D2c94ca4b)
 
 ## Quick Start
 
