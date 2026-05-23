@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import { createServer } from "http";
 import fs from "fs";
@@ -21,6 +20,8 @@ import {
   tasksRouter,
 } from "./routes.js";
 import { writeRouter } from "./writeRoutes.js";
+import { authRouter } from "./auth.js";
+import { globalLimiter, strictLimiter } from "./rateLimiter.js";
 import { attachWebSocket } from "./websocket.js";
 import { migrate } from "../db/migrate.js";
 import { pool } from "../db/client.js";
@@ -35,17 +36,11 @@ const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
 
 const corsOrigin = process.env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? ["http://localhost:5173", "http://localhost:3000"];
 
+app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "1mb" }));
-app.use(
-  rateLimit({
-    windowMs: 60_000,
-    max: Number(process.env.RATE_LIMIT_RPM ?? 500),
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-);
+app.use(globalLimiter);
 
 const openapiPath = path.join(__dirname, "../../openapi.yaml");
 if (fs.existsSync(openapiPath)) {
@@ -58,6 +53,7 @@ app.get("/", (_req, res) => {
 });
 
 const v1 = express.Router();
+v1.use("/auth", strictLimiter, authRouter);
 v1.use("/health", healthRouter);
 v1.use("/agents", agentsRouter);
 v1.use("/reputation", reputationRouter);

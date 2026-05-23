@@ -3,7 +3,7 @@ import { z } from "zod";
 import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
 import { relayer, verifyTaskSignature } from "../services/relayer.js";
-import { requireApiKey } from "./middleware.js";
+import { requireAuth } from "./authenticateToken.js";
 
 export const writeRouter = Router();
 
@@ -13,7 +13,7 @@ const registerSchema = z.object({
   metadataURI: z.string().optional(),
 });
 
-writeRouter.post("/agents/register", requireApiKey, async (req, res, next) => {
+writeRouter.post("/agents/register", requireAuth, async (req, res, next) => {
   try {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -43,7 +43,7 @@ const submitTaskSchema = z.object({
   signature: z.string().regex(/^0x[a-fA-F0-9]+$/),
 });
 
-writeRouter.post("/tasks/submit", requireApiKey, async (req, res, next) => {
+writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
   try {
     const parsed = submitTaskSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });

@@ -1,7 +1,7 @@
 import { env } from "../config/env";
+import { authHeaders } from "../auth/token";
 
 const API_BASE = env.apiBase;
-const API_KEY = env.apiKey;
 
 export interface Paginated<T> {
   data: T[];
@@ -77,8 +77,18 @@ export interface Reputation {
   history: Array<{ oldScore: number; newScore: number; reason: string; createdAt: string }>;
 }
 
-async function fetchApi<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
+async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+      ...(init?.headers as Record<string, string> | undefined),
+    },
+  });
+  if (res.status === 429) throw new Error("Rate limit exceeded. Please try again shortly.");
+  if (res.status === 401) throw new Error("Session expired. Connect your wallet and sign in again.");
+  if (res.status === 403) throw new Error("Access denied. Sign in with your wallet.");
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
   return res.json();
 }
@@ -103,9 +113,8 @@ export const api = {
   leaderboard: (page = 0) => fetchApi<Paginated<Agent>>(`/leaderboard?page=${page}&pageSize=20`),
   circuitBreaker: () => fetchApi<{ data: CircuitBreaker }>("/circuit-breaker").then((r) => r.data),
   submitTask: (body: unknown) =>
-    fetch(`${API_BASE}/tasks/submit`, {
+    fetchApi<{ data: unknown }>("/tasks/submit", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
       body: JSON.stringify(body),
     }),
 };

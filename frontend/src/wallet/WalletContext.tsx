@@ -1,5 +1,6 @@
 import { BrowserProvider, JsonRpcSigner } from "ethers";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { clearAuthToken } from "../auth/token";
 import { SOMNIA_CHAIN, SOMNIA_CHAIN_HEX, SOMNIA_CHAIN_ID } from "./config";
 
 type WalletContextValue = {
@@ -72,6 +73,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const disconnect = useCallback(() => {
+    clearAuthToken();
     setAddress(null);
     setSigner(null);
     setError(null);

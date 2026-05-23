@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { env } from "../config/env";
+import { getAuthToken } from "../auth/token";
 
-const WS_URL = env.wsUrl;
+const WS_BASE = env.wsUrl;
+
+function wsUrlWithToken(): string | null {
+  if (!WS_BASE) return null;
+  const token = getAuthToken();
+  if (!token) return WS_BASE;
+  const sep = WS_BASE.includes("?") ? "&" : "?";
+  return `${WS_BASE}${sep}token=${encodeURIComponent(token)}`;
+}
 
 export type WsChannel = "tasks" | "coalitions" | "agents" | "circuit_breaker" | "somnia_agents";
 
@@ -20,8 +29,9 @@ export function useWebSocket(channels: WsChannel[]) {
   channelsRef.current = channels;
 
   const connect = useCallback(() => {
-    if (!WS_URL) return;
-    const ws = new WebSocket(WS_URL);
+    const url = wsUrlWithToken();
+    if (!url) return;
+    const ws = new WebSocket(url);
     wsRef.current = ws;
     ws.onopen = () => {
       setConnected(true);

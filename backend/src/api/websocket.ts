@@ -1,9 +1,22 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
+import type { IncomingMessage } from "http";
 import { eventBus, type WsChannel } from "../services/eventBus.js";
+import { verifyWsToken } from "./authenticateToken.js";
 
 interface ClientState {
   channels: Set<WsChannel>;
+  walletAddress?: string;
+}
+
+function parseWsToken(req: IncomingMessage): string | null {
+  try {
+    const host = req.headers.host ?? "localhost";
+    const url = new URL(req.url ?? "/ws", `http://${host}`);
+    return url.searchParams.get("token");
+  } catch {
+    return null;
+  }
 }
 
 export function attachWebSocket(server: Server): void {
@@ -19,8 +32,16 @@ export function attachWebSocket(server: Server): void {
     }
   });
 
-  wss.on("connection", (ws) => {
-    clients.set(ws, { channels: new Set() });
+  wss.on("connection", (ws, req) => {
+    const token = parseWsToken(req);
+    const walletAddress = verifyWsToken(token);
+
+    if (token && !walletAddress) {
+      ws.close(4401, "Invalid token");
+      return;
+    }
+
+    clients.set(ws, { channels: new Set(), walletAddress: walletAddress ?? undefined });
 
     ws.on("message", (raw) => {
       try {
