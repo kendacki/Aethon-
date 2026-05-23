@@ -105,7 +105,7 @@ npm run dev                      # :5173 — uses .env.development + proxy to :3
 | `VITE_WS_URL` | `wss://your-api.railway.app/ws` (optional if API URL is set) |
 | `VITE_API_KEY` | Same as backend `API_KEY` |
 
-Also set backend `CORS_ORIGIN` to your Vercel URL (e.g. `https://aethon.vercel.app`).
+Also set backend `CORS_ORIGIN` to include `https://aethon-lemon.vercel.app` (already in `backend/.env.example`).
 
 ### 4. Full stack (Docker)
 
@@ -119,17 +119,32 @@ docker compose --profile agents up -d
 
 ## Frontend (Vercel)
 
-Set the project root to the repo root (uses root `vercel.json`) or to `frontend/`.
+**Live site:** [https://aethon-lemon.vercel.app](https://aethon-lemon.vercel.app)
 
-**Required** Vercel environment variables:
+Set the project root to the repo root (uses root `vercel.json`).
+
+### Vercel Dashboard → Settings → Environment Variables
+
+Add these for **Production** (and Preview if needed):
 
 | Variable | Value |
 |----------|--------|
-| `VITE_API_URL` | Hosted backend origin, e.g. `https://api.example.com` |
-| `VITE_WS_URL` | `wss://api.example.com/ws` (or omit to auto-derive from API URL) |
-| `VITE_API_KEY` | Matches backend `API_KEY` |
+| `VITE_API_URL` | Your **backend** URL, e.g. `https://aethon-api.up.railway.app` |
+| `VITE_WS_URL` | `wss://YOUR-BACKEND-URL/ws` |
+| `VITE_API_KEY` | `dev-api-key` (must match backend `API_KEY`) |
 
-On the **backend**, set `CORS_ORIGIN` to include your Vercel domain.
+Then **Redeploy** the frontend (env vars apply at build time).
+
+> **Note:** [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app) hosts the React app only. The API (Express + Postgres + indexer) must run on a host that supports long-lived processes (Railway, Render, Fly.io, Docker VPS). Point `VITE_API_URL` at that backend, not at the Vercel frontend URL.
+
+### Backend CORS (hosted API)
+
+On your **backend** host, set:
+
+```env
+CORS_ORIGIN=https://aethon-lemon.vercel.app,http://localhost:5173
+API_KEY=dev-api-key
+```
 
 ## API Endpoints (v3.1)
 

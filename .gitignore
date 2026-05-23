@@ -4,6 +4,7 @@
 !.env.example
 !frontend/.env.example
 !frontend/.env.development
+!frontend/.env.production
 backend/.env
 backend/.env.*
 !backend/.env.example
