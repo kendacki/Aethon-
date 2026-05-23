@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "../stitches.config";
-import { Button } from "./ui";
+import { ConnectButton } from "./ConnectButton";
 import { AethonLogo } from "./Logo";
 import { spring } from "../stitches.config";
 
@@ -90,9 +90,7 @@ export function Navbar() {
           ))}
         </Links>
         <NavAction>
-          <Button variant="outline" size="sm" as={Link} to="/tasks">
-            Launch Swarm
-          </Button>
+          <ConnectButton />
         </NavAction>
       </Inner>
     </Nav>
