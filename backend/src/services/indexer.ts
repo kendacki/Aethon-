@@ -50,56 +50,87 @@ const COALITION_ABI = [
   "event RewardDistributed(address indexed coalition, uint256 total)",
 ];
 
+const DEFAULT_BATCH_BLOCKS = 1000;
+const MAX_BATCH_BLOCKS = 1000;
+
 export class ChainIndexer {
   provider: ethers.JsonRpcProvider;
   private running = false;
   private lastCircuitPaused = false;
+  private lastRpcError: string | null = null;
 
   constructor() {
     const rpc = process.env.SOMNIA_RPC_URL ?? "https://dream-rpc.somnia.network";
     this.provider = new ethers.JsonRpcProvider(rpc);
   }
 
+  private batchBlocks(): number {
+    const configured = Number(process.env.INDEXER_BATCH_BLOCKS ?? DEFAULT_BATCH_BLOCKS);
+    if (!Number.isFinite(configured) || configured < 1) return DEFAULT_BATCH_BLOCKS;
+    return Math.min(configured, MAX_BATCH_BLOCKS);
+  }
+
+  private logRpcError(context: string, err: unknown): void {
+    const message = err instanceof Error ? err.message : String(err);
+    this.lastRpcError = message;
+    console.error(`[Indexer] ${context}: ${message}`);
+  }
+
   async start(): Promise<void> {
     if (this.running) return;
     this.running = true;
-    await this.runCycle();
-    setInterval(() => this.runCycle().catch(console.error), Number(process.env.INDEXER_INTERVAL_MS ?? 12_000));
+    await this.runCycle().catch((err) => this.logRpcError("startup cycle", err));
+    setInterval(
+      () => this.runCycle().catch((err) => this.logRpcError("index cycle", err)),
+      Number(process.env.INDEXER_INTERVAL_MS ?? 12_000),
+    );
   }
 
   async runCycle(): Promise<void> {
     if (!CONTRACTS.taskMarket) return;
-    const head = await this.provider.getBlockNumber();
-    let from = await repo.getIndexerBlock();
-    const startBlock = Number(process.env.INDEXER_START_BLOCK ?? 0);
-    if (from < startBlock) from = startBlock;
 
-    if (from >= head) {
+    try {
+      const head = await this.provider.getBlockNumber();
+      let from = await repo.getIndexerBlock();
+      const startBlock = Number(process.env.INDEXER_START_BLOCK ?? 0);
+      if (from < startBlock) from = startBlock;
+
+      if (from >= head) {
+        await this.syncTaskState();
+        return;
+      }
+
+      const to = Math.min(from + this.batchBlocks(), head);
+      await this.indexRange(from + 1, to);
+      await repo.setIndexerBlock(to);
       await this.syncTaskState();
-      return;
-    }
 
-    const to = Math.min(from + Number(process.env.INDEXER_BATCH_BLOCKS ?? 2000), head);
-    await this.indexRange(from + 1, to);
-    await repo.setIndexerBlock(to);
-    await this.syncTaskState();
-
-    const paused = await this.isCircuitPaused();
-    if (paused && !this.lastCircuitPaused) {
-      eventBus.publish("circuit_breaker", "CIRCUIT_BREAK", { paused: true });
+      const paused = await this.isCircuitPaused();
+      if (paused && !this.lastCircuitPaused) {
+        eventBus.publish("circuit_breaker", "CIRCUIT_BREAK", { paused: true });
+      }
+      if (!paused && this.lastCircuitPaused) {
+        eventBus.publish("circuit_breaker", "CIRCUIT_RESET", { paused: false });
+      }
+      this.lastCircuitPaused = paused;
+      this.lastRpcError = null;
+    } catch (err) {
+      this.logRpcError("runCycle", err);
     }
-    if (!paused && this.lastCircuitPaused) {
-      eventBus.publish("circuit_breaker", "CIRCUIT_RESET", { paused: false });
-    }
-    this.lastCircuitPaused = paused;
   }
 
   async getSyncStatus(): Promise<{ lastIndexedBlock: number; headBlock: number; synced: boolean }> {
-    const [lastIndexedBlock, headBlock] = await Promise.all([
-      repo.getIndexerBlock(),
-      this.provider.getBlockNumber(),
-    ]);
-    return { lastIndexedBlock, headBlock, synced: headBlock - lastIndexedBlock <= 5 };
+    try {
+      const [lastIndexedBlock, headBlock] = await Promise.all([
+        repo.getIndexerBlock(),
+        this.provider.getBlockNumber(),
+      ]);
+      return { lastIndexedBlock, headBlock, synced: headBlock - lastIndexedBlock <= 5 };
+    } catch (err) {
+      this.logRpcError("getSyncStatus", err);
+      const lastIndexedBlock = await repo.getIndexerBlock().catch(() => 0);
+      return { lastIndexedBlock, headBlock: lastIndexedBlock, synced: false };
+    }
   }
 
   private async indexRange(from: number, to: number): Promise<void> {
@@ -111,14 +142,18 @@ export class ChainIndexer {
     if (CONTRACTS.coalitionMgr) specs.push({ addr: CONTRACTS.coalitionMgr, iface: new ethers.Interface(COALITION_ABI) });
 
     for (const spec of specs) {
-      const logs = await this.provider.getLogs({ address: spec.addr, fromBlock: from, toBlock: to });
-      for (const log of logs) {
-        try {
-          const parsed = spec.iface.parseLog({ topics: log.topics as string[], data: log.data });
-          if (parsed) await this.handleEvent(parsed.name, parsed.args, log.blockNumber, log.transactionHash);
-        } catch {
-          /* skip */
+      try {
+        const logs = await this.provider.getLogs({ address: spec.addr, fromBlock: from, toBlock: to });
+        for (const log of logs) {
+          try {
+            const parsed = spec.iface.parseLog({ topics: log.topics as string[], data: log.data });
+            if (parsed) await this.handleEvent(parsed.name, parsed.args, log.blockNumber, log.transactionHash);
+          } catch {
+            /* skip unparseable log */
+          }
         }
+      } catch (err) {
+        this.logRpcError(`getLogs ${spec.addr} blocks ${from}-${to}`, err);
       }
     }
   }
@@ -222,29 +257,43 @@ export class ChainIndexer {
 
   private async syncTaskState(): Promise<void> {
     if (!CONTRACTS.taskMarket) return;
-    const market = new ethers.Contract(CONTRACTS.taskMarket, TASK_ABI, this.provider);
-    const counter = Number(await market.taskCounter());
-    for (let id = 1; id <= counter; id++) await this.syncTaskById(id);
+    try {
+      const market = new ethers.Contract(CONTRACTS.taskMarket, TASK_ABI, this.provider);
+      const counter = Number(await market.taskCounter());
+      for (let id = 1; id <= counter; id++) {
+        try {
+          await this.syncTaskById(id);
+        } catch (err) {
+          this.logRpcError(`syncTaskById(${id})`, err);
+        }
+      }
+    } catch (err) {
+      this.logRpcError("syncTaskState", err);
+    }
   }
 
   private async syncTaskById(id: number, txHash?: string): Promise<void> {
     if (!CONTRACTS.taskMarket) return;
-    const market = new ethers.Contract(CONTRACTS.taskMarket, TASK_ABI, this.provider);
-    const t = await market.tasks(id);
-    const task: TaskRecord = {
-      id: Number(t.id),
-      submitter: t.submitter,
-      taskHash: t.taskHash,
-      reward: t.reward.toString(),
-      complexity: Number(t.complexity),
-      deadline: new Date(Number(t.deadline) * 1000).toISOString(),
-      status: TASK_STATUS[Number(t.status)] ?? "PENDING",
-      coalitionAddr: t.coalitionAddr !== ethers.ZeroAddress ? t.coalitionAddr : undefined,
-      authorizedReporter: t.authorizedReporter !== ethers.ZeroAddress ? t.authorizedReporter : undefined,
-      platformFee: t.platformFee?.toString(),
-      txHash,
-    };
-    await repo.upsertTask(task);
+    try {
+      const market = new ethers.Contract(CONTRACTS.taskMarket, TASK_ABI, this.provider);
+      const t = await market.tasks(id);
+      const task: TaskRecord = {
+        id: Number(t.id),
+        submitter: t.submitter,
+        taskHash: t.taskHash,
+        reward: t.reward.toString(),
+        complexity: Number(t.complexity),
+        deadline: new Date(Number(t.deadline) * 1000).toISOString(),
+        status: TASK_STATUS[Number(t.status)] ?? "PENDING",
+        coalitionAddr: t.coalitionAddr !== ethers.ZeroAddress ? t.coalitionAddr : undefined,
+        authorizedReporter: t.authorizedReporter !== ethers.ZeroAddress ? t.authorizedReporter : undefined,
+        platformFee: t.platformFee?.toString(),
+        txHash,
+      };
+      await repo.upsertTask(task);
+    } catch (err) {
+      this.logRpcError(`syncTaskById(${id})`, err);
+    }
   }
 
   async fetchAgent(address: string): Promise<AgentRecord | null> {
@@ -270,14 +319,24 @@ export class ChainIndexer {
 
   async isCircuitPaused(): Promise<boolean> {
     if (!CONTRACTS.circuitBreaker) return false;
-    const cb = new ethers.Contract(CONTRACTS.circuitBreaker, CB_ABI, this.provider);
-    return cb.isPaused();
+    try {
+      const cb = new ethers.Contract(CONTRACTS.circuitBreaker, CB_ABI, this.provider);
+      return cb.isPaused();
+    } catch (err) {
+      this.logRpcError("isCircuitPaused", err);
+      return false;
+    }
   }
 
   async getConsecutiveFailures(): Promise<number> {
     if (!CONTRACTS.circuitBreaker) return 0;
-    const cb = new ethers.Contract(CONTRACTS.circuitBreaker, CB_ABI, this.provider);
-    return Number(await cb.consecutiveFailures());
+    try {
+      const cb = new ethers.Contract(CONTRACTS.circuitBreaker, CB_ABI, this.provider);
+      return Number(await cb.consecutiveFailures());
+    } catch (err) {
+      this.logRpcError("getConsecutiveFailures", err);
+      return 0;
+    }
   }
 }
 

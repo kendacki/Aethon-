@@ -81,16 +81,19 @@ attachWebSocket(server);
 
 async function bootstrap(): Promise<void> {
   await migrate();
+  await new Promise<void>((resolve) => {
+    server.listen(port, () => {
+      console.log(`[AETHON API] http://localhost:${port}/v1`);
+      console.log(`[AETHON API] Docs: http://localhost:${port}/docs`);
+      resolve();
+    });
+  });
   if (process.env.AGENT_REGISTRY_ADDR) {
-    await indexer.start();
+    void indexer.start();
     relayer.start();
   } else {
     console.warn("[AETHON API] No contract addresses — indexer/relayer disabled");
   }
-  server.listen(port, () => {
-    console.log(`[AETHON API] http://localhost:${port}/v1`);
-    console.log(`[AETHON API] Docs: http://localhost:${port}/docs`);
-  });
 }
 
 function shutdown(): void {
