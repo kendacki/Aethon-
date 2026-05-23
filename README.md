@@ -90,20 +90,22 @@ OpenAPI docs: [http://localhost:3001/docs](http://localhost:3001/docs)
 
 ```bash
 cd frontend
-cp .env.example .env
+cp .env.example .env.local   # production / custom overrides
 npm install
-npm run dev                      # :5173
+npm run dev                      # :5173 — uses .env.development + proxy to :3001
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Backend REST base (e.g. `http://localhost:3001/v1`) |
-| `VITE_WS_URL` | WebSocket URL (e.g. `ws://localhost:3001/ws`) |
-| `VITE_API_KEY` | API key for write endpoints |
-| `VITE_SOMNIA_CHAIN_ID` | Optional — defaults to `50312` |
-| `VITE_SOMNIA_RPC_URL` | Optional — defaults to Somnia dream RPC |
+**Local dev:** `.env.development` sets `VITE_API_URL=/v1`. Vite proxies `/v1`, `/ws`, and `/docs` to the backend.
 
-The navbar **Connect** button links a wallet on Somnia Shannon testnet for signing and approving tasks before execution.
+**Production (Vercel):** set these in the project Environment Variables:
+
+| Variable | Example |
+|----------|---------|
+| `VITE_API_URL` | `https://your-api.railway.app` (no `/v1` required) |
+| `VITE_WS_URL` | `wss://your-api.railway.app/ws` (optional if API URL is set) |
+| `VITE_API_KEY` | Same as backend `API_KEY` |
+
+Also set backend `CORS_ORIGIN` to your Vercel URL (e.g. `https://aethon.vercel.app`).
 
 ### 4. Full stack (Docker)
 
@@ -119,12 +121,15 @@ docker compose --profile agents up -d
 
 Set the project root to the repo root (uses root `vercel.json`) or to `frontend/`.
 
-Required environment variables in Vercel:
+**Required** Vercel environment variables:
 
-- `VITE_API_URL` → your hosted backend `/v1` URL
-- `VITE_WS_URL` → your hosted backend WebSocket URL
-- `VITE_API_KEY` → matches backend `API_KEY`
-- `CORS_ORIGIN` on the backend must include your Vercel domain
+| Variable | Value |
+|----------|--------|
+| `VITE_API_URL` | Hosted backend origin, e.g. `https://api.example.com` |
+| `VITE_WS_URL` | `wss://api.example.com/ws` (or omit to auto-derive from API URL) |
+| `VITE_API_KEY` | Matches backend `API_KEY` |
+
+On the **backend**, set `CORS_ORIGIN` to include your Vercel domain.
 
 ## API Endpoints (v3.1)
 

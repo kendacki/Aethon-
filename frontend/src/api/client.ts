@@ -1,5 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? "/v1";
-const API_KEY = import.meta.env.VITE_API_KEY ?? "dev-api-key";
+import { env } from "../config/env";
+
+const API_BASE = env.apiBase;
+const API_KEY = env.apiKey;
 
 export interface Paginated<T> {
   data: T[];

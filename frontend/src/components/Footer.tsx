@@ -1,6 +1,7 @@
 import { styled } from "../stitches.config";
 import { GlassContent, GlassPanel } from "./GlassPanel";
 import { AethonLogo } from "./Logo";
+import { env } from "../config/env";
 
 const FooterShell = styled("footer", {
   position: "relative",
@@ -76,8 +77,8 @@ export function SiteFooter() {
             </div>
             <div>
               <ColTitle>Developers</ColTitle>
-              <Link href="/v1/health">API Health</Link>
-              <Link href="/docs">OpenAPI</Link>
+              <Link href={env.apiHealthUrl} target="_blank" rel="noreferrer">API Health</Link>
+              <Link href={env.apiDocsUrl} target="_blank" rel="noreferrer">OpenAPI</Link>
             </div>
           </Inner>
           <Copyright>© 2026 AETHON Protocol</Copyright>

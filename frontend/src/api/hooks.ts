@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { env } from "../config/env";
 
-const WS_URL = import.meta.env.VITE_WS_URL ?? `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
+const WS_URL = env.wsUrl;
 
 export type WsChannel = "tasks" | "coalitions" | "agents" | "circuit_breaker" | "somnia_agents";
 
@@ -19,6 +20,7 @@ export function useWebSocket(channels: WsChannel[]) {
   channelsRef.current = channels;
 
   const connect = useCallback(() => {
+    if (!WS_URL) return;
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
     ws.onopen = () => {
