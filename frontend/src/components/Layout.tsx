@@ -19,17 +19,31 @@ const Nav = styled("nav", {
 const Inner = styled("div", {
   maxWidth: "1200px",
   margin: "0 auto",
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "1fr auto 1fr",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: "$6",
+  gap: "$4",
 });
 
 const Links = styled("div", {
   display: "none",
   alignItems: "center",
+  justifyContent: "center",
   gap: "$1",
+  justifySelf: "center",
   "@md": { display: "flex" },
+});
+
+const NavAction = styled("div", {
+  display: "flex",
+  justifyContent: "flex-end",
+  justifySelf: "end",
+});
+
+const LogoLink = styled(Link, {
+  display: "flex",
+  alignItems: "center",
+  justifySelf: "start",
 });
 
 const NavLink = styled(Link, {
@@ -51,8 +65,6 @@ const NavLink = styled(Link, {
     },
   },
 });
-
-const LogoLink = styled(Link, { display: "flex", alignItems: "center" });
 
 const links = [
   { to: "/", label: "Overview" },
@@ -77,9 +89,11 @@ export function Navbar() {
             </NavLink>
           ))}
         </Links>
-        <Button variant="outline" size="sm" as={Link} to="/tasks">
-          Launch Swarm
-        </Button>
+        <NavAction>
+          <Button variant="outline" size="sm" as={Link} to="/tasks">
+            Launch Swarm
+          </Button>
+        </NavAction>
       </Inner>
     </Nav>
   );
