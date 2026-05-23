@@ -107,6 +107,31 @@ npm run dev                      # :5173 — uses .env.development + proxy to :3
 
 Also set backend `CORS_ORIGIN` to include `https://aethon-lemon.vercel.app` (already in `backend/.env.example`).
 
+### Backend on Railway
+
+1. Create a **New Project** → **Deploy from GitHub** → select this repo.
+2. Add a **PostgreSQL** plugin; Railway sets `DATABASE_URL` automatically.
+3. Set the service **Root Directory** to `backend`.
+4. Add environment variables from `backend/.env.example` (contract addresses, `CORS_ORIGIN`, `API_KEY`, etc.).
+5. Deploy — build runs `npm run build` (includes copying `schema.sql`); start runs `npm run start:api`.
+6. Copy the public Railway URL into Vercel as `VITE_API_URL`.
+
+**Required Railway variables (minimum):**
+
+| Variable | Value |
+|----------|--------|
+| `DATABASE_URL` | Auto from PostgreSQL plugin |
+| `CORS_ORIGIN` | `https://aethon-lemon.vercel.app,http://localhost:5173` |
+| `API_KEY` | `dev-api-key` |
+| `AGENT_REGISTRY_ADDR` | From `deployments/somniaTestnet-50312.json` |
+| `TASK_MARKET_ADDR` | From deployments |
+| `COALITION_MANAGER_ADDR` | From deployments |
+| `REPUTATION_ENGINE_ADDR` | From deployments |
+| `CIRCUIT_BREAKER_ADDR` | From deployments |
+| `SOMNIA_RPC_URL` | `https://dream-rpc.somnia.network` |
+
+Railway sets `PORT` automatically; the API listens on it.
+
 ### 4. Full stack (Docker)
 
 ```bash

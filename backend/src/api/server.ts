@@ -31,7 +31,7 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const port = Number(process.env.API_PORT ?? 3001);
+const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
 
 const corsOrigin = process.env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? ["http://localhost:5173", "http://localhost:3000"];
 
