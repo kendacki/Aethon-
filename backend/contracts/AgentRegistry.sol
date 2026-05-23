@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// File: AgentRegistry.erc  (AETHON v3.0 — Somnia Agentic L1)
+// File: AgentRegistry.sol  (AETHON v3.0 — Somnia Agentic L1)
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "./interfaces/IReputationEngine.erc";
-import "./interfaces/ICircuitBreaker.erc";
+import "./interfaces/IReputationEngine.sol";
+import "./interfaces/ICircuitBreaker.sol";
 
 contract AgentRegistry is ReentrancyGuard {
     using EnumerableSet for EnumerableSet.AddressSet;

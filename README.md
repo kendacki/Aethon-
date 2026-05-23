@@ -7,7 +7,7 @@ Autonomous Emergent Trading & Hierarchical Operations Network — Somnia Agentic
 ```
 Aethon/
 ├── backend/          # Smart contracts, agent runtime, REST API, WebSocket
-│   ├── contracts/    # Hardened .erc Solidity contracts
+│   ├── contracts/    # Hardened Solidity (.sol) contracts
 │   ├── src/agent/    # AgentCore, NonceMgr, Watchdog, CoalitionEngine
 │   ├── src/api/      # REST + WebSocket server
 │   └── scripts/      # Deployment scripts
@@ -17,20 +17,20 @@ Aethon/
   src/          # React + Stitches + Framer Motion
 ```
 
-## Deployed Contracts (Somnia Shannon Testnet — v2)
+## Deployed Contracts (Somnia Shannon Testnet — v3)
 
 | Contract | Address |
 |----------|---------|
-| ReputationEngine | `0x12763B8867c90C557f619e4ef426290f8757B9CF` |
-| CircuitBreaker | `0x3716d9027c70C3dc3eCa4FaE842ba96aC5114295` |
-| AgentRegistry | `0x198E4465d07EdB5A31226172874C9214f6307929` |
-| CoalitionManager | `0x4334D6Cbabb89Be5f9580eD7DA4C7D7e3A653B11` |
-| TaskMarket | `0xb08F31f3394E712b2D248D0bc4eA986D2c94ca4b` |
+| ReputationEngine | `0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab` |
+| CircuitBreaker | `0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0` |
+| AgentRegistry | `0xA2BAdcce7612cC5729B6df596c660A738b94b60e` |
+| CoalitionManager | `0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B` |
+| TaskMarket | `0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8` |
 
 **Roles (all `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6`):** Guardian · Treasury · Slash Multisig
 
 Full record: `backend/deployments/somniaTestnet-50312.json`  
-Explorer: [TaskMarket on Shannon Explorer](https://shannon-explorer.somnia.network/address/0xb08F31f3394E712b2D248D0bc4eA986D2c94ca4b)
+Explorer: [TaskMarket on Shannon Explorer](https://shannon-explorer.somnia.network/address/0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8)
 
 ## Quick Start
 

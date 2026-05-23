@@ -11,7 +11,7 @@
     "start:api": "node dist/api/server.js",
     "start:agent": "node dist/agent/index.js",
     "db:migrate": "tsx src/db/migrate.ts",
-    "compile": "node scripts/sync-erc.cjs && hardhat compile",
+    "compile": "hardhat compile",
     "test:contracts": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy_v3.cjs --network somniaTestnet",
     "deploy:local": "hardhat run scripts/deploy_v3.cjs --network hardhat"

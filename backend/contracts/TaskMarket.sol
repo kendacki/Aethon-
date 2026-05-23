@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// File: TaskMarket.erc  (AETHON v3.0 — Somnia Agentic L1)
+// File: TaskMarket.sol  (AETHON v3.0 — Somnia Agentic L1)
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./interfaces/IAgentRegistry.erc";
-import "./interfaces/ICoalitionManager.erc";
-import "./interfaces/ICircuitBreaker.erc";
+import "./interfaces/IAgentRegistry.sol";
+import "./interfaces/ICoalitionManager.sol";
+import "./interfaces/ICircuitBreaker.sol";
 
 contract TaskMarket is ReentrancyGuard {
     enum TaskStatus { PENDING, ASSIGNED, COMPLETED, FAILED, EXPIRED }

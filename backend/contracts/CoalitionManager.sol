@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-// File: CoalitionManager.erc  (AETHON v3.0 — Somnia Agentic L1)
+// File: CoalitionManager.sol  (AETHON v3.0 — Somnia Agentic L1)
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./interfaces/IAgentRegistry.erc";
-import "./interfaces/IReputationEngine.erc";
-import "./interfaces/ICircuitBreaker.erc";
+import "./interfaces/IAgentRegistry.sol";
+import "./interfaces/IReputationEngine.sol";
+import "./interfaces/ICircuitBreaker.sol";
 
 contract CoalitionManager is ReentrancyGuard {
     using ECDSA for bytes32;

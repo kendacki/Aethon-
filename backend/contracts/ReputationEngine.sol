@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// File: ReputationEngine.erc  (AETHON v3.0 — Somnia Agentic L1)
+// File: ReputationEngine.sol  (AETHON v3.0 — Somnia Agentic L1)
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";

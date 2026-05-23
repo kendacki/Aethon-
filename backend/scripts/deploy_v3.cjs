@@ -56,31 +56,31 @@ async function main() {
   const repEngine = await RepEngine.deploy(deployer.address);
   await repEngine.waitForDeployment();
   const repEngineAddr = await repEngine.getAddress();
-  console.log("ReputationEngine.erc:", repEngineAddr);
+  console.log("ReputationEngine.sol:", repEngineAddr);
 
   const CB = await ethers.getContractFactory("CircuitBreaker");
   const cb = await CB.deploy(deployer.address, guardian, []);
   await cb.waitForDeployment();
   const cbAddr = await cb.getAddress();
-  console.log("CircuitBreaker.erc:", cbAddr);
+  console.log("CircuitBreaker.sol:", cbAddr);
 
   const Registry = await ethers.getContractFactory("AgentRegistry");
   const registry = await Registry.deploy(repEngineAddr, cbAddr, multisig);
   await registry.waitForDeployment();
   const registryAddr = await registry.getAddress();
-  console.log("AgentRegistry.erc:", registryAddr);
+  console.log("AgentRegistry.sol:", registryAddr);
 
   const CoalMgr = await ethers.getContractFactory("CoalitionManager");
   const coalMgr = await CoalMgr.deploy(registryAddr, repEngineAddr, cbAddr);
   await coalMgr.waitForDeployment();
   const coalMgrAddr = await coalMgr.getAddress();
-  console.log("CoalitionManager.erc:", coalMgrAddr);
+  console.log("CoalitionManager.sol:", coalMgrAddr);
 
   const Market = await ethers.getContractFactory("TaskMarket");
   const market = await Market.deploy(registryAddr, coalMgrAddr, cbAddr, treasury);
   await market.waitForDeployment();
   const marketAddr = await market.getAddress();
-  console.log("TaskMarket.erc:", marketAddr);
+  console.log("TaskMarket.sol:", marketAddr);
 
   const CALLER_ROLE = ethers.id("CALLER_ROLE");
   const REPORTER_ROLE = ethers.id("REPORTER_ROLE");

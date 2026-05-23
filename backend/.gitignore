@@ -13,8 +13,6 @@ dist/
 cache/
 artifacts/
 typechain-types/
-contracts/**/*.sol
-
 # Logs & coverage
 *.log
 npm-debug.log*

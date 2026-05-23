@@ -17,7 +17,6 @@ backend/dist/
 backend/cache/
 backend/artifacts/
 backend/typechain-types/
-backend/contracts/**/*.sol
 frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
