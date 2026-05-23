@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+!frontend/.env.example
+!frontend/.env.development
 backend/.env
 backend/.env.*
 !backend/.env.example
