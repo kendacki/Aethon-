@@ -11,6 +11,7 @@ backend/.env.*
 !backend/env/agents/*.env.example
 backend/env/agents/*.env
 backend/env/fleet.generated.json
+backend/env/railway-setup.local.txt
 
 # Dependencies
 node_modules/
