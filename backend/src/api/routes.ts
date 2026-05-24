@@ -1,9 +1,15 @@
 import { Router } from "express";
+import { z } from "zod";
+import { getManifest } from "../agent/manifests/data.js";
 import { checkDb } from "../db/client.js";
 import { repo } from "../db/repository.js";
 import { indexer } from "../services/indexer.js";
 import { parseBool, parsePagination } from "./middleware.js";
 import type { TaskStatus } from "../services/types.js";
+import {
+  verifyCoalitionSignature,
+  verifySkillResultSignature,
+} from "../services/coalitionVerify.js";
 
 export const healthRouter = Router();
 
@@ -55,6 +61,12 @@ healthRouter.get("/ready", async (_req, res) => {
 
 export const agentsRouter = Router();
 
+agentsRouter.get("/manifests/:role", (req, res) => {
+  const manifest = getManifest(req.params.role.toUpperCase());
+  if (!manifest) return res.status(404).json({ error: "Manifest not found" });
+  res.json({ data: manifest });
+});
+
 agentsRouter.get("/", async (req, res, next) => {
   try {
     const { page, pageSize } = parsePagination(req);
@@ -96,6 +108,101 @@ reputationRouter.get("/:address", async (req, res, next) => {
 });
 
 export const tasksRouter = Router();
+
+tasksRouter.get("/payload/:hash", async (req, res, next) => {
+  try {
+    const hash = req.params.hash.toLowerCase();
+    if (!/^0x[a-f0-9]{64}$/.test(hash)) {
+      return res.status(400).json({ error: "Invalid task hash" });
+    }
+    const payload = await repo.getTaskPayload(hash);
+    if (!payload) return res.status(404).json({ error: "Payload not found" });
+    res.json({ data: { taskHash: hash, payload } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tasksRouter.get("/:id/coalition-intents", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const data = await repo.getCoalitionIntents(taskId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const coalitionIntentSchema = z.object({
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  agentType: z.enum(["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"]),
+  members: z.array(z.string().regex(/^0x[a-fA-F0-9]{40}$/)).optional(),
+  signature: z.string().regex(/^0x[a-fA-F0-9]+$/).optional(),
+});
+
+tasksRouter.post("/:id/coalition-intent", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const parsed = coalitionIntentSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+    const { address, agentType, members, signature } = parsed.data;
+    if (signature && members) {
+      const valid = verifyCoalitionSignature(members, BigInt(taskId), address, signature);
+      if (!valid) return res.status(401).json({ error: "Invalid coalition signature" });
+    }
+
+    await repo.addCoalitionIntent({
+      taskId,
+      agentAddress: address,
+      agentType,
+      signature: signature ?? null,
+    });
+    res.status(201).json({ data: { taskId, address, agentType, signed: Boolean(signature) } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tasksRouter.get("/:id/skill-results", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const data = await repo.getSkillResults(taskId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const skillResultSchema = z.object({
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  agentType: z.enum(["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"]),
+  result: z.record(z.unknown()),
+  signature: z.string().regex(/^0x[a-fA-F0-9]+$/),
+});
+
+tasksRouter.post("/:id/skill-result", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const parsed = skillResultSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+    const { address, agentType, result, signature } = parsed.data;
+    const resultJson = JSON.stringify(result);
+    if (!verifySkillResultSignature(taskId, address, agentType, resultJson, signature)) {
+      return res.status(401).json({ error: "Invalid skill result signature" });
+    }
+
+    await repo.saveSkillResult({ taskId, agentAddress: address, agentType, result });
+    res.status(201).json({ data: { taskId, address, agentType } });
+  } catch (err) {
+    next(err);
+  }
+});
 
 tasksRouter.get("/", async (req, res, next) => {
   try {

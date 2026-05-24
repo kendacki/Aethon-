@@ -4,6 +4,11 @@ import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
 import { relayer, verifyTaskSignature } from "../services/relayer.js";
 import { requireAuth } from "./authenticateToken.js";
+import {
+  hashTaskPayload,
+  validateTaskPayload,
+  type TaskPayload,
+} from "../shared/taskPayload.js";
 
 export const writeRouter = Router();
 
@@ -36,7 +41,8 @@ writeRouter.post("/agents/register", requireAuth, async (req, res, next) => {
 });
 
 const submitTaskSchema = z.object({
-  taskHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
+  taskHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
+  payload: z.record(z.unknown()).optional(),
   complexity: z.number().int().min(1).max(5),
   rewardWei: z.string().regex(/^\d+$/),
   submitter: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -48,9 +54,24 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
     const parsed = submitTaskSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-    const { submitter, taskHash, complexity, rewardWei, signature } = parsed.data;
+    let taskHash = parsed.data.taskHash;
+    if (parsed.data.payload) {
+      if (!validateTaskPayload(parsed.data.payload)) {
+        return res.status(400).json({ error: "Invalid task payload schema" });
+      }
+      taskHash = hashTaskPayload(parsed.data.payload as TaskPayload);
+    }
+    if (!taskHash) {
+      return res.status(400).json({ error: "Provide taskHash or payload" });
+    }
+
+    const { submitter, complexity, rewardWei, signature } = parsed.data;
     if (!verifyTaskSignature(submitter, taskHash, complexity, rewardWei, signature)) {
       return res.status(401).json({ error: "Invalid submitter signature" });
+    }
+
+    if (parsed.data.payload && validateTaskPayload(parsed.data.payload)) {
+      await repo.saveTaskPayload(taskHash, parsed.data.payload);
     }
 
     const hasRelayer = Boolean(
@@ -59,14 +80,14 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
 
     if (hasRelayer && process.env.TASK_MARKET_ADDR) {
       const { taskId, txHash } = await relayer.submitImmediate({ taskHash, complexity, rewardWei });
-      res.status(201).json({ data: { taskId, txHash, status: "SUBMITTED_ON_CHAIN" } });
+      res.status(201).json({ data: { taskId, taskHash, txHash, status: "SUBMITTED_ON_CHAIN" } });
       return;
     }
 
     const outboxId = await repo.enqueueTaskOutbox({ submitter, taskHash, complexity, rewardWei, signature });
-    eventBus.publish("tasks", "TASK_QUEUED", { outboxId, submitter });
+    eventBus.publish("tasks", "TASK_QUEUED", { outboxId, submitter, taskHash });
     res.status(202).json({
-      data: { outboxId, status: "QUEUED" },
+      data: { outboxId, taskHash, status: "QUEUED" },
       note: "Task queued; relayer will submit on-chain when configured",
     });
   } catch (err) {

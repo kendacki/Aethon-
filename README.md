@@ -81,8 +81,10 @@ npm run build
 docker compose up postgres -d    # from repo root
 npm run db:migrate
 npm run start:api                # :3001 REST + WebSocket + indexer
-npm run start:agent              # optional agent runtime
+npm run start:agent              # optional agent runtime (single process)
 ```
+
+**5-agent fleet with specialized skills:** see [`docs/AGENTS.md`](docs/AGENTS.md) — generate keys, fund wallets, run `docker compose --profile agents up -d`.
 
 OpenAPI docs: [http://localhost:3001/docs](http://localhost:3001/docs)
 

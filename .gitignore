@@ -8,6 +8,8 @@
 backend/.env
 backend/.env.*
 !backend/.env.example
+!backend/env/agents/*.env.example
+backend/env/agents/*.env
 
 # Dependencies
 node_modules/

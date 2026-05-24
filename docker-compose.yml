@@ -36,14 +36,85 @@ services:
       timeout: 5s
       retries: 3
 
-  agent:
+  agent-arbitrage:
     build:
       context: ./backend
       dockerfile: Dockerfile.agent
     env_file:
       - ./backend/.env
+      - ./backend/env/agents/arbitrage.env
     environment:
-      - DATABASE_URL=postgresql://aethon:aethon@postgres:5432/aethon
+      - AGENT_TYPE=ARBITRAGE
+      - API_BASE_URL=http://api:3001/v1
+      - REACTIVITY_ENABLED=true
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  agent-oracle:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agent
+    env_file:
+      - ./backend/.env
+      - ./backend/env/agents/oracle.env
+    environment:
+      - AGENT_TYPE=ORACLE
+      - API_BASE_URL=http://api:3001/v1
+      - REACTIVITY_ENABLED=true
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  agent-yield:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agent
+    env_file:
+      - ./backend/.env
+      - ./backend/env/agents/yield_opt.env
+    environment:
+      - AGENT_TYPE=YIELD_OPT
+      - API_BASE_URL=http://api:3001/v1
+      - REACTIVITY_ENABLED=true
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  agent-governance:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agent
+    env_file:
+      - ./backend/.env
+      - ./backend/env/agents/governance.env
+    environment:
+      - AGENT_TYPE=GOVERNANCE
+      - API_BASE_URL=http://api:3001/v1
+      - REACTIVITY_ENABLED=true
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  agent-risk:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agent
+    env_file:
+      - ./backend/.env
+      - ./backend/env/agents/risk_mgmt.env
+    environment:
+      - AGENT_TYPE=RISK_MGMT
+      - API_BASE_URL=http://api:3001/v1
+      - REACTIVITY_ENABLED=true
     depends_on:
       - api
     restart: unless-stopped

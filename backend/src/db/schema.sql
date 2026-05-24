@@ -74,3 +74,30 @@ CREATE INDEX IF NOT EXISTS idx_agents_online ON agents(online);
 CREATE INDEX IF NOT EXISTS idx_coalitions_task ON coalitions(task_id);
 CREATE INDEX IF NOT EXISTS idx_outbox_status ON task_outbox(status);
 CREATE INDEX IF NOT EXISTS idx_reputation_agent ON reputation_events(agent);
+
+CREATE TABLE IF NOT EXISTS task_payloads (
+  task_hash TEXT PRIMARY KEY,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS task_coalition_intents (
+  task_id BIGINT NOT NULL,
+  agent_address TEXT NOT NULL,
+  agent_type TEXT NOT NULL,
+  signature TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (task_id, agent_address)
+);
+
+CREATE TABLE IF NOT EXISTS task_skill_results (
+  task_id BIGINT NOT NULL,
+  agent_address TEXT NOT NULL,
+  agent_type TEXT NOT NULL,
+  result JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (task_id, agent_address)
+);
+
+CREATE INDEX IF NOT EXISTS idx_coalition_intents_task ON task_coalition_intents(task_id);
+CREATE INDEX IF NOT EXISTS idx_skill_results_task ON task_skill_results(task_id);

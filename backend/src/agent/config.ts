@@ -15,6 +15,8 @@ export interface AgentConfig {
   agentRegistryAddr: string;
   taskMarketAddr: string;
   coalitionManagerAddr: string;
+  apiBaseUrl: string;
+  apiPublicUrl: string;
   dataStreamsEnabled: boolean;
   reactivityEnabled: boolean;
   watchdogIntervalMs: number;
@@ -43,6 +45,11 @@ export function loadAgentConfig(): AgentConfig {
     agentRegistryAddr: process.env.AGENT_REGISTRY_ADDR ?? ethers.ZeroAddress,
     taskMarketAddr: process.env.TASK_MARKET_ADDR ?? ethers.ZeroAddress,
     coalitionManagerAddr: process.env.COALITION_MANAGER_ADDR ?? ethers.ZeroAddress,
+    apiBaseUrl: process.env.API_BASE_URL ?? `http://localhost:${process.env.API_PORT ?? 3001}/v1`,
+    apiPublicUrl:
+      process.env.API_PUBLIC_URL ??
+      process.env.CORS_ORIGIN?.split(",")[0]?.trim() ??
+      `http://localhost:${process.env.API_PORT ?? 3001}`,
     dataStreamsEnabled: process.env.DATA_STREAMS_ENABLED === "true",
     reactivityEnabled: process.env.REACTIVITY_ENABLED === "true",
     watchdogIntervalMs: Number(process.env.WATCHDOG_INTERVAL_MS ?? 5000),

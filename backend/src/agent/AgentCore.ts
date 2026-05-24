@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import type { AgentConfig } from "./config.js";
 import { NonceMgr } from "./NonceMgr.js";
 import { Watchdog } from "./Watchdog.js";
+import { TaskExecutor } from "./TaskExecutor.js";
 
 const REGISTRY_ABI = [
   "function register(uint8 agentType, string metadataURI) payable",
@@ -12,8 +13,7 @@ const REGISTRY_ABI = [
 
 const TASK_MARKET_ABI = [
   "event TaskSubmitted(uint256 indexed id, address submitter, uint256 reward, uint256 complexity)",
-  "function assignToCoalition(uint256 taskId, address coalition)",
-  "function reportCompletion(uint256 taskId, bool success, string reason)",
+  "function tasks(uint256) view returns (uint256 id, address submitter, bytes32 taskHash, uint256 reward, uint256 complexity, uint256 deadline, uint8 status, address coalitionAddr, address authorizedReporter, uint256 platformFee)",
 ];
 
 export class AgentCore {
@@ -23,6 +23,7 @@ export class AgentCore {
   private taskMarket: ethers.Contract;
   private nonceMgr: NonceMgr;
   private watchdog: Watchdog;
+  private taskExecutor: TaskExecutor;
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private halted = false;
 
@@ -33,6 +34,7 @@ export class AgentCore {
     this.taskMarket = new ethers.Contract(config.taskMarketAddr, TASK_MARKET_ABI, this.wallet);
     this.nonceMgr = new NonceMgr(this.wallet, this.provider);
     this.watchdog = new Watchdog(config);
+    this.taskExecutor = new TaskExecutor(config, this.wallet, this.provider, this.nonceMgr);
 
     this.watchdog.on("halt", () => {
       this.halted = true;
@@ -58,6 +60,11 @@ export class AgentCore {
     this.watchdog.stop();
   }
 
+  private metadataUri(): string {
+    const base = this.config.apiPublicUrl.replace(/\/+$/, "");
+    return `${base}/v1/agents/manifests/${this.config.agentType}`;
+  }
+
   private async ensureRegistered(): Promise<void> {
     if (this.config.agentRegistryAddr === ethers.ZeroAddress) {
       console.warn("[AgentCore] AGENT_REGISTRY_ADDR not set — skipping on-chain registration");
@@ -71,13 +78,13 @@ export class AgentCore {
     ];
     const nonce = await this.nonceMgr.acquireNonce();
     try {
-      const tx = await this.registry.register(agentTypeIndex, `aethon://${this.config.agentType}`, {
+      const tx = await this.registry.register(agentTypeIndex, this.metadataUri(), {
         value: this.config.agentStakeWei,
         nonce,
         gasLimit: this.config.maxGasPerTx,
       });
       await tx.wait();
-      console.log("[AgentCore] Registered on-chain");
+      console.log("[AgentCore] Registered on-chain with manifest", this.metadataUri());
     } finally {
       this.nonceMgr.release();
     }
@@ -103,9 +110,18 @@ export class AgentCore {
 
   private subscribeToTasks(): void {
     if (this.config.taskMarketAddr === ethers.ZeroAddress) return;
-    this.taskMarket.on("TaskSubmitted", (id: bigint, submitter: string, reward: bigint, complexity: bigint) => {
+    this.taskMarket.on("TaskSubmitted", (id: bigint, _submitter: string, reward: bigint, complexity: bigint) => {
       if (this.halted) return;
       console.log(`[AgentCore] TaskSubmitted #${id} reward=${ethers.formatEther(reward)} complexity=${complexity}`);
+      void (async () => {
+        try {
+          const task = await this.taskMarket.tasks(id);
+          const taskHash = task.taskHash as string;
+          await this.taskExecutor.handleTaskSubmitted(id, taskHash, complexity);
+        } catch (err) {
+          console.error("[AgentCore] Task handler error:", err);
+        }
+      })();
     });
   }
 }

@@ -301,6 +301,79 @@ export const repo = {
       [id, error]
     );
   },
+
+  async saveTaskPayload(taskHash: string, payload: unknown): Promise<void> {
+    await query(
+      `INSERT INTO task_payloads (task_hash, payload) VALUES ($1, $2)
+       ON CONFLICT (task_hash) DO UPDATE SET payload = EXCLUDED.payload`,
+      [taskHash.toLowerCase(), JSON.stringify(payload)]
+    );
+  },
+
+  async getTaskPayload(taskHash: string): Promise<unknown | null> {
+    const r = await query(`SELECT payload FROM task_payloads WHERE task_hash = $1`, [taskHash.toLowerCase()]);
+    if (!r.rows[0]) return null;
+    return r.rows[0].payload;
+  },
+
+  async addCoalitionIntent(row: {
+    taskId: number;
+    agentAddress: string;
+    agentType: string;
+    signature?: string | null;
+    members?: string[] | null;
+  }): Promise<void> {
+    await query(
+      `INSERT INTO task_coalition_intents (task_id, agent_address, agent_type, signature)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (task_id, agent_address) DO UPDATE SET
+         signature = COALESCE(EXCLUDED.signature, task_coalition_intents.signature),
+         agent_type = EXCLUDED.agent_type`,
+      [row.taskId, row.agentAddress.toLowerCase(), row.agentType, row.signature ?? ""]
+    );
+  },
+
+  async getCoalitionIntents(taskId: number): Promise<
+    Array<{ agentAddress: string; agentType: string; signature?: string }>
+  > {
+    const r = await query(
+      `SELECT agent_address, agent_type, signature FROM task_coalition_intents WHERE task_id = $1 ORDER BY created_at ASC`,
+      [taskId]
+    );
+    return r.rows.map((row) => ({
+      agentAddress: row.agent_address,
+      agentType: row.agent_type,
+      signature: row.signature || undefined,
+    }));
+  },
+
+  async saveSkillResult(row: {
+    taskId: number;
+    agentAddress: string;
+    agentType: string;
+    result: unknown;
+  }): Promise<void> {
+    await query(
+      `INSERT INTO task_skill_results (task_id, agent_address, agent_type, result)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (task_id, agent_address) DO UPDATE SET result = EXCLUDED.result, agent_type = EXCLUDED.agent_type`,
+      [row.taskId, row.agentAddress.toLowerCase(), row.agentType, JSON.stringify(row.result)]
+    );
+  },
+
+  async getSkillResults(taskId: number): Promise<
+    Array<{ agentAddress: string; agentType: string; result: unknown }>
+  > {
+    const r = await query(
+      `SELECT agent_address, agent_type, result FROM task_skill_results WHERE task_id = $1`,
+      [taskId]
+    );
+    return r.rows.map((row) => ({
+      agentAddress: row.agent_address,
+      agentType: row.agent_type,
+      result: row.result,
+    }));
+  },
 };
 
 function rowToAgent(row: Record<string, unknown>): AgentRecord {

@@ -103,6 +103,8 @@ export const api = {
     return fetchApi<Paginated<Agent>>(`/agents?${q}`);
   },
   agent: (addr: string) => fetchApi<{ data: Agent }>(`/agents/${addr}`).then((r) => r.data),
+  agentManifest: (role: string) =>
+    fetchApi<{ data: Record<string, unknown> }>(`/agents/manifests/${role}`).then((r) => r.data),
   reputation: (addr: string) => fetchApi<{ data: Reputation }>(`/reputation/${addr}`).then((r) => r.data),
   tasks: (page = 0, status?: string) => {
     const q = new URLSearchParams({ page: String(page), pageSize: "20" });
