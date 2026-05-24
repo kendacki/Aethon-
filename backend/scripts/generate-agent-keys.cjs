@@ -3,44 +3,47 @@
  * Generate 5 agent wallets for the AETHON fleet.
  * Run: node scripts/generate-agent-keys.cjs
  *
- * INPUT REQUIRED: Fund each address from https://testnet.somnia.network/
- * Then paste private keys into backend/env/agents/*.env (never commit real keys).
+ * Writes gitignored backend/env/agents/*.env and env/fleet.generated.json
+ * Fund addresses from https://testnet.somnia.network/
  */
 const { Wallet } = require("ethers");
 const fs = require("fs");
 const path = require("path");
 
 const ROLES = ["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
-const outDir = path.join(__dirname, "..", "env", "agents");
+const agentsDir = path.join(__dirname, "..", "env", "agents");
+const apiPublic = process.env.API_PUBLIC_URL ?? "https://aethon-production-3f5a.up.railway.app";
 
-if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+if (!fs.existsSync(agentsDir)) fs.mkdirSync(agentsDir, { recursive: true });
 
 console.log("\nAETHON — 5-agent fleet key generation\n");
-console.log("Fund each address on Somnia testnet, then copy keys into Railway/Docker env.\n");
 
-const summary = [];
+const fleet = { generatedAt: new Date().toISOString(), agents: {} };
 
 for (const role of ROLES) {
   const wallet = Wallet.createRandom();
-  const envContent = `# ${role} agent — DO NOT COMMIT WITH REAL FUNDS ON MAINNET
+  const fileKey = role.toLowerCase();
+  const envPath = path.join(agentsDir, `${fileKey}.env`);
+  const envContent = `# ${role} agent — gitignored
 AGENT_TYPE=${role}
 AGENT_PRIVATE_KEY=${wallet.privateKey}
 AGENT_STAKE_WEI=500000000000000000
 REACTIVITY_ENABLED=true
+API_BASE_URL=http://api:3001/v1
+API_PUBLIC_URL=${apiPublic}
 `;
-
-  const examplePath = path.join(outDir, `${role.toLowerCase()}.env.example`);
-  fs.writeFileSync(examplePath, envContent);
-  summary.push({ role, address: wallet.address, examplePath });
+  fs.writeFileSync(envPath, envContent);
+  fleet.agents[role] = { address: wallet.address, envFile: envPath };
   console.log(`${role}`);
-  console.log(`  Address:     ${wallet.address}`);
-  console.log(`  Private key: ${wallet.privateKey}`);
-  console.log(`  Template:    ${examplePath}\n`);
+  console.log(`  Address:  ${wallet.address}`);
+  console.log(`  Env file: ${envPath}\n`);
 }
 
-console.log("--- Next steps ---");
-console.log("1. Fund all 5 addresses with Somnia testnet STT (≥0.6 STT each recommended)");
-console.log("2. Set AGENT_PRIVATE_KEY per role in Railway services or docker-compose");
-console.log("3. Set API_BASE_URL to your backend (e.g. http://api:3001/v1 for Docker)");
-console.log("4. Set API_PUBLIC_URL to public URL for manifest URIs on-chain");
-console.log("5. Run: docker compose --profile agents up -d\n");
+const fleetPath = path.join(__dirname, "..", "env", "fleet.generated.json");
+fs.writeFileSync(fleetPath, JSON.stringify(fleet, null, 2));
+
+console.log("--- FUND NOW (before starting agents) ---");
+console.log("Faucet: https://testnet.somnia.network/");
+console.log("Send ≥0.6 STT to EACH address above, plus fund relayer/deployer for task rewards.\n");
+console.log(`Fleet record: ${fleetPath}`);
+console.log("Then: docker compose --profile agents up -d\n");

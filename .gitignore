@@ -10,6 +10,7 @@ backend/.env.*
 !backend/.env.example
 !backend/env/agents/*.env.example
 backend/env/agents/*.env
+backend/env/fleet.generated.json
 
 # Dependencies
 node_modules/

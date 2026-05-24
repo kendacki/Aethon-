@@ -1,0 +1,17 @@
+{
+  "network": "Somnia Shannon Testnet",
+  "chainId": 50312,
+  "faucet": "https://testnet.somnia.network/",
+  "fundEachWithStt": "0.6",
+  "relayer": {
+    "address": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
+    "note": "Deployer/relayer — also fund for task reward payouts (~1+ STT)"
+  },
+  "agents": {
+    "ARBITRAGE": "0x0eec621450cA9a0445DBdadC0624FDD5cc888037",
+    "ORACLE": "0xfc501c679aFb3689191448f92621ACD49e86482C",
+    "YIELD_OPT": "0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e",
+    "GOVERNANCE": "0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0",
+    "RISK_MGMT": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC"
+  }
+}
