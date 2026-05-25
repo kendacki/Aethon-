@@ -10,6 +10,7 @@ const REGISTRY_ABI = [
   "function heartbeat() external",
   "function isAgentActive(address) view returns (bool)",
   "function getAgentStake(address) view returns (uint256)",
+  "function agents(address) view returns (address wallet, uint8 agentType, uint256 stake, uint256 registeredAt, uint256 lastHeartbeat, bool online, uint256 deregisterRequestedAt, string metadataURI)",
   "event AgentRegistered(address indexed wallet, uint8 agentType)",
 ];
 
@@ -29,6 +30,7 @@ export class AgentCore {
   private taskExecutor: TaskExecutor;
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private taskIntakePaused = false;
+  private registrationPaused = false;
 
   constructor(private config: AgentConfig) {
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
@@ -83,7 +85,19 @@ export class AgentCore {
     const active = await this.registry.isAgentActive(this.wallet.address);
     if (active) return;
 
-    const stake: bigint = await this.registry.getAgentStake(this.wallet.address);
+    const agentRecord = await this.registry.agents(this.wallet.address);
+    const deregisterRequestedAt = Number(agentRecord.deregisterRequestedAt);
+    const stake: bigint = agentRecord.stake as bigint;
+
+    if (deregisterRequestedAt > 0 && stake > 0n) {
+      this.registrationPaused = true;
+      console.warn(
+        `[AgentCore] Deregister timelock pending (requested ${new Date(deregisterRequestedAt * 1000).toISOString()}) — ` +
+          "run complete-deregister, then redeploy. Heartbeat/register skipped.",
+      );
+      return;
+    }
+
     if (stake > 0n) {
       const nonce = await this.nonceMgr.acquireNonce();
       try {
@@ -114,6 +128,7 @@ export class AgentCore {
   }
 
   private startHeartbeat(): void {
+    if (this.registrationPaused) return;
     this.heartbeatTimer = setInterval(async () => {
       if (this.config.agentRegistryAddr === ethers.ZeroAddress) return;
       try {

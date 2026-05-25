@@ -1,0 +1,19 @@
+{
+  "role": "RISK_MGMT",
+  "wallet": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
+  "governanceWalletNote": "GOVERNANCE uses separate wallet 0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0 — do not change",
+  "previousOnChainType": "GOVERNANCE",
+  "targetOnChainType": "RISK_MGMT",
+  "expectedManifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/RISK_MGMT",
+  "requestTx": "0x4cd9c7829902dda591a5b6b981b5f08143e887135db000610cb6bb7efeb99104",
+  "requestedAt": 1779677827,
+  "unlockAt": 1779764227,
+  "unlockAtIso": "2026-05-26T02:57:07.000Z",
+  "status": "pending_timelock",
+  "railwayService": "aethon-agent-risk",
+  "automation": {
+    "githubWorkflow": ".github/workflows/reregister-risk.yml",
+    "localCommand": "node scripts/reregister-agent.cjs auto-complete --role RISK_MGMT",
+    "afterComplete": "Scale aethon-agent-risk to 1 replica on Railway (or redeploy)"
+  }
+}

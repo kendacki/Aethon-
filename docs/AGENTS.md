@@ -119,3 +119,15 @@ WATCHDOG_INTERVAL_MS=5000
 ```
 
 Skills v1.1 add **preflight param validation**, confidence scores, and role-specific depth (multi-venue arbitrage, oracle fallback feeds, diversified yield routing, governance flags, composite risk scoring).
+
+---
+
+## RISK_MGMT re-register
+
+If the RISK wallet was registered with the wrong on-chain type, see **[RISK_REREGISTER.md](./RISK_REREGISTER.md)** and track progress in `backend/env/reregister.risk_mgmt.json`.
+
+```bash
+cd backend
+npm run reregister:status    # check timelock / on-chain state
+npm run reregister:complete  # after unlock — return stake
+```

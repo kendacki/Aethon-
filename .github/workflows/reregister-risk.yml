@@ -1,0 +1,34 @@
+# Auto-complete RISK_MGMT deregister after 24h AgentRegistry timelock.
+# Add GitHub repo secret: RISK_MGMT_AGENT_PRIVATE_KEY (same key as Railway aethon-agent-risk)
+name: Reregister RISK_MGMT
+
+on:
+  schedule:
+    # Hourly — completes as soon as timelock expires
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  auto-complete-deregister:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - name: Complete deregister when timelock ready
+        env:
+          AGENT_PRIVATE_KEY: ${{ secrets.RISK_MGMT_AGENT_PRIVATE_KEY }}
+          SOMNIA_RPC_URL: https://dream-rpc.somnia.network
+          AGENT_REGISTRY_ADDR: "0xA2BAdcce7612cC5729B6df596c660A738b94b60e"
+        run: node scripts/reregister-agent.cjs auto-complete --role RISK_MGMT

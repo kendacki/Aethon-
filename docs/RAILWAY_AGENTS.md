@@ -77,6 +77,14 @@ Manifest example: `GET https://aethon-production-3f5a.up.railway.app/v1/agents/m
 
 Swarm (complexity 5) requires all 5 agents online.
 
+## 6. RISK_MGMT re-register (if wrong on-chain type)
+
+If the RISK wallet (`0xBA28...`) was registered as GOVERNANCE, follow **[RISK_REREGISTER.md](./RISK_REREGISTER.md)**:
+
+1. Keep `aethon-agent-risk` scaled to **0** during the 24h timelock
+2. Add GitHub secret `RISK_MGMT_AGENT_PRIVATE_KEY` — hourly workflow auto-completes deregister
+3. After stake return, scale risk worker to **1** — registers as `RISK_MGMT` with correct manifest
+
 ## Config reference
 
 - Agent deploy config: `backend/railway.agent.toml`
@@ -93,3 +101,5 @@ Swarm (complexity 5) requires all 5 agents online.
 | `Insufficient stake` | Fund agent wallet (≥0.1 STT stake, you have 5 STT) |
 | Heartbeat failed | Check SOMNIA_RPC_URL, wallet gas |
 | Coalition timeout | Not all 5 agents running / registered |
+| RISK registered as GOVERNANCE / crash loop | See [RISK_REREGISTER.md](./RISK_REREGISTER.md) — deregister timelock + redeploy as `RISK_MGMT` |
+| Fleet health HTTP 404 | `AGENT_HEALTH_URLS` must use each worker's **actual** Railway public domain |
