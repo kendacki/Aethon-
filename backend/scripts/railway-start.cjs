@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 /**
- * Railway entrypoint — routes to API or agent based on AETHON_RUNTIME.
- * API service:  AETHON_RUNTIME=api   (default)
- * Agent workers: AETHON_RUNTIME=agent + AGENT_TYPE + AGENT_PRIVATE_KEY
+ * Railway entrypoint — lives in dist/ after build (see copy-assets.cjs).
+ * API:  AETHON_RUNTIME=api (default)
+ * Agent: AETHON_RUNTIME=agent + AGENT_TYPE + AGENT_PRIVATE_KEY
  */
 const { spawn } = require("child_process");
 const http = require("http");
 const path = require("path");
 
 const runtime = (process.env.AETHON_RUNTIME ?? "api").toLowerCase();
+const distDir = __dirname;
 
 const entry =
   runtime === "agent"
-    ? path.join(__dirname, "..", "dist", "agent", "index.js")
-    : path.join(__dirname, "..", "dist", "api", "server.js");
+    ? path.join(distDir, "agent", "index.js")
+    : path.join(distDir, "api", "server.js");
 
 if (runtime === "agent") {
   if (!process.env.AGENT_PRIVATE_KEY) {

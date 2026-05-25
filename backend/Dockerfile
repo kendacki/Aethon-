@@ -15,4 +15,4 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY openapi.yaml ./
 EXPOSE 3001
-CMD ["node", "dist/api/server.js"]
+CMD ["node", "dist/railway-start.cjs"]
