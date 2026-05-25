@@ -11,9 +11,5 @@
   "unlockAtIso": "2026-05-26T02:57:07.000Z",
   "status": "pending_timelock",
   "railwayService": "aethon-agent-risk",
-  "automation": {
-    "githubWorkflow": ".github/workflows/reregister-risk.yml",
-    "localCommand": "node scripts/reregister-agent.cjs auto-complete --role RISK_MGMT",
-    "afterComplete": "Scale aethon-agent-risk to 1 replica on Railway (or redeploy)"
-  }
+  "nextStep": "After unlock: npm run reregister:complete, then scale aethon-agent-risk to 1 on Railway"
 }

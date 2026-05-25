@@ -1,17 +1,15 @@
 #!/usr/bin/env node
 /**
- * Re-register an agent wallet with the correct on-chain type.
+ * Re-register an agent wallet with the correct on-chain type (manual flow).
  *
  * Usage:
  *   node scripts/reregister-agent.cjs status --role RISK_MGMT
  *   node scripts/reregister-agent.cjs request-deregister --role RISK_MGMT
  *   node scripts/reregister-agent.cjs complete-deregister --role RISK_MGMT
- *   node scripts/reregister-agent.cjs auto-complete --role RISK_MGMT   # CI / cron — no-op until unlock
- *   node scripts/reregister-agent.cjs wait-and-complete --role RISK_MGMT [--poll-ms 300000]
  *
  * Flow:
  *   1. request-deregister  — starts 24h timelock (AgentRegistry DEREGISTER_DELAY)
- *   2. complete-deregister / auto-complete — after timelock, returns stake
+ *   2. complete-deregister — after timelock, returns stake (run manually when ready)
  *   3. Redeploy Railway worker — AgentCore.register() runs with correct AGENT_TYPE
  */
 const fs = require("fs");
@@ -88,7 +86,6 @@ async function getStatus(registry, address, expectedRole) {
     unlockAt,
     unlockAtIso: unlockAt > 0 ? new Date(unlockAt * 1000).toISOString() : null,
     canCompleteDeregister: requestedAt > 0 && now >= unlockAt && stakeWei > 0n,
-    canRegisterFresh: requestedAt > 0 && stakeWei === 0n && !a.online,
     secondsUntilUnlock: requestedAt > 0 ? Math.max(0, unlockAt - now) : 0,
     correctlyRegistered:
       expectedRole != null &&
@@ -99,37 +96,9 @@ async function getStatus(registry, address, expectedRole) {
   };
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function parseArg(args, flag, fallback) {
   const idx = args.indexOf(flag);
   return idx >= 0 ? args[idx + 1] : fallback;
-}
-
-async function runCompleteDeregister(registry, role, before) {
-  if (!before.canCompleteDeregister) {
-    const hrs = Math.ceil(before.secondsUntilUnlock / 3600);
-    return {
-      completed: false,
-      reason: `Timelock active — ${hrs}h remaining (unlock at ${before.unlockAtIso})`,
-    };
-  }
-  const tx = await registry.completeDeregister({ gasLimit: 500_000n });
-  console.log("[tx] completeDeregister", tx.hash);
-  const receipt = await tx.wait();
-  const after = await getStatus(registry, before.address, role);
-  saveState(role, {
-    status: "stake_returned",
-    completeTx: tx.hash,
-    completedAt: Math.floor(Date.now() / 1000),
-    completedAtIso: new Date().toISOString(),
-    onChain: after,
-  });
-  console.log("[done] Stake returned. Redeploy Railway worker — it will register as", role);
-  console.log(JSON.stringify(after, null, 2));
-  return { completed: true, tx: tx.hash, receipt, after };
 }
 
 async function main() {
@@ -138,7 +107,7 @@ async function main() {
   const role = parseArg(args, "--role", process.env.AGENT_TYPE);
   if (!role || !ROLES.includes(role)) {
     console.error(
-      "Usage: node scripts/reregister-agent.cjs <status|request-deregister|complete-deregister|auto-complete|wait-and-complete> --role RISK_MGMT",
+      "Usage: node scripts/reregister-agent.cjs <status|request-deregister|complete-deregister> --role RISK_MGMT",
     );
     process.exit(1);
   }
@@ -187,52 +156,30 @@ async function main() {
         ? `${env.API_PUBLIC_URL.replace(/\/+$/, "")}/v1/agents/manifests/${role}`
         : null,
     });
-    console.log("[done] Deregister requested. Wait 24h then run auto-complete or complete-deregister.");
+    console.log("[done] Deregister requested. Wait 24h then run complete-deregister.");
     console.log(JSON.stringify(before, null, 2));
     return;
   }
 
   if (cmd === "complete-deregister") {
-    const result = await runCompleteDeregister(registry, role, before);
-    if (!result.completed) throw new Error(result.reason);
+    if (!before.canCompleteDeregister) {
+      const hrs = Math.ceil(before.secondsUntilUnlock / 3600);
+      throw new Error(`Timelock active — ${hrs}h remaining (unlock at ${before.unlockAtIso})`);
+    }
+    const tx = await registry.completeDeregister({ gasLimit: 500_000n });
+    console.log("[tx] completeDeregister", tx.hash);
+    await tx.wait();
+    const after = await getStatus(registry, wallet.address, role);
+    saveState(role, {
+      status: "stake_returned",
+      completeTx: tx.hash,
+      completedAt: Math.floor(Date.now() / 1000),
+      completedAtIso: new Date().toISOString(),
+      onChain: after,
+    });
+    console.log("[done] Stake returned. Redeploy Railway worker — it will register as", role);
+    console.log(JSON.stringify(after, null, 2));
     return;
-  }
-
-  if (cmd === "auto-complete") {
-    if (before.stakeWei === "0" && before.deregisterRequestedAt > 0) {
-      console.log("[auto-complete] Stake already returned — redeploy Railway worker to register as", role);
-      saveState(role, { status: "stake_returned", onChain: before });
-      return;
-    }
-    if (before.correctlyRegistered) {
-      console.log("[auto-complete] Already registered correctly as", role);
-      saveState(role, { status: "registered", onChain: before });
-      return;
-    }
-    const result = await runCompleteDeregister(registry, role, before);
-    if (!result.completed) {
-      console.log(`[auto-complete] ${result.reason}`);
-      process.exit(0);
-    }
-    return;
-  }
-
-  if (cmd === "wait-and-complete") {
-    const pollMs = Number(parseArg(args, "--poll-ms", "300000"));
-    while (true) {
-      before = await getStatus(registry, wallet.address, role);
-      if (before.stakeWei === "0" && before.deregisterRequestedAt > 0) {
-        console.log("[wait-and-complete] Stake already returned.");
-        return;
-      }
-      if (before.canCompleteDeregister) {
-        await runCompleteDeregister(registry, role, before);
-        return;
-      }
-      const mins = Math.ceil(before.secondsUntilUnlock / 60);
-      console.log(`[wait-and-complete] ${mins}m until unlock (${before.unlockAtIso}) — sleeping ${pollMs}ms`);
-      await sleep(pollMs);
-    }
   }
 
   throw new Error(`Unknown command: ${cmd}`);

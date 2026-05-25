@@ -82,8 +82,8 @@ Swarm (complexity 5) requires all 5 agents online.
 If the RISK wallet (`0xBA28...`) was registered as GOVERNANCE, follow **[RISK_REREGISTER.md](./RISK_REREGISTER.md)**:
 
 1. Keep `aethon-agent-risk` scaled to **0** during the 24h timelock
-2. Add GitHub secret `RISK_MGMT_AGENT_PRIVATE_KEY` — hourly workflow auto-completes deregister
-3. After stake return, scale risk worker to **1** — registers as `RISK_MGMT` with correct manifest
+2. After unlock, run `npm run reregister:complete` in `backend/`
+3. Scale risk worker to **1** — registers as `RISK_MGMT` with correct manifest
 
 ## Config reference
 

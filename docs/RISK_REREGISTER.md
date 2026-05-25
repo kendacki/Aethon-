@@ -1,6 +1,6 @@
 # RISK_MGMT on-chain re-register
 
-The RISK wallet was incorrectly registered as **GOVERNANCE** on-chain. This guide covers automated stake return after the 24h timelock and Railway redeploy as **RISK_MGMT**.
+The RISK wallet was incorrectly registered as **GOVERNANCE** on-chain. Deregister is in progress; complete and redeploy manually when the 24h timelock expires.
 
 ## Wallets (do not swap)
 
@@ -19,59 +19,31 @@ Tracked in `backend/env/reregister.risk_mgmt.json`:
 
 ---
 
-## Phase 1 — Now (timelock active)
+## Now (timelock active)
 
 ### Railway `aethon-agent-risk`
 
-1. **Scale to 0 replicas** (or keep stopped) until stake is returned.
+1. **Scale to 0 replicas** until stake is returned.
 2. **Verify variables** — copy from `backend/env/agents/risk_mgmt.env.example` and set `AGENT_PRIVATE_KEY`.
 3. **Critical:** `AGENT_TYPE=RISK_MGMT` (not `GOVERNANCE`).
 4. **Settings:** Root Directory `backend`, start command **`npm start`**.
 
-### GitHub automation (one-time setup)
-
-Add repo secret **`RISK_MGMT_AGENT_PRIVATE_KEY`** (same private key as Railway `aethon-agent-risk`).
-
-Workflow `.github/workflows/reregister-risk.yml` runs **hourly** and completes deregister when the timelock expires.
-
-Manual trigger: **Actions → Reregister RISK_MGMT → Run workflow**.
-
-### Local automation (optional)
-
-```powershell
-cd backend
-node scripts/reregister-agent.cjs wait-and-complete --role RISK_MGMT
-```
-
 ---
 
-## Phase 2 — After unlock
+## When timelock expires (manual)
 
-Automation runs `auto-complete` and returns 0.5 STT stake to the RISK wallet.
-
-Verify:
+Run from your machine (or ask in Cursor to run for you):
 
 ```bash
 cd backend
-npm run reregister:status
+npm run reregister:complete
 ```
 
-Expect `stake: "0"` and state file `status: "stake_returned"`.
+This returns 0.5 STT stake. Verify with `npm run reregister:status` — expect `stake: "0"`.
 
----
+Then scale **`aethon-agent-risk` to 1 replica** on Railway. Logs should show registration with the RISK_MGMT manifest.
 
-## Phase 3 — Redeploy RISK on Railway
-
-1. **Scale `aethon-agent-risk` to 1 replica** (or Redeploy).
-2. Logs:
-
-```
-[AgentCore] Registered on-chain with manifest .../manifests/RISK_MGMT
-[AgentCore] Agent 0xBA28... online (RISK_MGMT)
-```
-
-3. **API service** — set real worker URL in `AGENT_HEALTH_URLS` for `RISK_MGMT`, redeploy API.
-4. Check `GET /v1/agents/fleet-health` — RISK_MGMT should be `HEALTHY` and `reachable`.
+Update **`AGENT_HEALTH_URLS`** on the API service with the risk worker's real public domain, then redeploy API.
 
 ---
 
@@ -80,5 +52,4 @@ Expect `stake: "0"` and state file `status: "stake_returned"`.
 | Command | Purpose |
 |---------|---------|
 | `npm run reregister:status` | On-chain + state file status |
-| `npm run reregister:complete` | Manual complete-deregister (after unlock) |
-| `node scripts/reregister-agent.cjs auto-complete --role RISK_MGMT` | CI/cron |
+| `npm run reregister:complete` | Return stake after 24h timelock |
