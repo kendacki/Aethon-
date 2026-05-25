@@ -4,6 +4,7 @@ import { executeGovernance } from "./governance.js";
 import { executeOracle } from "./oracle.js";
 import { executeRiskMgmt } from "./riskMgmt.js";
 import type { SkillContext, SkillExecutor, SkillResult } from "./types.js";
+import { validateSkillParams } from "./validate.js";
 import { executeYieldOpt } from "./yieldOpt.js";
 
 const EXECUTORS: Record<AgentType, SkillExecutor> = {
@@ -30,7 +31,21 @@ export async function executeSkill(
       executedAt: new Date().toISOString(),
     };
   }
-  return executor(payload, ctx);
+
+  const validation = validateSkillParams(role, payload);
+  if (!validation.ok) {
+    return {
+      role,
+      action: payload.action,
+      success: false,
+      data: {},
+      error: validation.errors.join("; "),
+      executedAt: new Date().toISOString(),
+    };
+  }
+
+  const sanitized: TaskPayload = { ...payload, params: validation.sanitized };
+  return executor(sanitized, ctx);
 }
 
 export async function executeSwarmPipeline(

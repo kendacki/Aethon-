@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch } from "../api/hooks";
+import { AgentHealthDetail } from "../components/FleetHealthPanel";
 import { Badge, Card, Grid, PageWrap, Section, StatValue } from "../components/ui";
 import { IconArrowLeft, IconTrend, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -10,6 +11,7 @@ export default function AgentDetailPage() {
   const { addr } = useParams<{ addr: string }>();
   const { data: agent, loading } = useFetch(() => api.agent(addr!), [addr]);
   const { data: rep } = useFetch(() => api.reputation(addr!), [addr]);
+  const { data: health } = useFetch(() => api.agentHealth(addr!), [addr]);
 
   if (loading) return <PageWrap><Section>Loading agent</Section></PageWrap>;
   if (!agent) return <PageWrap><Section>Agent not found</Section></PageWrap>;
@@ -25,6 +27,14 @@ export default function AgentDetailPage() {
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
             <Badge accent>{agent.agentType}</Badge>
             <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+            {health && health.status !== "UNKNOWN" && (
+              <Badge
+                status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}
+                accent={health.status === "DEGRADED"}
+              >
+                Worker {health.status.toLowerCase()}
+              </Badge>
+            )}
           </div>
           <h1 style={{ fontSize: "2rem", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace" }}>{agent.address}</h1>
 
@@ -42,6 +52,8 @@ export default function AgentDetailPage() {
               <div style={{ fontWeight: 600, marginTop: 8 }}>{new Date(agent.lastHeartbeat).toLocaleString()}</div>
             </Card>
           </Grid>
+
+          <AgentHealthDetail health={health} />
 
           {rep && rep.history.length > 0 && (
             <Card style={{ marginTop: "2rem" }}>

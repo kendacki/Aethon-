@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import type { AgentConfig } from "./config.js";
+import { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
 import { NonceMgr } from "./NonceMgr.js";
 import { Watchdog } from "./Watchdog.js";
 import { TaskExecutor } from "./TaskExecutor.js";
@@ -22,10 +23,11 @@ export class AgentCore {
   private registry: ethers.Contract;
   private taskMarket: ethers.Contract;
   private nonceMgr: NonceMgr;
+  private health: AgentHealthMonitor;
   private watchdog: Watchdog;
   private taskExecutor: TaskExecutor;
   private heartbeatTimer: NodeJS.Timeout | null = null;
-  private halted = false;
+  private taskIntakePaused = false;
 
   constructor(private config: AgentConfig) {
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
@@ -33,21 +35,28 @@ export class AgentCore {
     this.registry = new ethers.Contract(config.agentRegistryAddr, REGISTRY_ABI, this.wallet);
     this.taskMarket = new ethers.Contract(config.taskMarketAddr, TASK_MARKET_ABI, this.wallet);
     this.nonceMgr = new NonceMgr(this.wallet, this.provider);
-    this.watchdog = new Watchdog(config);
-    this.taskExecutor = new TaskExecutor(config, this.wallet, this.provider, this.nonceMgr);
+    this.health = new AgentHealthMonitor(config, this.wallet);
+    this.watchdog = new Watchdog(this.health);
+    this.taskExecutor = new TaskExecutor(config, this.wallet, this.provider, this.nonceMgr, this.health);
 
-    this.watchdog.on("halt", () => {
-      this.halted = true;
-      console.error("[AgentCore] HALT signal received");
+    this.watchdog.on("halt", (evt) => {
+      this.taskIntakePaused = true;
+      console.error("[AgentCore] HALT:", evt.msg);
     });
     this.watchdog.on("warning", (evt) => {
+      this.taskIntakePaused = !this.health.canAcceptTasks();
       console.warn("[Watchdog]", evt.msg);
+    });
+    this.watchdog.on("recovered", (evt) => {
+      this.taskIntakePaused = !this.health.canAcceptTasks();
+      console.log("[AgentCore] RECOVERED:", evt.msg);
     });
   }
 
   async start(): Promise<void> {
     this.watchdog.start();
     await this.ensureRegistered();
+    await this.health.runChecks();
     this.startHeartbeat();
     if (this.config.reactivityEnabled) {
       this.subscribeToTasks();
@@ -92,17 +101,19 @@ export class AgentCore {
 
   private startHeartbeat(): void {
     this.heartbeatTimer = setInterval(async () => {
-      if (this.halted || this.config.agentRegistryAddr === ethers.ZeroAddress) return;
+      if (this.config.agentRegistryAddr === ethers.ZeroAddress) return;
       try {
         const nonce = await this.nonceMgr.acquireNonce();
         try {
           const tx = await this.registry.heartbeat({ nonce, gasLimit: 100_000n });
           await tx.wait();
+          this.health.recordHeartbeat(true);
         } finally {
           this.nonceMgr.release();
         }
       } catch (err) {
         console.error("[AgentCore] Heartbeat failed:", err);
+        this.health.recordHeartbeat(false);
         await this.nonceMgr.resync();
       }
     }, 60_000);
@@ -111,7 +122,10 @@ export class AgentCore {
   private subscribeToTasks(): void {
     if (this.config.taskMarketAddr === ethers.ZeroAddress) return;
     this.taskMarket.on("TaskSubmitted", (id: bigint, _submitter: string, reward: bigint, complexity: bigint) => {
-      if (this.halted) return;
+      if (this.taskIntakePaused || !this.health.canAcceptTasks()) {
+        console.warn(`[AgentCore] Task #${id} skipped — agent not healthy (${this.health.getSnapshot().status})`);
+        return;
+      }
       console.log(`[AgentCore] TaskSubmitted #${id} reward=${ethers.formatEther(reward)} complexity=${complexity}`);
       void (async () => {
         try {

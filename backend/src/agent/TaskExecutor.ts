@@ -8,6 +8,8 @@ import { NonceMgr } from "./NonceMgr.js";
 import { executeSkill } from "./skills/index.js";
 import type { SkillContext, SkillResult } from "./skills/types.js";
 import { skillResultDigest } from "../services/coalitionVerify.js";
+import type { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
+import { withRetry } from "./utils/retry.js";
 
 const COALITION_ABI = [
   "function formCoalition(address[] members, uint256 taskId, bytes[] signatures) returns (address)",
@@ -35,6 +37,7 @@ export class TaskExecutor {
     private wallet: ethers.Wallet,
     private provider: ethers.JsonRpcProvider,
     private nonceMgr: NonceMgr,
+    private health: AgentHealthMonitor,
   ) {
     this.coalitionEngine = new CoalitionEngine(config, provider);
     this.api = new AgentApiClient(config);
@@ -56,10 +59,18 @@ export class TaskExecutor {
   async handleTaskSubmitted(taskId: bigint, taskHash: string, complexity: bigint): Promise<void> {
     const id = Number(taskId);
     if (this.processing.has(id)) return;
+    if (!this.health.canAcceptTasks()) {
+      console.warn(`[TaskExecutor] Task #${id} rejected — health gate (${this.health.getSnapshot().status})`);
+      return;
+    }
     this.processing.add(id);
+    this.health.incrementTasksInFlight();
 
     try {
-      const rawPayload = await this.api.fetchPayload(taskHash);
+      const rawPayload = await withRetry(() => this.api.fetchPayload(taskHash), {
+        attempts: 3,
+        label: "fetchPayload",
+      });
       if (!rawPayload || !validateTaskPayload(rawPayload)) {
         console.warn(`[TaskExecutor] No payload for task #${id} (${taskHash})`);
         return;
@@ -86,6 +97,7 @@ export class TaskExecutor {
       console.error(`[TaskExecutor] Task #${id} failed:`, err);
     } finally {
       this.processing.delete(id);
+      this.health.decrementTasksInFlight();
     }
   }
 

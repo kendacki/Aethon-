@@ -10,33 +10,53 @@ export const executeGovernance: SkillExecutor = async (payload, _ctx) => {
   const support = Number(payload.params.supportStakeEth ?? 0);
   const against = Number(payload.params.againstStakeEth ?? 0);
   const quorum = Number(payload.params.quorumEth ?? 0);
+  const passThreshold = Number(payload.params.passThreshold ?? 0.66);
+
   const total = support + against;
   const quorumReached = total >= quorum;
   const supportRatio = total > 0 ? support / total : 0;
+  const participationPct = quorum > 0 ? Math.min(100, Math.round((total / quorum) * 100)) : 0;
 
   let recommendedVote: "FOR" | "AGAINST" | "ABSTAIN" = "ABSTAIN";
-  let confidence = 0.5;
+  let confidence = 0.45;
+  const flags: string[] = [];
+
+  if (!quorumReached) {
+    flags.push("QUORUM_NOT_MET");
+  }
+  if (participationPct > 0 && participationPct < 50) {
+    flags.push("LOW_PARTICIPATION");
+  }
+
   if (quorumReached) {
-    if (supportRatio >= 0.66) {
+    if (supportRatio >= passThreshold) {
       recommendedVote = "FOR";
-      confidence = Math.min(0.95, 0.55 + supportRatio * 0.4);
-    } else if (supportRatio <= 0.4) {
+      confidence = Math.min(0.96, 0.5 + supportRatio * 0.45);
+    } else if (supportRatio <= 1 - passThreshold) {
       recommendedVote = "AGAINST";
-      confidence = Math.min(0.95, 0.55 + (1 - supportRatio) * 0.4);
+      confidence = Math.min(0.96, 0.5 + (1 - supportRatio) * 0.45);
+    } else {
+      flags.push("SPLIT_VOTE");
+      confidence = 0.55;
     }
   }
+
+  const summary = quorumReached
+    ? `Proposal ${proposalId}: ${recommendedVote} (${Math.round(supportRatio * 100)}% support, threshold ${Math.round(passThreshold * 100)}%)`
+    : `Proposal ${proposalId}: quorum not reached (${total}/${quorum} STT, ${participationPct}% participation)`;
 
   return skillOk("GOVERNANCE", payload.action, {
     proposalId,
     supportStakeEth: support,
     againstStakeEth: against,
     quorumEth: quorum,
+    passThreshold,
     quorumReached,
+    participationPct,
     supportRatio: Number(supportRatio.toFixed(4)),
     recommendedVote,
     confidence: Number(confidence.toFixed(2)),
-    summary: quorumReached
-      ? `Proposal ${proposalId}: ${recommendedVote} (${Math.round(supportRatio * 100)}% support)`
-      : `Proposal ${proposalId}: quorum not reached (${total}/${quorum} STT)`,
+    flags,
+    summary,
   });
 };

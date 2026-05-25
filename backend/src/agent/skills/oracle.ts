@@ -1,6 +1,15 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
-import { fetchSpotUsd } from "./http.js";
+import { fetchSpotQuote } from "./http.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
+
+const SANITY_BOUNDS: Record<string, { min: number; max: number }> = {
+  bitcoin: { min: 1_000, max: 500_000 },
+  ethereum: { min: 100, max: 50_000 },
+  somnia: { min: 0.001, max: 100 },
+  solana: { min: 1, max: 10_000 },
+  "usd-coin": { min: 0.95, max: 1.05 },
+  tether: { min: 0.95, max: 1.05 },
+};
 
 export const executeOracle: SkillExecutor = async (payload, ctx) => {
   if (payload.action !== "fetch_price" && payload.action !== "swarm_execute") {
@@ -11,25 +20,39 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
     const asset = String(payload.params.asset ?? "ethereum");
     const currency = String(payload.params.currency ?? "usd");
     const maxStalenessSec = Number(payload.params.maxStalenessSec ?? 120);
-    const fetchedAt = Math.floor(Date.now() / 1000);
-    const price = await fetchSpotUsd(asset);
+
+    const quote = await fetchSpotQuote(asset);
+    const ageSec = Math.floor(Date.now() / 1000) - quote.fetchedAt;
+    const stale = ageSec > maxStalenessSec;
+
+    const bounds = SANITY_BOUNDS[asset];
+    if (bounds && (quote.price < bounds.min || quote.price > bounds.max)) {
+      return skillFail("ORACLE", payload.action, `Price ${quote.price} outside sanity bounds for ${asset}`);
+    }
 
     const attestation = {
       asset,
       currency,
-      price,
-      fetchedAt,
+      price: quote.price,
+      fetchedAt: quote.fetchedAt,
+      source: quote.source,
       agent: ctx.agentAddress,
       maxStalenessSec,
+      ageSec,
     };
     const digest = JSON.stringify(attestation);
     const signature = await ctx.signMessage(digest);
+
+    const confidence =
+      quote.source === "coingecko" && !stale ? 0.95 : quote.source === "fallback_table" ? 0.6 : 0.75;
 
     return skillOk("ORACLE", payload.action, {
       ...attestation,
       attestation: digest,
       signature,
-      stale: false,
+      stale,
+      confidence: Number(confidence.toFixed(2)),
+      quality: stale ? "DEGRADED" : quote.source === "coingecko" ? "PRIMARY" : "FALLBACK",
     });
   } catch (err) {
     return skillFail("ORACLE", payload.action, err instanceof Error ? err.message : "Oracle fetch failed");

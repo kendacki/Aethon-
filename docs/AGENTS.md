@@ -86,6 +86,36 @@ AGENT_TYPE=ORACLE AGENT_PRIVATE_KEY=0x... npm run start:agent
 ## Verify fleet
 
 - **Agents page** — 5 online agents with manifest URIs
-- `GET /v1/agents/manifests/ORACLE` — skill manifest JSON
+- `GET /v1/agents/manifests/ORACLE` — skill manifest JSON (v1.1.0)
+- Each agent Railway service exposes **health** on `PORT` — returns full snapshot when healthy, `503` when halted
 - Complexity-1 task — one agent completes
 - Swarm (complexity 5) — all 5 agents required
+
+---
+
+## Agent health (v1.1)
+
+Each agent runs an **AgentHealthMonitor** that checks:
+
+| Check | Effect |
+|-------|--------|
+| RPC latency | Pauses task intake above 2s |
+| Gas price | Pauses above 100 gwei |
+| Circuit breaker | **HALT** when paused on-chain |
+| Wallet balance | **HALT** below 0.5 STT (configurable via `AGENT_MIN_BALANCE_WEI`) |
+| API reachability | Degraded if `/v1/health/live` fails |
+| On-chain registration | **HALT** if not active in registry |
+| Heartbeat failures | Degraded after 2+ consecutive failures |
+
+Health snapshot is written to `AGENT_HEALTH_FILE` (default: OS temp dir) and served by the Railway health HTTP endpoint.
+
+Optional env tuning:
+
+```env
+AGENT_MIN_BALANCE_WEI=500000000000000000
+AGENT_MAX_GAS_GWEI=100
+AGENT_MAX_RPC_LATENCY_MS=2000
+WATCHDOG_INTERVAL_MS=5000
+```
+
+Skills v1.1 add **preflight param validation**, confidence scores, and role-specific depth (multi-venue arbitrage, oracle fallback feeds, diversified yield routing, governance flags, composite risk scoring).

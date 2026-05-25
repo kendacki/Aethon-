@@ -10,6 +10,7 @@ import {
   verifyCoalitionSignature,
   verifySkillResultSignature,
 } from "../services/coalitionVerify.js";
+import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
 
 export const healthRouter = Router();
 
@@ -67,6 +68,15 @@ agentsRouter.get("/manifests/:role", (req, res) => {
   res.json({ data: manifest });
 });
 
+agentsRouter.get("/fleet-health", async (_req, res, next) => {
+  try {
+    const data = await getFleetHealth();
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
 agentsRouter.get("/", async (req, res, next) => {
   try {
     const { page, pageSize } = parsePagination(req);
@@ -77,6 +87,16 @@ agentsRouter.get("/", async (req, res, next) => {
       online: parseBool(req.query.online),
     });
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+agentsRouter.get("/:address/health", async (req, res, next) => {
+  try {
+    const data = await getAgentHealthByAddress(req.params.address);
+    if (!data) return res.status(404).json({ error: "Agent health not found" });
+    res.json({ data });
   } catch (err) {
     next(err);
   }

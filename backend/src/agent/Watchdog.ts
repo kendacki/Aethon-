@@ -1,78 +1,22 @@
 import { EventEmitter } from "events";
-import { ethers } from "ethers";
-import type { AgentConfig } from "./config.js";
+import type { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
+import type { HealthEvent } from "./health/types.js";
 
+/** Thin adapter — health logic lives in AgentHealthMonitor. */
 export class Watchdog extends EventEmitter {
-  private provider: ethers.JsonRpcProvider;
-  private circuitBreaker: ethers.Contract;
-  private interval: NodeJS.Timeout | null = null;
-
-  constructor(private config: AgentConfig) {
+  constructor(private health: AgentHealthMonitor) {
     super();
-    this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
-    const wallet = new ethers.Wallet(config.privateKey, this.provider);
-    this.circuitBreaker = new ethers.Contract(
-      config.circuitBreakerAddr,
-      config.circuitBreakerABI,
-      wallet
-    );
-
-    if (config.dataStreamsEnabled && config.circuitBreakerAddr !== ethers.ZeroAddress) {
-      this.circuitBreaker.on("CircuitBroken", (failures: bigint) => {
-        this.emit("halt", {
-          type: "CIRCUIT_BREAK",
-          msg: `Circuit breaker ACTIVE — ${failures} consecutive failures`,
-        });
-      });
-    }
+    this.health.on("halt", (evt: HealthEvent) => this.emit("halt", evt));
+    this.health.on("warning", (evt: HealthEvent) => this.emit("warning", evt));
+    this.health.on("recovered", (evt: HealthEvent) => this.emit("recovered", evt));
   }
 
   start(): void {
-    this.interval = setInterval(async () => {
-      await this.checkGasPrice();
-      await this.checkCircuitBreaker();
-      await this.checkLatency();
-    }, this.config.watchdogIntervalMs);
-  }
-
-  private async checkGasPrice(): Promise<void> {
-    const feeData = await this.provider.getFeeData();
-    const gasPrice = feeData.gasPrice ?? 0n;
-    if (gasPrice > ethers.parseUnits("100", "gwei")) {
-      this.emit("warning", {
-        type: "HIGH_GAS",
-        value: ethers.formatUnits(gasPrice, "gwei"),
-        msg: "Gas price exceeded 100 gwei — pausing task intake",
-      });
-    }
-  }
-
-  private async checkCircuitBreaker(): Promise<void> {
-    if (this.config.circuitBreakerAddr === ethers.ZeroAddress) return;
-    const paused = await this.circuitBreaker.isPaused();
-    if (paused) {
-      this.emit("halt", {
-        type: "CIRCUIT_BREAK",
-        msg: "Circuit breaker ACTIVE — all operations halted",
-      });
-    }
-  }
-
-  private async checkLatency(): Promise<void> {
-    const t0 = Date.now();
-    await this.provider.getBlockNumber();
-    const latency = Date.now() - t0;
-    if (latency > 2000) {
-      this.emit("warning", {
-        type: "HIGH_LATENCY",
-        value: latency,
-        msg: `RPC latency ${latency}ms — above 2s threshold`,
-      });
-    }
+    this.health.start();
   }
 
   stop(): void {
-    if (this.interval) clearInterval(this.interval);
+    this.health.stop();
     this.removeAllListeners();
   }
 }

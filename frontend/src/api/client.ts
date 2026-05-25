@@ -65,6 +65,43 @@ export interface Health {
   chainId: number;
 }
 
+export interface AgentHealthCheck {
+  name: string;
+  ok: boolean;
+  severity: string;
+  message: string;
+  value?: unknown;
+}
+
+export interface AgentFleetHealth {
+  role: string;
+  address: string | null;
+  online: boolean;
+  status: "HEALTHY" | "DEGRADED" | "HALTED" | "STARTING" | "UNKNOWN";
+  reachable: boolean;
+  healthUrl: string | null;
+  snapshot: {
+    status?: string;
+    checks?: AgentHealthCheck[];
+    metrics?: Record<string, unknown>;
+    haltReasons?: string[];
+    updatedAt?: string;
+  } | null;
+  error: string | null;
+}
+
+export interface FleetHealth {
+  status: "HEALTHY" | "DEGRADED" | "HALTED" | "PARTIAL" | "UNKNOWN";
+  healthyCount: number;
+  degradedCount: number;
+  haltedCount: number;
+  unknownCount: number;
+  totalRoles: number;
+  configuredWorkers: number;
+  agents: AgentFleetHealth[];
+  updatedAt: string;
+}
+
 export interface CircuitBreaker {
   paused: boolean;
   consecutiveFailures: number;
@@ -103,6 +140,16 @@ export const api = {
     return fetchApi<Paginated<Agent>>(`/agents?${q}`);
   },
   agent: (addr: string) => fetchApi<{ data: Agent }>(`/agents/${addr}`).then((r) => r.data),
+  agentHealth: async (addr: string) => {
+    const res = await fetch(`${API_BASE}/agents/${addr}/health`, {
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`API ${res.status}: /agents/${addr}/health`);
+    const body = (await res.json()) as { data: AgentFleetHealth };
+    return body.data;
+  },
+  fleetHealth: () => fetchApi<{ data: FleetHealth }>("/agents/fleet-health").then((r) => r.data),
   agentManifest: (role: string) =>
     fetchApi<{ data: Record<string, unknown> }>(`/agents/manifests/${role}`).then((r) => r.data),
   reputation: (addr: string) => fetchApi<{ data: Reputation }>(`/reputation/${addr}`).then((r) => r.data),
