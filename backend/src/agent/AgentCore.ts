@@ -9,6 +9,7 @@ const REGISTRY_ABI = [
   "function register(uint8 agentType, string metadataURI) payable",
   "function heartbeat() external",
   "function isAgentActive(address) view returns (bool)",
+  "function getAgentStake(address) view returns (uint256)",
   "event AgentRegistered(address indexed wallet, uint8 agentType)",
 ];
 
@@ -81,6 +82,19 @@ export class AgentCore {
     }
     const active = await this.registry.isAgentActive(this.wallet.address);
     if (active) return;
+
+    const stake: bigint = await this.registry.getAgentStake(this.wallet.address);
+    if (stake > 0n) {
+      const nonce = await this.nonceMgr.acquireNonce();
+      try {
+        const tx = await this.registry.heartbeat({ nonce, gasLimit: 100_000n });
+        await tx.wait();
+        console.log("[AgentCore] Refreshed stale on-chain registration via heartbeat");
+        return;
+      } finally {
+        this.nonceMgr.release();
+      }
+    }
 
     const agentTypeIndex = { ARBITRAGE: 0, ORACLE: 1, YIELD_OPT: 2, GOVERNANCE: 3, RISK_MGMT: 4 }[
       this.config.agentType

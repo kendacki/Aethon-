@@ -255,9 +255,25 @@ export class AgentHealthMonitor extends EventEmitter {
     try {
       const active = await this.registry.isAgentActive(this.wallet.address);
       const stake = await this.registry.getAgentStake(this.wallet.address);
-      return this.check("on_chain_registration", active, active ? "info" : "critical", active
-        ? `Registered, stake ${ethers.formatEther(stake)} STT`
-        : "Agent not active on registry", { active, stakeWei: stake.toString() });
+      if (active) {
+        return this.check("on_chain_registration", true, "info", `Registered, stake ${ethers.formatEther(stake)} STT`, {
+          active,
+          stakeWei: stake.toString(),
+        });
+      }
+      if (stake > 0n) {
+        return this.check(
+          "on_chain_registration",
+          false,
+          "warning",
+          `Registered but stale heartbeat — stake ${ethers.formatEther(stake)} STT`,
+          { active, stakeWei: stake.toString() },
+        );
+      }
+      return this.check("on_chain_registration", false, "critical", "Agent not registered on registry", {
+        active,
+        stakeWei: stake.toString(),
+      });
     } catch (err) {
       return this.check("on_chain_registration", false, "warning", err instanceof Error ? err.message : "Registry check failed");
     }
