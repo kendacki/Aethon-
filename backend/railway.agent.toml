@@ -1,11 +1,4 @@
-# Agent worker services — set Root Directory to `backend` on Railway.
-# In each agent service: Settings → Deploy → Start Command → npm run start:agent
-# Or link this file if Railway supports service-specific config paths.
+# Agent worker services — set AETHON_RUNTIME=agent on Railway (see docs/RAILWAY_AGENTS.md).
+# Railway uses backend/railway.toml; routing is via scripts/railway-start.cjs + AETHON_RUNTIME.
 
-[build]
-builder = "NIXPACKS"
-buildCommand = "npm run build"
-
-[deploy]
-startCommand = "npm run start:agent"
-restartPolicyType = "ON_FAILURE"
+AETHON_RUNTIME=agent

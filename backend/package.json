@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-assets.cjs",
+    "start": "node scripts/railway-start.cjs",
     "dev:api": "tsx watch src/api/server.ts",
     "dev:agent": "tsx watch src/agent/index.ts",
     "start:api": "node dist/api/server.js",

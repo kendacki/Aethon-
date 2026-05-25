@@ -16,6 +16,7 @@ const ROLES = [
 
 const agentsDir = path.join(__dirname, "..", "env", "agents");
 const shared = {
+  AETHON_RUNTIME: "agent",
   SOMNIA_RPC_URL: "https://dream-rpc.somnia.network",
   SOMNIA_CHAIN_ID: "50312",
   AGENT_REGISTRY_ADDR: "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",

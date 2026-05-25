@@ -1,6 +1,6 @@
 # Railway Agent Fleet Setup
 
-Deploy **5 worker services** alongside your existing API service. Each runs `npm run start:agent` with a different `AGENT_TYPE` and private key.
+Deploy **5 worker services** alongside your existing API service. All services use `npm start`, which reads **`AETHON_RUNTIME`** to choose API vs agent (see `scripts/railway-start.cjs`).
 
 ## Prerequisites
 
@@ -21,22 +21,21 @@ Opens `backend/env/railway-setup.local.txt` — **gitignored**, contains private
 
 In your **existing Railway project** (same as API):
 
-| Service name | AGENT_TYPE | Start command |
-|--------------|------------|---------------|
-| `aethon-agent-arbitrage` | ARBITRAGE | `npm run start:agent` |
-| `aethon-agent-oracle` | ORACLE | `npm run start:agent` |
-| `aethon-agent-yield` | YIELD_OPT | `npm run start:agent` |
-| `aethon-agent-governance` | GOVERNANCE | `npm run start:agent` |
-| `aethon-agent-risk` | RISK_MGMT | `npm run start:agent` |
+| Service name | AGENT_TYPE | Required variable |
+|--------------|------------|-------------------|
+| `aethon-agent-arbitrage` | ARBITRAGE | `AETHON_RUNTIME=agent` |
+| `aethon-agent-oracle` | ORACLE | `AETHON_RUNTIME=agent` |
+| `aethon-agent-yield` | YIELD_OPT | `AETHON_RUNTIME=agent` |
+| `aethon-agent-governance` | GOVERNANCE | `AETHON_RUNTIME=agent` |
+| `aethon-agent-risk` | RISK_MGMT | `AETHON_RUNTIME=agent` |
 
 For **each** service:
 
 1. **New → GitHub Repo** → select `Aethon-` (same repo as API)
 2. **Settings → Root Directory** → `backend`
-3. **Settings → Deploy → Start Command** → `npm run start:agent`
-4. **Settings → Build** → Build Command: `npm run build` (default from Nixpacks is fine)
-5. **Variables** → paste the block from `railway-setup.local.txt` for that role
-6. **Deploy**
+3. **Start command** — use default **`npm start`** (from `railway.toml`). Do **not** override with `npm run start:api`.
+4. **Variables** → **`AETHON_RUNTIME=agent`** plus block from `railway-setup.local.txt`
+5. **Deploy**
 
 Agent workers do **not** need Postgres — they call the API over HTTP.
 
@@ -45,6 +44,7 @@ Agent workers do **not** need Postgres — they call the API over HTTP.
 Ensure your **API** service has:
 
 ```env
+AETHON_RUNTIME=api
 API_PUBLIC_URL=https://aethon-production-3f5a.up.railway.app
 API_BASE_URL=https://aethon-production-3f5a.up.railway.app/v1
 RELAYER_PRIVATE_KEY=<deployer key — funded for task rewards>
@@ -84,6 +84,7 @@ Swarm (complexity 5) requires all 5 agents online.
 
 | Log error | Fix |
 |-----------|-----|
+| `node dist/api/server.js` / Postgres errors on agent service | Set **`AETHON_RUNTIME=agent`**, redeploy; remove custom `start:api` override |
 | `AGENT_PRIVATE_KEY is required` | Set key in service Variables |
 | `Payload fetch failed` | API_BASE_URL must include `/v1` |
 | `Insufficient stake` | Fund agent wallet (≥0.1 STT stake, you have 5 STT) |
