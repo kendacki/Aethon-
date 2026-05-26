@@ -82,48 +82,56 @@ export class AgentCore {
       console.warn("[AgentCore] AGENT_REGISTRY_ADDR not set — skipping on-chain registration");
       return;
     }
-    const active = await this.registry.isAgentActive(this.wallet.address);
-    if (active) return;
+    try {
+      const active = await this.registry.isAgentActive(this.wallet.address);
+      if (active) return;
 
-    const agentRecord = await this.registry.agents(this.wallet.address);
-    const deregisterRequestedAt = Number(agentRecord.deregisterRequestedAt);
-    const stake: bigint = agentRecord.stake as bigint;
+      const agentRecord = await this.registry.agents(this.wallet.address);
+      const deregisterRequestedAt = Number(agentRecord.deregisterRequestedAt);
+      const stake: bigint = agentRecord.stake as bigint;
 
-    if (deregisterRequestedAt > 0 && stake > 0n) {
-      this.registrationPaused = true;
-      console.warn(
-        `[AgentCore] Deregister timelock pending (requested ${new Date(deregisterRequestedAt * 1000).toISOString()}) — ` +
-          "run complete-deregister, then redeploy. Heartbeat/register skipped.",
-      );
-      return;
-    }
+      if (deregisterRequestedAt > 0 && stake > 0n) {
+        this.registrationPaused = true;
+        console.warn(
+          `[AgentCore] Deregister timelock pending (requested ${new Date(deregisterRequestedAt * 1000).toISOString()}) — ` +
+            "run complete-deregister, then redeploy. Heartbeat/register skipped.",
+        );
+        return;
+      }
 
-    if (stake > 0n) {
+      if (stake > 0n) {
+        const nonce = await this.nonceMgr.acquireNonce();
+        try {
+          const tx = await this.registry.heartbeat({ nonce, gasLimit: 200_000n });
+          await tx.wait();
+          console.log("[AgentCore] Refreshed stale on-chain registration via heartbeat");
+          return;
+        } finally {
+          this.nonceMgr.release();
+        }
+      }
+
+      const agentTypeIndex = { ARBITRAGE: 0, ORACLE: 1, YIELD_OPT: 2, GOVERNANCE: 3, RISK_MGMT: 4 }[
+        this.config.agentType
+      ];
       const nonce = await this.nonceMgr.acquireNonce();
       try {
-        const tx = await this.registry.heartbeat({ nonce, gasLimit: 100_000n });
+        const tx = await this.registry.register(agentTypeIndex, this.metadataUri(), {
+          value: this.config.agentStakeWei,
+          nonce,
+          gasLimit: this.config.maxGasPerTx,
+        });
         await tx.wait();
-        console.log("[AgentCore] Refreshed stale on-chain registration via heartbeat");
-        return;
+        console.log("[AgentCore] Registered on-chain with manifest", this.metadataUri());
       } finally {
         this.nonceMgr.release();
       }
-    }
-
-    const agentTypeIndex = { ARBITRAGE: 0, ORACLE: 1, YIELD_OPT: 2, GOVERNANCE: 3, RISK_MGMT: 4 }[
-      this.config.agentType
-    ];
-    const nonce = await this.nonceMgr.acquireNonce();
-    try {
-      const tx = await this.registry.register(agentTypeIndex, this.metadataUri(), {
-        value: this.config.agentStakeWei,
-        nonce,
-        gasLimit: this.config.maxGasPerTx,
-      });
-      await tx.wait();
-      console.log("[AgentCore] Registered on-chain with manifest", this.metadataUri());
-    } finally {
-      this.nonceMgr.release();
+    } catch (err) {
+      console.error(
+        "[AgentCore] ensureRegistered failed:",
+        err instanceof Error ? err.message : err,
+        "— will retry via heartbeat loop",
+      );
     }
   }
 
