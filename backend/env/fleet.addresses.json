@@ -12,15 +12,12 @@
     "ORACLE": "0xfc501c679aFb3689191448f92621ACD49e86482C",
     "YIELD_OPT": "0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e",
     "GOVERNANCE": "0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0",
-    "RISK_MGMT": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC"
+    "RISK_MGMT": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB"
   },
-  "reregister": {
-    "RISK_MGMT": {
-      "status": "pending_timelock",
-      "issue": "Wallet was registered as GOVERNANCE; re-registering as RISK_MGMT",
-      "stateFile": "backend/env/reregister.risk_mgmt.json",
-      "docs": "docs/RISK_REREGISTER.md",
-      "unlockAtIso": "2026-05-26T02:57:07.000Z"
+  "retired": {
+    "RISK_MGMT_v1": {
+      "address": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
+      "reason": "Registered as GOVERNANCE; ReputationEngine blocks re-register after deregister"
     }
   }
 }

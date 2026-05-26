@@ -1,15 +1,15 @@
 {
   "role": "RISK_MGMT",
-  "wallet": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
-  "governanceWalletNote": "GOVERNANCE uses separate wallet 0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0 — do not change",
-  "previousOnChainType": "GOVERNANCE",
-  "targetOnChainType": "RISK_MGMT",
+  "status": "completed_new_wallet",
+  "wallet": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB",
+  "retiredWallet": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
+  "registerTx": "0x13fce221064703ec6058784c92df6b61a51e95ae21d02769f0adce4187de410e",
   "expectedManifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/RISK_MGMT",
-  "requestTx": "0x4cd9c7829902dda591a5b6b981b5f08143e887135db000610cb6bb7efeb99104",
-  "requestedAt": 1779677827,
-  "unlockAt": 1779764227,
-  "unlockAtIso": "2026-05-26T02:57:07.000Z",
-  "status": "pending_timelock",
+  "onChain": {
+    "agentType": "RISK_MGMT",
+    "active": true,
+    "stake": "0.5"
+  },
   "railwayService": "aethon-agent-risk",
-  "nextStep": "After unlock: npm run reregister:complete, then scale aethon-agent-risk to 1 on Railway"
+  "nextStep": "Update AGENT_PRIVATE_KEY on Railway and redeploy aethon-agent-risk"
 }
