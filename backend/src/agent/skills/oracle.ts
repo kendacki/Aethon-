@@ -1,5 +1,5 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
-import { fetchSpotQuote } from "./http.js";
+import { fetchSpotQuote, type SpotQuote } from "./http.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 const SANITY_BOUNDS: Record<string, { min: number; max: number }> = {
@@ -21,7 +21,20 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
     const currency = String(payload.params.currency ?? "usd");
     const maxStalenessSec = Number(payload.params.maxStalenessSec ?? 120);
 
-    const quote = await fetchSpotQuote(asset);
+    let quote: SpotQuote;
+    if (ctx.somnia) {
+      try {
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset)}&vs_currencies=${encodeURIComponent(currency)}`;
+        const selector = `${asset}.${currency}`;
+        const price = await ctx.somnia.fetchJsonUint(url, selector, 8);
+        quote = { price, source: "somnia_json_api", fetchedAt: Math.floor(Date.now() / 1000) };
+      } catch (err) {
+        console.warn("[ORACLE] Somnia JSON API failed, falling back to HTTP:", err);
+        quote = await fetchSpotQuote(asset);
+      }
+    } else {
+      quote = await fetchSpotQuote(asset);
+    }
     const ageSec = Math.floor(Date.now() / 1000) - quote.fetchedAt;
     const stale = ageSec > maxStalenessSec;
 
@@ -44,7 +57,13 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
     const signature = await ctx.signMessage(digest);
 
     const confidence =
-      quote.source === "coingecko" && !stale ? 0.95 : quote.source === "fallback_table" ? 0.6 : 0.75;
+      quote.source === "somnia_json_api"
+        ? 0.98
+        : quote.source === "coingecko" && !stale
+          ? 0.95
+          : quote.source === "fallback_table"
+            ? 0.6
+            : 0.75;
 
     return skillOk("ORACLE", payload.action, {
       ...attestation,
@@ -52,7 +71,13 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
       signature,
       stale,
       confidence: Number(confidence.toFixed(2)),
-      quality: stale ? "DEGRADED" : quote.source === "coingecko" ? "PRIMARY" : "FALLBACK",
+      quality: stale
+        ? "DEGRADED"
+        : quote.source === "somnia_json_api"
+          ? "SOMNIA_CONSENSUS"
+          : quote.source === "coingecko"
+            ? "PRIMARY"
+            : "FALLBACK",
     });
   } catch (err) {
     return skillFail("ORACLE", payload.action, err instanceof Error ? err.message : "Oracle fetch failed");

@@ -39,13 +39,14 @@ export const SKILL_MANIFESTS: Record<AgentType, SkillManifest> = {
     capabilities: ["price.feed", "staleness.guard", "attestation.pack", "sanity.bounds", "fallback.feed"],
     actions: ["fetch_price", "swarm_execute"],
     tools: [
-      { id: "coingecko_api", type: "http", description: "CoinGecko simple price API" },
+      { id: "somnia_json_api", type: "somnia_agent", description: "Validator-consensus JSON API oracle (CoinGecko)" },
+      { id: "coingecko_api", type: "http", description: "CoinGecko simple price API (fallback)" },
       { id: "fallback_table", type: "deterministic", description: "Resilient reference prices when API unavailable" },
       { id: "wallet_sign", type: "crypto", description: "Agent wallet attestation signature" },
     ],
     inputs: ["asset", "currency", "maxStalenessSec"],
     outputs: ["price", "fetchedAt", "attestation", "signature", "quality", "confidence"],
-    health: { preflightValidation: true, healthGates: ["api_reachable", "rpc_latency"] },
+    health: { preflightValidation: true, healthGates: ["api_reachable", "rpc_latency", "somnia_consumer_funded"] },
     llm: { enabled: false },
   },
   YIELD_OPT: {
@@ -71,6 +72,7 @@ export const SKILL_MANIFESTS: Record<AgentType, SkillManifest> = {
     actions: ["analyze_proposal", "swarm_execute"],
     tools: [
       { id: "stake_analyzer", type: "deterministic", description: "Support/against/quorum calculator" },
+      { id: "somnia_llm_inference", type: "somnia_agent", description: "Qwen3-30B deterministic summary via Somnia LLM agent" },
     ],
     inputs: ["proposalId", "supportStakeEth", "againstStakeEth", "quorumEth", "passThreshold"],
     outputs: ["quorumReached", "recommendedVote", "confidence", "flags", "participationPct"],

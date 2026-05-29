@@ -9,6 +9,7 @@ import { executeSkill } from "./skills/index.js";
 import type { SkillContext, SkillResult } from "./skills/types.js";
 import { skillResultDigest } from "../services/coalitionVerify.js";
 import type { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
+import { SomniaAgentsClient } from "../somnia/SomniaAgentsClient.js";
 import { withRetry } from "./utils/retry.js";
 
 const COALITION_ABI = [
@@ -31,6 +32,7 @@ export class TaskExecutor {
   private coalition: ethers.Contract;
   private taskMarket: ethers.Contract;
   private processing = new Set<number>();
+  private somniaClient: SomniaAgentsClient | null;
 
   constructor(
     private config: AgentConfig,
@@ -43,6 +45,7 @@ export class TaskExecutor {
     this.api = new AgentApiClient(config);
     this.coalition = new ethers.Contract(config.coalitionManagerAddr, COALITION_ABI, wallet);
     this.taskMarket = new ethers.Contract(config.taskMarketAddr, TASK_MARKET_ABI, wallet);
+    this.somniaClient = SomniaAgentsClient.fromEnv(wallet, provider);
   }
 
   private skillContext(): SkillContext {
@@ -53,6 +56,7 @@ export class TaskExecutor {
       circuitBreakerAddr: this.config.circuitBreakerAddr,
       agentRegistryAddr: this.config.agentRegistryAddr,
       signMessage: (message: string) => this.wallet.signMessage(message),
+      somnia: this.somniaClient ?? undefined,
     };
   }
 

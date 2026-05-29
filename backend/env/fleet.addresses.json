@@ -14,6 +14,20 @@
     "GOVERNANCE": "0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0",
     "RISK_MGMT": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB"
   },
+  "somniaKitRegistry": {
+    "address": "0xC9f3452090EEB519467DEa4a390976D38C008347",
+    "agentIds": {
+      "ARBITRAGE": "47",
+      "ORACLE": "48",
+      "YIELD_OPT": "49",
+      "GOVERNANCE": "50",
+      "RISK_MGMT": "51"
+    }
+  },
+  "somniaPlatform": {
+    "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
+    "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6"
+  },
   "retired": {
     "RISK_MGMT_v1": {
       "address": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",

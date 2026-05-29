@@ -1,0 +1,37 @@
+{
+  "registry": "0xC9f3452090EEB519467DEa4a390976D38C008347",
+  "network": "Somnia Shannon Testnet",
+  "chainId": 50312,
+  "updatedAt": "2026-05-29T02:12:00.000Z",
+  "agents": {
+    "ARBITRAGE": {
+      "agentId": "47",
+      "owner": "0x0eec621450cA9a0445DBdadC0624FDD5cc888037",
+      "manifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/ARBITRAGE"
+    },
+    "ORACLE": {
+      "agentId": "48",
+      "owner": "0xfc501c679aFb3689191448f92621ACD49e86482C",
+      "manifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/ORACLE"
+    },
+    "YIELD_OPT": {
+      "agentId": "49",
+      "owner": "0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e",
+      "manifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/YIELD_OPT"
+    },
+    "GOVERNANCE": {
+      "agentId": "50",
+      "owner": "0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0",
+      "manifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/GOVERNANCE"
+    },
+    "RISK_MGMT": {
+      "agentId": "51",
+      "owner": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB",
+      "manifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/RISK_MGMT"
+    }
+  },
+  "somniaPlatform": {
+    "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
+    "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6"
+  }
+}

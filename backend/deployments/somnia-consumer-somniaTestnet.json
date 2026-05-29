@@ -1,0 +1,8 @@
+{
+  "network": "somniaTestnet",
+  "chainId": 50312,
+  "platform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
+  "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6",
+  "deployer": "0x0eec621450cA9a0445DBdadC0624FDD5cc888037",
+  "deployedAt": "2026-05-29T02:05:33.423Z"
+}

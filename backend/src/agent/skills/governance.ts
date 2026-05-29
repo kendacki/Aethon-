@@ -1,7 +1,7 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
-export const executeGovernance: SkillExecutor = async (payload, _ctx) => {
+export const executeGovernance: SkillExecutor = async (payload, ctx) => {
   if (payload.action !== "analyze_proposal" && payload.action !== "swarm_execute") {
     return skillFail("GOVERNANCE", payload.action, `Unknown action: ${payload.action}`);
   }
@@ -45,6 +45,29 @@ export const executeGovernance: SkillExecutor = async (payload, _ctx) => {
     ? `Proposal ${proposalId}: ${recommendedVote} (${Math.round(supportRatio * 100)}% support, threshold ${Math.round(passThreshold * 100)}%)`
     : `Proposal ${proposalId}: quorum not reached (${total}/${quorum} STT, ${participationPct}% participation)`;
 
+  let llmSummary: string | undefined;
+  let llmSource: string | undefined;
+  if (ctx.somnia && payload.params.llmSummary !== false) {
+    try {
+      const prompt = [
+        `Proposal ID: ${proposalId}`,
+        `Support stake: ${support} STT`,
+        `Against stake: ${against} STT`,
+        `Quorum: ${quorum} STT (${quorumReached ? "met" : "not met"})`,
+        `Recommended vote: ${recommendedVote}`,
+        `Flags: ${flags.join(", ") || "none"}`,
+        "Write a 2-sentence plain-language summary for token holders.",
+      ].join("\n");
+      llmSummary = await ctx.somnia.inferString(
+        prompt,
+        "You are a DeFi governance analyst on Somnia Agentic L1. Be concise and factual.",
+      );
+      llmSource = "somnia_llm_inference";
+    } catch (err) {
+      console.warn("[GOVERNANCE] Somnia LLM summary failed:", err);
+    }
+  }
+
   return skillOk("GOVERNANCE", payload.action, {
     proposalId,
     supportStakeEth: support,
@@ -58,5 +81,6 @@ export const executeGovernance: SkillExecutor = async (payload, _ctx) => {
     confidence: Number(confidence.toFixed(2)),
     flags,
     summary,
+    ...(llmSummary ? { llmSummary, llmSource } : {}),
   });
 };

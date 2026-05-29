@@ -11,6 +11,7 @@ import {
   verifySkillResultSignature,
 } from "../services/coalitionVerify.js";
 import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
+import { getSomniaCompatibilityReport } from "../services/somniaCompat.js";
 
 export const healthRouter = Router();
 
@@ -328,13 +329,16 @@ export const somniaRouter = Router();
 somniaRouter.get("/agents", async (_req, res, next) => {
   try {
     const sync = await indexer.getSyncStatus();
+    const report = getSomniaCompatibilityReport();
     res.json({
       data: {
-        enabled: process.env.SOMNIA_AGENTS_ENABLED === "true",
+        enabled: report.config.enabled,
         reactivity: process.env.REACTIVITY_ENABLED === "true",
         dataStreams: process.env.DATA_STREAMS_ENABLED === "true",
         adpPort: 9090,
+        adpHost: process.env.SOMNIA_ADP_HOST ?? process.env.ADP_HOST ?? null,
         lastIndexedBlock: sync.lastIndexedBlock,
+        ...report,
       },
     });
   } catch (err) {

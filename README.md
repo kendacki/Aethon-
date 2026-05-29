@@ -36,6 +36,7 @@ Aethon/
 | AgentRegistry | [`0xA2BAdcce7612cC5729B6df596c660A738b94b60e`](https://shannon-explorer.somnia.network/address/0xA2BAdcce7612cC5729B6df596c660A738b94b60e) |
 | CoalitionManager | [`0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B`](https://shannon-explorer.somnia.network/address/0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B) |
 | TaskMarket | [`0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8`](https://shannon-explorer.somnia.network/address/0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8) |
+| SomniaAgentConsumer | [`0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6`](https://shannon-explorer.somnia.network/address/0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6) |
 
 **Roles (all `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6`):** Guardian · Treasury · Slash Multisig
 
@@ -206,6 +207,8 @@ All list endpoints support `page` and `pageSize` query params.
 | **WebSocket** | `wss://ws.somnia.network` |
 | **Explorer** | [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network) |
 | **Faucet** | [testnet.somnia.network](https://testnet.somnia.network/) |
+| **Somnia Agents** | [Agent Explorer (testnet)](https://agents.testnet.somnia.network) |
+| **AETHON ↔ Somnia fit** | [docs/SOMNIA_INTEGRATION.md](docs/SOMNIA_INTEGRATION.md) |
 
 ## License
 

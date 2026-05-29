@@ -1,4 +1,5 @@
 import type { AgentType, TaskPayload } from "../../shared/taskPayload.js";
+import type { SomniaAgentsClient } from "../../somnia/SomniaAgentsClient.js";
 
 export interface SkillContext {
   agentAddress: string;
@@ -7,6 +8,8 @@ export interface SkillContext {
   circuitBreakerAddr: string;
   agentRegistryAddr: string;
   signMessage: (message: string) => Promise<string>;
+  /** Somnia platform agent client (JSON API, LLM) when SOMNIA_AGENTS_ENABLED + consumer deployed. */
+  somnia?: SomniaAgentsClient;
 }
 
 export interface SkillResult {
