@@ -14,15 +14,15 @@
     "AgentRegistry": "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",
     "CoalitionManager": "0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B",
     "TaskMarket": "0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8",
-    "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6",
+    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353",
     "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
   },
   "somniaConsumer": {
     "network": "somniaTestnet",
     "chainId": 50312,
     "platform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
-    "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6",
-    "deployer": "0x0eec621450cA9a0445DBdadC0624FDD5cc888037",
-    "deployedAt": "2026-05-29T02:05:33.423Z"
+    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353",
+    "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
+    "deployedAt": "2026-05-29T02:14:35.049Z"
   }
 }

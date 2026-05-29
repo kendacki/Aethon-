@@ -16,6 +16,7 @@
     "test:contracts": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy_v3.cjs --network somniaTestnet",
     "deploy:somnia-consumer": "hardhat run scripts/deploy-somnia-consumer.cjs --network somniaTestnet",
+    "fund:fleet": "node scripts/fund-agent-fleet.cjs",
     "register:somnia-kit": "node scripts/register-somnia-kit-agents.cjs",
     "verify:somnia": "node scripts/verify-somnia-integration.cjs",
     "deploy:local": "hardhat run scripts/deploy_v3.cjs --network hardhat",

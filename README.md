@@ -36,7 +36,7 @@ Aethon/
 | AgentRegistry | [`0xA2BAdcce7612cC5729B6df596c660A738b94b60e`](https://shannon-explorer.somnia.network/address/0xA2BAdcce7612cC5729B6df596c660A738b94b60e) |
 | CoalitionManager | [`0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B`](https://shannon-explorer.somnia.network/address/0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B) |
 | TaskMarket | [`0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8`](https://shannon-explorer.somnia.network/address/0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8) |
-| SomniaAgentConsumer | [`0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6`](https://shannon-explorer.somnia.network/address/0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6) |
+| SomniaAgentConsumer | [`0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353`](https://shannon-explorer.somnia.network/address/0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353) |
 
 **Roles (all `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6`):** Guardian · Treasury · Slash Multisig
 

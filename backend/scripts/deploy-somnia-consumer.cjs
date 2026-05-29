@@ -8,42 +8,6 @@ const PLATFORM_BY_NETWORK = {
   somniaMainnet: "0x5E5205CF39E766118C01636bED000A54D93163E6",
 };
 
-const ROLES = ["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
-
-function readAgentKey(roleFile) {
-  const envPath = path.join(__dirname, "..", "env", "agents", roleFile);
-  if (!fs.existsSync(envPath)) return null;
-  const match = fs.readFileSync(envPath, "utf8").match(/^AGENT_PRIVATE_KEY=(.+)$/m);
-  return match?.[1]?.trim() || null;
-}
-
-async function pickDeployer(ethers) {
-  const candidates = [];
-  if (process.env.CONSUMER_DEPLOYER_PK?.trim()) {
-    candidates.push(process.env.CONSUMER_DEPLOYER_PK.trim());
-  }
-  if (process.env.DEPLOYER_PK?.trim()) {
-    candidates.push(process.env.DEPLOYER_PK.trim());
-  }
-  for (const role of ROLES) {
-    const pk = readAgentKey(`${role.toLowerCase()}.env`);
-    if (pk) candidates.push(pk);
-  }
-
-  const min = ethers.parseEther("0.15");
-  for (const pk of [...new Set(candidates)]) {
-    const wallet = new ethers.Wallet(pk, ethers.provider);
-    const balance = await ethers.provider.getBalance(wallet.address);
-    if (balance >= min || hre.network.name === "hardhat") {
-      return wallet;
-    }
-  }
-
-  const first = candidates[0];
-  if (!first) throw new Error("No deployer key. Set DEPLOYER_PK or env/agents/*.env");
-  return new ethers.Wallet(first, ethers.provider);
-}
-
 function patchEnv(updates) {
   const envPath = path.join(__dirname, "..", ".env");
   if (!fs.existsSync(envPath)) return;
@@ -80,11 +44,25 @@ function mergeDeployment(networkName, chainId, platform, consumerAddr, deployer)
     fs.writeFileSync(mainFile, JSON.stringify(main, null, 2));
   }
 
+  // Sync fleet.addresses.json
+  const fleetFile = path.join(__dirname, "..", "env", "fleet.addresses.json");
+  if (fs.existsSync(fleetFile)) {
+    const fleet = JSON.parse(fs.readFileSync(fleetFile, "utf8"));
+    fleet.somniaPlatform = fleet.somniaPlatform || {};
+    fleet.somniaPlatform.SomniaAgentsPlatform = platform;
+    fleet.somniaPlatform.SomniaAgentConsumer = consumerAddr;
+    fs.writeFileSync(fleetFile, JSON.stringify(fleet, null, 2));
+  }
+
   return consumerFile;
 }
 
 async function main() {
   const { ethers } = hre;
+  const pk = process.env.DEPLOYER_PK?.trim();
+  if (!pk) {
+    throw new Error("DEPLOYER_PK is required. SomniaAgentConsumer must be deployed from the deployer wallet.");
+  }
 
   const platform =
     process.env.SOMNIA_AGENTS_PLATFORM_ADDR ?? PLATFORM_BY_NETWORK[hre.network.name];
@@ -94,7 +72,7 @@ async function main() {
     );
   }
 
-  const deployer = await pickDeployer(ethers);
+  const deployer = new ethers.Wallet(pk, ethers.provider);
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log("Deploying SomniaAgentConsumer...");
   console.log("Platform:", platform);
@@ -103,7 +81,7 @@ async function main() {
 
   if (balance < ethers.parseEther("0.15") && hre.network.name !== "hardhat") {
     throw new Error(
-      `Deployer ${deployer.address} needs >= 0.15 STT. Fund via https://testnet.somnia.network/`
+      `Deployer ${deployer.address} needs >= 0.15 STT. Fund via fund-agent-fleet.cjs --include-deployer`
     );
   }
 
@@ -125,10 +103,6 @@ async function main() {
 
   console.log("Wrote", consumerFile);
   console.log("Updated backend/.env with SOMNIA_AGENT_CONSUMER_ADDR");
-  console.log("\nSet on Railway API + ORACLE + GOVERNANCE agent services:");
-  console.log(`SOMNIA_AGENTS_PLATFORM_ADDR=${platform}`);
-  console.log(`SOMNIA_AGENT_CONSUMER_ADDR=${addr}`);
-  console.log("SOMNIA_AGENTS_ENABLED=true");
 }
 
 main().catch((err) => {

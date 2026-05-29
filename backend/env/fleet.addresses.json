@@ -2,7 +2,7 @@
   "network": "Somnia Shannon Testnet",
   "chainId": 50312,
   "faucet": "https://testnet.somnia.network/",
-  "fundEachWithStt": "5",
+  "fundEachWithStt": "3",
   "relayer": {
     "address": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
     "note": "Deployer/relayer — also fund for task reward payouts (~1+ STT)"
@@ -26,7 +26,7 @@
   },
   "somniaPlatform": {
     "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
-    "SomniaAgentConsumer": "0x25b77725D9BB1a5e56b694b26A79f82c2Bb136F6"
+    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353"
   },
   "retired": {
     "RISK_MGMT_v1": {
