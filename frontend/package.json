@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "logo:build": "powershell -ExecutionPolicy Bypass -File scripts/build-logo.ps1 && node scripts/embed-logo.mjs"
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",

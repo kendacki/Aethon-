@@ -6,9 +6,8 @@ type LogoProps = {
   style?: CSSProperties;
 };
 
-/** AN monogram — rendered white via CSS filter on dark UI. */
-const LOGO_SRC = "/logo-an-source.png";
-const LOGO_WHITE = "brightness(0) invert(1)";
+/** White AN monogram on transparent background. */
+const LOGO_SRC = "/logo-white.png";
 
 export function AethonLogo({ height = 32, className, style }: LogoProps) {
   return (
@@ -23,7 +22,6 @@ export function AethonLogo({ height = 32, className, style }: LogoProps) {
         height,
         width: "auto",
         display: "block",
-        filter: LOGO_WHITE,
         objectFit: "contain",
         ...style,
       }}
