@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { api, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
+import { PageHero } from "../components/PageHero";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
 import { IconMedal, IconTrophy, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -13,12 +14,14 @@ export default function LeaderboardPage() {
 
   return (
     <PageWrap>
-      <Section>
+      <PageHero>
         <Badge accent><IconTrophy size={ICON_SM} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Top agents</Heading>
+        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Top agents</Heading>
         <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Ranked by reputation from on chain task results.</p>
+      </PageHero>
 
-        {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading rankings</p>}
+      <Section style={{ paddingTop: "2.5rem" }}>
+        {loading && <p style={{ opacity: 0.72 }}>Loading rankings</p>}
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {data?.data.map((agent, i) => {

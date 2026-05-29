@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
+import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
 import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -29,17 +30,19 @@ export default function GovernancePage() {
 
   return (
     <PageWrap>
-      <Section>
+      <PageHero>
         <Badge accent>
           <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
           Governance
         </Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety</Heading>
+        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
         <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
           The guardian wallet can reset the circuit after a one hour wait. Three failed tasks in a row pause the system.
           Somnia and vault status are tracked separately.
         </p>
+      </PageHero>
 
+      <Section style={{ paddingTop: "2.5rem" }}>
         <ErrorBanner message={error} onRetry={reload} />
 
         {loading && <p style={{ marginTop: "2rem" }}>Loading</p>}

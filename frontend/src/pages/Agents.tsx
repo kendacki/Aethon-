@@ -5,6 +5,7 @@ import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { FleetHealthPanel } from "../components/FleetHealthPanel";
+import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -39,14 +40,16 @@ export default function AgentsPage() {
 
   return (
     <PageWrap>
-      <Section>
+      <PageHero>
         <Badge accent>Agent Fleet</Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Agent fleet</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560 }}>
+        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>
+        <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
           Five agents on Somnia testnet. Each one stakes, finds peers, and runs tasks on its own. Health updates every 15
           seconds.
         </p>
+      </PageHero>
 
+      <Section style={{ paddingTop: "2.5rem" }}>
         <ErrorBanner message={error} onRetry={reload} />
 
         <FleetHealthPanel fleet={fleet} loading={fleetLoading} />

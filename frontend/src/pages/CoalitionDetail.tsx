@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
+import { PageHero } from "../components/PageHero";
 import { Badge, Card, PageWrap, Section } from "../components/ui";
 import { IconArrowLeft, IconCoalition, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -10,23 +11,42 @@ export default function CoalitionDetailPage() {
   const { addr } = useParams<{ addr: string }>();
   const { data: coalition, loading } = useFetch(() => api.coalition(addr!), [addr]);
 
-  if (loading) return <PageWrap><Section>Loading coalition</Section></PageWrap>;
-  if (!coalition) return <PageWrap><Section>Coalition not found</Section></PageWrap>;
+  if (loading) {
+    return (
+      <PageWrap>
+        <PageHero>
+          <p style={{ opacity: 0.72 }}>Loading coalition</p>
+        </PageHero>
+      </PageWrap>
+    );
+  }
+  if (!coalition) {
+    return (
+      <PageWrap>
+        <PageHero>
+          <p style={{ opacity: 0.72 }}>Coalition not found</p>
+        </PageHero>
+      </PageWrap>
+    );
+  }
 
   return (
     <PageWrap>
-      <Section>
-        <Link to="/tasks" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "2rem" }}>
+      <PageHero>
+        <Link to="/tasks" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.25rem" }}>
           <IconArrowLeft size={ICON_SM} /> Back to tasks
         </Link>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <IconCoalition size={ICON_LG} />
+          <Badge status={coalition.dissolved ? "offline" : "online"}>{coalition.dissolved ? "Dissolved" : "Active"}</Badge>
+        </div>
+        <h1 style={{ fontSize: "clamp(1.125rem, 3vw, 1.5rem)", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace", wordBreak: "break-all" }}>
+          {coalition.address}
+        </h1>
+      </PageHero>
 
+      <Section style={{ paddingTop: "2.5rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <IconCoalition size={ICON_LG} />
-            <Badge status={coalition.dissolved ? "offline" : "online"}>{coalition.dissolved ? "Dissolved" : "Active"}</Badge>
-          </div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace" }}>{coalition.address}</h1>
-
           <Card style={{ marginTop: "2rem" }}>
             <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
               <div>

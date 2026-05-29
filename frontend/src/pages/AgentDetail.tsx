@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { AgentHealthDetail } from "../components/FleetHealthPanel";
+import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Section, StatValue } from "../components/ui";
 import { IconArrowLeft, IconTrend, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -13,31 +14,50 @@ export default function AgentDetailPage() {
   const { data: rep } = useFetch(() => api.reputation(addr!), [addr]);
   const { data: health } = useFetch(() => api.agentHealth(addr!), [addr]);
 
-  if (loading) return <PageWrap><Section>Loading agent</Section></PageWrap>;
-  if (!agent) return <PageWrap><Section>Agent not found</Section></PageWrap>;
+  if (loading) {
+    return (
+      <PageWrap>
+        <PageHero>
+          <p style={{ opacity: 0.72 }}>Loading agent</p>
+        </PageHero>
+      </PageWrap>
+    );
+  }
+  if (!agent) {
+    return (
+      <PageWrap>
+        <PageHero>
+          <p style={{ opacity: 0.72 }}>Agent not found</p>
+        </PageHero>
+      </PageWrap>
+    );
+  }
 
   return (
     <PageWrap>
-      <Section>
-        <Link to="/agents" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "2rem" }}>
+      <PageHero>
+        <Link to="/agents" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.25rem" }}>
           <IconArrowLeft size={ICON_SM} /> Back to fleet
         </Link>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+          <Badge accent>{agent.agentType}</Badge>
+          <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+          {health && health.status !== "UNKNOWN" && (
+            <Badge
+              status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}
+              accent={health.status === "DEGRADED"}
+            >
+              Worker {health.status.toLowerCase()}
+            </Badge>
+          )}
+        </div>
+        <h1 style={{ fontSize: "clamp(1.125rem, 3vw, 2rem)", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace", wordBreak: "break-all" }}>
+          {agent.address}
+        </h1>
+      </PageHero>
 
+      <Section style={{ paddingTop: "2.5rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-            <Badge accent>{agent.agentType}</Badge>
-            <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
-            {health && health.status !== "UNKNOWN" && (
-              <Badge
-                status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}
-                accent={health.status === "DEGRADED"}
-              >
-                Worker {health.status.toLowerCase()}
-              </Badge>
-            )}
-          </div>
-          <h1 style={{ fontSize: "2rem", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace" }}>{agent.address}</h1>
-
           <Grid cols={3} style={{ marginTop: "2rem" }}>
             <Card>
               <StatValue>{rep?.score ?? agent.reputation}</StatValue>

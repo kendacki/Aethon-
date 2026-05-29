@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
+import { PageHero } from "../components/PageHero";
 import { Badge, Button, Card, PageWrap, Section, Heading } from "../components/ui";
 import { IconTask, ICON_MD } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -123,17 +124,15 @@ export default function TasksPage() {
 
   return (
     <PageWrap>
-      <Section>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <Badge accent>Task Market</Badge>
-            <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Task market</Heading>
-            <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-              Live tasks on Somnia. {connected ? "Connected" : "Reconnecting"}
-            </p>
-          </div>
-        </div>
+      <PageHero>
+        <Badge accent>Task Market</Badge>
+        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Task market</Heading>
+        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
+          Live tasks on Somnia. {connected ? "Connected" : "Reconnecting"}
+        </p>
+      </PageHero>
 
+      <Section style={{ paddingTop: "2.5rem" }}>
         <ErrorBanner message={error} onRetry={reload} />
 
         <Card style={{ marginTop: "2rem" }}>

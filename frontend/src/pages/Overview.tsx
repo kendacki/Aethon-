@@ -9,6 +9,7 @@ import { SomniaPanel } from "../components/SomniaPanel";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
+import { PageHero } from "../components/PageHero";
 import {
   healthBadge,
   healthSequence,
@@ -32,42 +33,6 @@ import { env } from "../config/env";
 const Home = styled("main", {
   paddingTop: "5rem",
   width: "100%",
-});
-
-const HeroSection = styled("section", {
-  width: "100%",
-  minHeight: "calc(62vh - 5rem)",
-  position: "relative",
-  overflow: "hidden",
-  background: "#000000",
-});
-
-const HeroBg = styled("div", {
-  position: "absolute",
-  inset: 0,
-  background: `
-    radial-gradient(ellipse 80% 60% at 85% 50%, rgba(255,255,255,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(255,255,255,0.04) 0%, transparent 50%),
-    linear-gradient(135deg, #0a0a0a 0%, #000000 50%, #050505 100%)
-  `,
-});
-
-const HeroScrim = styled("div", {
-  position: "absolute",
-  inset: 0,
-  background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.75) 45%, rgba(0,0,0,0.35) 100%)",
-});
-
-const HeroInner = styled("div", {
-  position: "relative",
-  zIndex: 1,
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "$10 $6",
-  minHeight: "calc(62vh - 5rem)",
-  display: "flex",
-  alignItems: "center",
-  boxSizing: "border-box",
 });
 
 const HeroContent = styled("div", {
@@ -236,34 +201,30 @@ export default function OverviewPage() {
 
   return (
     <Home>
-      <HeroSection>
-        <HeroBg aria-hidden />
-        <HeroScrim aria-hidden />
-        <HeroInner>
-          <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
-            <motion.div variants={heroItem}>
-              <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia testnet</Badge>
-            </motion.div>
-            <motion.div variants={heroItem}>
-              <HeroHeading>Autonomous agents on Somnia</HeroHeading>
-            </motion.div>
-            <motion.div variants={heroItem}>
-              <HeroSub>
-                Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
-                tracking.
-              </HeroSub>
-            </motion.div>
-            <ActionRow variants={heroButton}>
-              <Button variant="primary" size="sm" as={Link} to="/agents">
-                View fleet <IconArrowRight size={16} />
-              </Button>
-              <Button variant="outline" size="sm" as={Link} to="/tasks">
-                Submit task
-              </Button>
-            </ActionRow>
-          </HeroContent>
-        </HeroInner>
-      </HeroSection>
+      <PageHero tall>
+        <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
+          <motion.div variants={heroItem}>
+            <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia testnet</Badge>
+          </motion.div>
+          <motion.div variants={heroItem}>
+            <HeroHeading>Autonomous agents on Somnia</HeroHeading>
+          </motion.div>
+          <motion.div variants={heroItem}>
+            <HeroSub>
+              Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
+              tracking.
+            </HeroSub>
+          </motion.div>
+          <ActionRow variants={heroButton}>
+            <Button variant="primary" size="sm" as={Link} to="/agents">
+              View fleet <IconArrowRight size={16} />
+            </Button>
+            <Button variant="outline" size="sm" as={Link} to="/tasks">
+              Submit task
+            </Button>
+          </ActionRow>
+        </HeroContent>
+      </PageHero>
 
       <StatsSection>
         <ErrorBanner
