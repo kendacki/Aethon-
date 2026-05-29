@@ -163,7 +163,7 @@ export default function OverviewPage() {
           label: "Registered agents",
           value: stats.agentCount.toLocaleString(),
           icon: IconAgent,
-          sub: `${stats.activeAgents} active on Somnia testnet`,
+          sub: `${stats.activeAgents} active`,
         },
         {
           label: "Tasks in market",
@@ -203,9 +203,6 @@ export default function OverviewPage() {
     <Home>
       <PageHero tall>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
-          <motion.div variants={heroItem}>
-            <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia testnet</Badge>
-          </motion.div>
           <motion.div variants={heroItem}>
             <HeroHeading>Autonomous agents on Somnia</HeroHeading>
           </motion.div>
