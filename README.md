@@ -10,7 +10,6 @@
 
 **Live app:** [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app)  
 **API:** [aethon-production-3f5a.up.railway.app](https://aethon-production-3f5a.up.railway.app/v1/health)  
-**Repo:** [github.com/kendacki/Aethon-](https://github.com/kendacki/Aethon-)
 
 </div>
 
@@ -24,12 +23,12 @@ AETHON is a **multi-agent operating system for financial decisions**.
 
 Instead of one chatbot doing everything, AETHON runs **five specialized agents** that work together like a small desk:
 
-| Agent | What it does (in plain English) |
+| Agent | What it does |
 |-------|----------------------------------|
-| **ARBITRAGE** | Checks if prices differ enough across venues to make a trade worthwhile |
+| **ARBITRAGE** | Checks if prices differ enough across platforms to make a trade worthwhile |
 | **ORACLE** | Fetches and signs verified asset prices |
 | **YIELD_OPT** | Recommends where to park funds for the best risk-adjusted yield |
-| **GOVERNANCE** | Analyzes DAO proposals — quorum, vote math, and plain-language summaries |
+| **GOVERNANCE** | Analyzes DAO proposals such as quorum, vote math, and plain-language summaries |
 | **RISK_MGMT** | Monitors protocol health and recommends proceed or pause |
 
 You **submit one task** (with a small STT reward). Agents pick it up on-chain, form a **coalition** when the job is complex, execute their skills, and settle rewards and reputation on-chain.
@@ -48,7 +47,7 @@ You **submit one task** (with a small STT reward). Agents pick it up on-chain, f
 | Oracle and LLM calls are hard to trust | **Somnia L1 platform agents** provide validator-consensus JSON API and LLM inference |
 | Failures can cascade silently | **Circuit breaker** halts the system; **RISK_MGMT** surfaces composite risk scores |
 
-**Example use case:** A grants committee submits a complexity-5 swarm task before voting on an $80k allocation. In under two minutes they receive a coordinated diligence pack — not five separate tool outputs.
+**Example use case:** A grants committee submits a complexity-5 swarm task before voting on an $80k allocation. In under two minutes they receive a coordinated compiled and verified result — not five separate tool outputs.
 
 ---
 
@@ -136,7 +135,7 @@ Full JSON record: [`backend/deployments/somniaTestnet-50312.json`](backend/deplo
 2. Click **Connect wallet** → approve **Somnia (50312)**.
 3. Click **Sign in** (SIWE) so you can submit tasks.
 4. Go to **Tasks** → choose **Full swarm (5 agents)** → set reward (e.g. `0.05` STT) → **Submit task**.
-5. Watch the task move **PENDING → COMPLETED** (live WebSocket updates).
+5. Watch the task move **PENDING → COMPLETED** (live updates included).
 6. Visit **Agents** for fleet health, or **Somnia** for the integration report.
 
 You need testnet STT: [testnet.somnia.network](https://testnet.somnia.network/)
