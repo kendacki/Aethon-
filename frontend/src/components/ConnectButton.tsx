@@ -54,7 +54,20 @@ export function ConnectButton() {
       }
       activeSigner = outcome.signer;
       activeAddress = outcome.address;
-    } else if (!isCorrectChain) {
+    } else {
+      const synced = await refreshWallet();
+      if (synced) {
+        activeSigner = synced.signer;
+        activeAddress = synced.address;
+      }
+    }
+
+    if (!activeSigner || !activeAddress) {
+      setToast("Wallet not ready. Reconnect and try again.");
+      return;
+    }
+
+    if (!isCorrectChain) {
       const synced = await refreshWallet();
       if (synced && isSomniaChain(synced.chainId)) {
         activeSigner = synced.signer;

@@ -1,4 +1,3 @@
-import { SiweMessage } from "siwe";
 import { getAddress, type JsonRpcSigner } from "ethers";
 import { env } from "../config/env";
 import { setAuthToken } from "./token";
@@ -34,7 +33,33 @@ function siweUri(): string {
   return env.siweUri ?? window.location.origin;
 }
 
+/** Build EIP-4361 message without siwe/apg-js (Buffer is unavailable in browser bundles). */
+function buildSiweMessage(params: {
+  domain: string;
+  address: string;
+  statement: string;
+  uri: string;
+  chainId: number;
+  nonce: string;
+}): string {
+  const issuedAt = new Date().toISOString();
+  const header = `${params.domain} wants you to sign in with your Ethereum account:`;
+  const prefix = `${header}\n${params.address}\n\n${params.statement}\n`;
+  const suffix = [
+    `URI: ${params.uri}`,
+    "Version: 1",
+    `Chain ID: ${params.chainId}`,
+    `Nonce: ${params.nonce}`,
+    `Issued At: ${issuedAt}`,
+  ].join("\n");
+  return `${prefix}\n${suffix}`;
+}
+
 export async function signInWithSomnia(signer: JsonRpcSigner, address: string): Promise<string> {
+  if (!signer) {
+    throw new Web3AuthError("Wallet signer unavailable. Reconnect your wallet and try again.", "WALLET_REJECTED");
+  }
+
   const checksummed = getAddress(address);
   const normalized = checksummed.toLowerCase();
 
@@ -61,19 +86,20 @@ export async function signInWithSomnia(signer: JsonRpcSigner, address: string): 
     throw new Web3AuthError(await parseApiError(nonceRes), "VERIFY_FAILED");
   }
 
-  const { data } = (await nonceRes.json()) as { data: { nonce: string } };
+  const body = (await nonceRes.json()) as { data?: { nonce?: string } };
+  const nonce = body.data?.nonce;
+  if (!nonce) {
+    throw new Web3AuthError("Authentication server returned an invalid nonce.", "VERIFY_FAILED");
+  }
 
-  const message = new SiweMessage({
+  const prepared = buildSiweMessage({
     domain: siweDomain(),
     address: checksummed,
     statement: "Sign in to AETHON to submit tasks and use the app.",
     uri: siweUri(),
-    version: "1",
     chainId: env.somniaChainId,
-    nonce: data.nonce,
+    nonce,
   });
-
-  const prepared = message.prepareMessage();
 
   let signature: string;
   try {
