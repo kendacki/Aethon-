@@ -109,6 +109,60 @@ export interface CircuitBreaker {
   resetTimelockSeconds: number;
 }
 
+export interface KitModuleRow {
+  module: string;
+  status: "integrated" | "delegated" | "excluded";
+  aethonEquivalent: string;
+  reason: string;
+}
+
+export interface SomniaReport {
+  fit: string;
+  agentathonReady: boolean;
+  gaps: string[];
+  config: {
+    enabled: boolean;
+    consumerAddr: string | null;
+    jsonApiAgentId: string;
+    llmAgentId: string;
+  };
+  network: {
+    chainId: number;
+    platformAddr: string | null;
+    explorer: string | null;
+    rpcUrl: string;
+  };
+  features: {
+    somniaPlatformAgents: {
+      ready: boolean;
+      consumerDeployed: boolean;
+      jsonApiOracle: boolean;
+      llmGovernanceSummary: boolean;
+    };
+    aethonOnChain: Record<string, boolean>;
+    runtime: Record<string, boolean>;
+    somniaKitRegistry: {
+      address: string;
+      fleetRegistered: boolean;
+      agents: Record<string, unknown> | null;
+    };
+    fleetVault: {
+      enabled: boolean;
+      address: string | null;
+      dailyLimitStt: string;
+      note: string;
+    };
+  };
+  somniaAgentKit: {
+    integrated: number;
+    delegated: number;
+    excluded: number;
+    modules: KitModuleRow[];
+    note: string;
+  };
+  baseAgents: Record<string, { agentId: string; practicalDepositWei: string; usedBy: string }>;
+}
+
 export interface Reputation {
   score: number;
   history: Array<{ oldScore: number; newScore: number; reason: string; createdAt: string }>;
@@ -150,6 +204,7 @@ export const api = {
     return body.data;
   },
   fleetHealth: () => fetchApi<{ data: FleetHealth }>("/agents/fleet-health").then((r) => r.data),
+  somniaReport: () => fetchApi<{ data: SomniaReport }>("/somnia/agents").then((r) => r.data),
   agentManifest: (role: string) =>
     fetchApi<{ data: Record<string, unknown> }>(`/agents/manifests/${role}`).then((r) => r.data),
   reputation: (addr: string) => fetchApi<{ data: Reputation }>(`/reputation/${addr}`).then((r) => r.data),

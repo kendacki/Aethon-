@@ -3,13 +3,16 @@ import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
 import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
+import { ErrorBanner } from "../components/ErrorBanner";
+import { SomniaPanel } from "../components/SomniaPanel";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
 
 export default function GovernancePage() {
-  const { data: cb, loading, reload } = useFetch(() => api.circuitBreaker(), []);
+  const { data: cb, loading, error, reload } = useFetch(() => api.circuitBreaker(), []);
   const { data: health } = useFetch(() => api.health(), []);
+  const { data: somnia } = useFetch(() => api.somniaReport(), []);
   const { lastEvent } = useWebSocket(["circuit_breaker"]);
   const [toast, setToast] = useState("");
 
@@ -32,9 +35,12 @@ export default function GovernancePage() {
           Governance
         </Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety controls</Heading>
-        <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82 }}>
-          The guardian multisig manages circuit resets after a one hour timelock. Three consecutive task failures halt the system.
+        <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
+          Guardian multisig manages circuit resets after a one-hour timelock. Three consecutive task failures halt the
+          system. Somnia platform integration and fleet vault reserves are monitored separately.
         </p>
+
+        <ErrorBanner message={error} onRetry={reload} />
 
         {loading && <p style={{ marginTop: "2rem" }}>Loading</p>}
 
@@ -91,8 +97,11 @@ export default function GovernancePage() {
               <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <Badge status={health.database ? "online" : "offline"}>DB {health.database ? "OK" : "Down"}</Badge>
                 <Badge>Indexed block {health.lastIndexedBlock?.toLocaleString()}</Badge>
+                {somnia?.agentathonReady && <Badge status="online">Somnia ready</Badge>}
               </div>
             )}
+
+            <SomniaPanel report={somnia ?? null} compact />
           </motion.div>
         )}
       </Section>

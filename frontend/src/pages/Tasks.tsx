@@ -5,6 +5,7 @@ import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, PageWrap, Section, Heading } from "../components/ui";
 import { IconTask, ICON_MD } from "../components/icons";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { getAuthToken } from "../auth/token";
@@ -41,7 +42,7 @@ export default function TasksPage() {
   const [complexity, setComplexity] = useState(1);
   const [rewardEth, setRewardEth] = useState("0.01");
   const [swarmMode, setSwarmMode] = useState(false);
-  const { data, loading, reload } = useFetch(() => api.tasks(page, status || undefined), [page, status]);
+  const { data, loading, error, reload } = useFetch(() => api.tasks(page, status || undefined), [page, status]);
   const { lastEvent, connected } = useWebSocket(["tasks"]);
   const { isConnected, address, signer, isCorrectChain, connect } = useWallet();
 
@@ -124,10 +125,12 @@ export default function TasksPage() {
             <Badge accent>Task Market</Badge>
             <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Open work queue</Heading>
             <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-              Live task feed. {connected ? "Connected" : "Reconnecting"}
+              Live task feed on Somnia. {connected ? "WebSocket connected" : "Reconnecting…"}
             </p>
           </div>
         </div>
+
+        <ErrorBanner message={error} onRetry={reload} />
 
         <Card style={{ marginTop: "2rem" }}>
           <div style={{ fontWeight: 700, marginBottom: "1rem" }}>Submit task to swarm</div>
@@ -187,7 +190,7 @@ export default function TasksPage() {
             </Button>
           </div>
           <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", opacity: 0.65 }}>
-            Tasks route to specialized agents by role — not generic LLM calls. Swarm mode requires all 5 agents online.
+            Connect wallet and sign in to submit. Tasks route to specialized agents by role — swarm mode requires all five online.
           </p>
         </Card>
 

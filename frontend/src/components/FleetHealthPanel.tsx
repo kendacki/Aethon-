@@ -107,6 +107,12 @@ function AgentHealthCard({ agent, index }: { agent: AgentFleetHealth; index: num
           </div>
         )}
 
+        {agent.snapshot?.checks?.some((c) => c.name === "vault_reserve") && (
+          <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", opacity: 0.72 }}>
+            Vault: {agent.snapshot?.checks?.find((c) => c.name === "vault_reserve")?.message ?? "—"}
+          </p>
+        )}
+
         {agent.error && !agent.reachable && (
           <p style={{ marginTop: "1rem", fontSize: "0.8125rem", opacity: 0.65 }}>{agent.error}</p>
         )}
@@ -129,26 +135,31 @@ interface FleetHealthPanelProps {
 
 export function FleetHealthPanel({ fleet, loading, compact }: FleetHealthPanelProps) {
   if (loading && !fleet) {
-    return <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading fleet health</p>;
+    return <p style={{ marginTop: compact ? 0 : "2rem", opacity: 0.72 }}>Loading fleet health…</p>;
   }
   if (!fleet) return null;
 
   return (
     <div style={{ marginTop: compact ? 0 : "2.5rem" }}>
-      {!compact && (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-          <IconShield size={ICON_LG} />
-          <h2 style={{ fontWeight: 700, fontSize: "1.25rem" }}>Fleet health</h2>
-          <FleetSummaryBadge fleet={fleet} />
-        </div>
-      )}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: compact ? "0.75rem" : "1rem", flexWrap: "wrap" }}>
+        <IconShield size={ICON_LG} />
+        <h2 style={{ fontWeight: 700, fontSize: compact ? "1.125rem" : "1.25rem" }}>Fleet health</h2>
+        <FleetSummaryBadge fleet={fleet} />
+      </div>
 
-      {!compact && (
-        <p style={{ opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.5rem" }}>
-          Live worker diagnostics — {fleet.healthyCount}/{fleet.totalRoles} healthy
-          {fleet.configuredWorkers < fleet.totalRoles && " (configure AGENT_HEALTH_URLS on API for full coverage)"}
-        </p>
-      )}
+      <p style={{ opacity: 0.72, fontSize: "0.875rem", marginBottom: compact ? "1rem" : "1.5rem" }}>
+        {compact ? (
+          <>
+            {fleet.healthyCount}/{fleet.totalRoles} workers healthy ·{" "}
+            <Link to="/agents" style={{ opacity: 0.9 }}>View agents</Link>
+          </>
+        ) : (
+          <>
+            Live worker diagnostics — {fleet.healthyCount}/{fleet.totalRoles} healthy
+            {fleet.configuredWorkers < fleet.totalRoles && " (configure AGENT_HEALTH_URLS on API for full coverage)"}
+          </>
+        )}
+      </p>
 
       <Grid cols={compact ? 2 : 3}>
         {fleet.agents.map((agent, i) => (

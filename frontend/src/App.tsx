@@ -11,6 +11,8 @@ import TasksPage from "./pages/Tasks";
 import CoalitionDetailPage from "./pages/CoalitionDetail";
 import LeaderboardPage from "./pages/Leaderboard";
 import GovernancePage from "./pages/Governance";
+import SomniaPage from "./pages/Somnia";
+import { api } from "./api/client";
 import { styled } from "./stitches.config";
 
 const Shell = styled("div", {
@@ -46,6 +48,7 @@ function AnimatedRoutes() {
           <Route path="/agents/:addr" element={<AgentDetailPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/coalitions/:addr" element={<CoalitionDetailPage />} />
+          <Route path="/somnia" element={<SomniaPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/governance" element={<GovernancePage />} />
         </Routes>
@@ -58,8 +61,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 1400);
-    return () => clearTimeout(t);
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        setLoading(false);
+      }
+    };
+
+    const minTimer = setTimeout(finish, 600);
+    api.health().then(finish).catch(finish);
+
+    return () => {
+      clearTimeout(minTimer);
+      done = true;
+    };
   }, []);
 
   return (

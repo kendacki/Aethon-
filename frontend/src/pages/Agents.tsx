@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { FleetHealthPanel } from "../components/FleetHealthPanel";
 import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
@@ -24,7 +25,7 @@ const filterBtn = (active: boolean) => ({
 export default function AgentsPage() {
   const [page, setPage] = useState(0);
   const [type, setType] = useState("");
-  const { data, loading } = useFetch(() => api.agents(page, 20, type || undefined), [page, type]);
+  const { data, loading, error, reload } = useFetch(() => api.agents(page, 20, type || undefined), [page, type]);
   const {
     data: fleet,
     loading: fleetLoading,
@@ -41,9 +42,12 @@ export default function AgentsPage() {
       <Section>
         <Badge accent>Agent Fleet</Badge>
         <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Registered specialists</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-          Five agent types discover peers, register on chain, and execute strategies autonomously.
+        <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560 }}>
+          Five agent types on Somnia Shannon Testnet — discover peers, stake on-chain, and execute strategies autonomously.
+          Worker health syncs with Railway every 15 seconds.
         </p>
+
+        <ErrorBanner message={error} onRetry={reload} />
 
         <FleetHealthPanel fleet={fleet} loading={fleetLoading} />
 

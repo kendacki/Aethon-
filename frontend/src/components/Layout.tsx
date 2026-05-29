@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "../stitches.config";
@@ -37,6 +38,8 @@ const Links = styled("div", {
 const NavAction = styled("div", {
   display: "flex",
   justifyContent: "flex-end",
+  alignItems: "center",
+  gap: "$2",
   justifySelf: "end",
 });
 
@@ -66,34 +69,139 @@ const NavLink = styled(Link, {
   },
 });
 
+const MenuBtn = styled("button", {
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "5px",
+  width: 36,
+  height: 36,
+  padding: 8,
+  background: "transparent",
+  border: "1px solid $border",
+  borderRadius: "$md",
+  cursor: "pointer",
+  "@md": { display: "none" },
+});
+
+const MenuBar = styled("span", {
+  display: "block",
+  height: 2,
+  width: "100%",
+  background: "$text",
+  borderRadius: 1,
+});
+
+const MobileDrawer = styled(motion.div, {
+  position: "fixed",
+  inset: 0,
+  zIndex: 150,
+  background: "rgba(0,0,0,0.55)",
+});
+
+const MobilePanel = styled(motion.div, {
+  position: "absolute",
+  top: 0,
+  right: 0,
+  width: "min(18rem, 85vw)",
+  height: "100%",
+  background: "$bg",
+  borderLeft: "1px solid $border",
+  padding: "$6 $5",
+  display: "flex",
+  flexDirection: "column",
+  gap: "$2",
+});
+
+const MobileNavLink = styled(Link, {
+  fontSize: "$md",
+  fontWeight: "$semibold",
+  padding: "$3 $4",
+  borderRadius: "$md",
+  color: "$text",
+  opacity: 0.85,
+  "&[data-active=true]": {
+    background: "$bgGlass",
+    opacity: 1,
+  },
+});
+
 const links = [
   { to: "/", label: "Overview" },
   { to: "/agents", label: "Agents" },
   { to: "/tasks", label: "Tasks" },
+  { to: "/somnia", label: "Somnia" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/governance", label: "Governance" },
 ];
 
+function isActive(pathname: string, to: string): boolean {
+  if (to === "/") return pathname === "/";
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
 export function Navbar() {
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <Nav>
-      <Inner>
-        <LogoLink to="/">
-          <AethonLogo height={40} />
-        </LogoLink>
-        <Links>
-          {links.map((l) => (
-            <NavLink key={l.to} to={l.to} data-active={pathname === l.to || (l.to !== "/" && pathname.startsWith(l.to))}>
-              {l.label}
-            </NavLink>
-          ))}
-        </Links>
-        <NavAction>
-          <ConnectButton />
-        </NavAction>
-      </Inner>
-    </Nav>
+    <>
+      <Nav>
+        <Inner>
+          <LogoLink to="/" onClick={() => setMenuOpen(false)}>
+            <AethonLogo height={40} />
+          </LogoLink>
+          <Links>
+            {links.map((l) => (
+              <NavLink key={l.to} to={l.to} data-active={isActive(pathname, l.to)}>
+                {l.label}
+              </NavLink>
+            ))}
+          </Links>
+          <NavAction>
+            <MenuBtn type="button" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
+              <MenuBar />
+              <MenuBar />
+              <MenuBar />
+            </MenuBtn>
+            <ConnectButton />
+          </NavAction>
+        </Inner>
+      </Nav>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <MobileDrawer
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMenuOpen(false)}
+          >
+            <MobilePanel
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={spring}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ marginBottom: "1rem", fontWeight: 700, opacity: 0.72, fontSize: "0.75rem", letterSpacing: "0.08em" }}>
+                NAVIGATION
+              </div>
+              {links.map((l) => (
+                <MobileNavLink
+                  key={l.to}
+                  to={l.to}
+                  data-active={isActive(pathname, l.to)}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {l.label}
+                </MobileNavLink>
+              ))}
+            </MobilePanel>
+          </MobileDrawer>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

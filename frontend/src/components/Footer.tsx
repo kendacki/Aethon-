@@ -1,3 +1,4 @@
+import { Link as RouterLink } from "react-router-dom";
 import { styled } from "../stitches.config";
 import { GlassContent, GlassPanel } from "./GlassPanel";
 import { AethonLogo } from "./Logo";
@@ -44,6 +45,17 @@ const Link = styled("a", {
   "&:hover": { opacity: 1 },
 });
 
+const FooterLink = styled(RouterLink, {
+  display: "block",
+  fontSize: "$sm",
+  color: "$text",
+  opacity: 0.72,
+  marginBottom: "$2",
+  transition: "opacity 150ms ease",
+  textDecoration: "none",
+  "&:hover": { opacity: 1 },
+});
+
 const Copyright = styled("div", {
   marginTop: "$8",
   paddingTop: "$6",
@@ -60,28 +72,32 @@ export function SiteFooter() {
           <Inner>
             <div>
               <AethonLogo height={36} style={{ marginBottom: 16 }} />
-              <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 280, lineHeight: 1.7 }}>
-                Autonomous Emergent Trading & Hierarchical Operations Network. A self governing agent economy.
+              <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 300, lineHeight: 1.7 }}>
+                Autonomous Emergent Trading & Hierarchical Operations Network — a self-governing agent economy on Somnia
+                Shannon Testnet.
               </p>
             </div>
             <div>
               <ColTitle>Network</ColTitle>
-              <Link href="https://shannon-explorer.somnia.network" target="_blank" rel="noreferrer">Explorer</Link>
-              <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Documentation</Link>
+              <Link href={env.somniaExplorer} target="_blank" rel="noreferrer">Block explorer</Link>
+              <Link href="https://agents.testnet.somnia.network" target="_blank" rel="noreferrer">Agent explorer</Link>
+              <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Somnia docs</Link>
             </div>
             <div>
               <ColTitle>Protocol</ColTitle>
-              <Link href="/agents">Agent Fleet</Link>
-              <Link href="/tasks">Task Market</Link>
-              <Link href="/governance">Governance</Link>
+              <FooterLink to="/agents">Agent fleet</FooterLink>
+              <FooterLink to="/tasks">Task market</FooterLink>
+              <FooterLink to="/somnia">Somnia integration</FooterLink>
+              <FooterLink to="/governance">Governance</FooterLink>
             </div>
             <div>
               <ColTitle>Developers</ColTitle>
-              <Link href={env.apiHealthUrl} target="_blank" rel="noreferrer">API Health</Link>
+              <Link href={env.apiHealthUrl} target="_blank" rel="noreferrer">API health</Link>
               <Link href={env.apiDocsUrl} target="_blank" rel="noreferrer">OpenAPI</Link>
+              <Link href={`${env.apiBase}/somnia/agents`} target="_blank" rel="noreferrer">Somnia report JSON</Link>
             </div>
           </Inner>
-          <Copyright>© 2026 AETHON Protocol</Copyright>
+          <Copyright>© 2026 AETHON Protocol · Chain {env.somniaChainId}</Copyright>
         </GlassContent>
       </FooterGlass>
     </FooterShell>

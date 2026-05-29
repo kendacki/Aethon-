@@ -3,16 +3,17 @@ import { Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, Grid, Section, StatValue } from "../components/ui";
+import { ErrorBanner } from "../components/ErrorBanner";
+import { FleetHealthPanel } from "../components/FleetHealthPanel";
+import { SomniaPanel } from "../components/SomniaPanel";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
 import {
   healthBadge,
   healthSequence,
-  heroBgTransition,
   heroButton,
   heroItem,
-  heroScrimTransition,
   heroSequence,
   protocolCard,
   protocolCards,
@@ -26,6 +27,7 @@ import {
 } from "../motion/overview";
 import { useState, useEffect } from "react";
 import { styled } from "../stitches.config";
+import { env } from "../config/env";
 
 const Home = styled("main", {
   paddingTop: "5rem",
@@ -43,27 +45,17 @@ const HeroSection = styled("section", {
 const HeroBg = styled("div", {
   position: "absolute",
   inset: 0,
-  backgroundImage: "url(/hero-bg.png)",
-  backgroundSize: "cover",
-  backgroundPosition: "65% center",
-  backgroundRepeat: "no-repeat",
-  "@md": {
-    backgroundSize: "cover",
-    backgroundPosition: "center center",
-  },
-  "@lg": {
-    backgroundSize: "110% auto",
-    backgroundPosition: "right center",
-  },
+  background: `
+    radial-gradient(ellipse 80% 60% at 85% 50%, rgba(255,255,255,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(255,255,255,0.04) 0%, transparent 50%),
+    linear-gradient(135deg, #0a0a0a 0%, #000000 50%, #050505 100%)
+  `,
 });
 
 const HeroScrim = styled("div", {
   position: "absolute",
   inset: 0,
-  background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.88) 38%, rgba(0,0,0,0.45) 62%, rgba(0,0,0,0.2) 100%)",
-  "@md": {
-    background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.82) 42%, rgba(0,0,0,0.35) 68%, transparent 100%)",
-  },
+  background: "linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.75) 45%, rgba(0,0,0,0.35) 100%)",
 });
 
 const HeroInner = styled("div", {
@@ -80,7 +72,7 @@ const HeroInner = styled("div", {
 
 const HeroContent = styled("div", {
   width: "100%",
-  maxWidth: "480px",
+  maxWidth: "520px",
 });
 
 const HeroHeading = styled("h1", {
@@ -96,9 +88,9 @@ const HeroSub = styled("p", {
   fontSize: "$md",
   color: "$text",
   opacity: 0.8,
-  lineHeight: 1.6,
+  lineHeight: 1.65,
   marginTop: "$3",
-  maxWidth: "22rem",
+  maxWidth: "28rem",
 });
 
 const StatsSection = styled(Section, {
@@ -119,6 +111,8 @@ const StatCard = styled(Card, {
 const ActionRow = styled(motion.div, {
   display: "flex",
   marginTop: "$5",
+  gap: "$3",
+  flexWrap: "wrap",
   alignItems: "center",
 });
 
@@ -172,28 +166,24 @@ const BadgeMotion = motion(Badge);
 
 const PROTOCOL_FEATURES = [
   {
-    title: "Event Driven Execution",
-    body: "Tasks emit on chain events that agents respond to instantly. No polling. No lag.",
+    title: "Event-driven execution",
+    body: "Tasks emit on-chain events that agents respond to in real time — no polling, sub-second finality on Somnia.",
   },
   {
-    title: "Coalition Formation",
-    body: "Agents bind into stake weighted groups with cryptographic signatures and quorum rules.",
+    title: "Coalition formation",
+    body: "Agents bind into stake-weighted groups with cryptographic signatures and quorum rules for complex work.",
   },
   {
-    title: "Continuous Liveness",
-    body: "Low cost heartbeat checks keep the fleet accountable at scale.",
+    title: "Validator-consensus oracles",
+    body: "ORACLE and GOVERNANCE tap Somnia L1 platform agents for verified price feeds and LLM summaries.",
   },
 ] as const;
 
-const FALLBACK_STATS = {
-  agentCount: 5,
-  taskCount: 10,
-  tvl: "50000000000000000000",
-} as const;
-
 export default function OverviewPage() {
-  const { data: stats } = useFetch(() => api.stats(), []);
-  const { data: health } = useFetch(() => api.health(), []);
+  const { data: stats, loading: statsLoading, error: statsError, reload: reloadStats } = useFetch(() => api.stats(), []);
+  const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => api.health(), []);
+  const { data: fleet, loading: fleetLoading } = useFetch(() => api.fleetHealth(), []);
+  const { data: somnia, loading: somniaLoading } = useFetch(() => api.somniaReport(), []);
   const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
   const [toast, setToast] = useState("");
 
@@ -202,77 +192,73 @@ export default function OverviewPage() {
     if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit breaker reset. Operations resumed.");
   }, [lastEvent]);
 
-  const agentCount = stats?.agentCount ?? FALLBACK_STATS.agentCount;
-  const taskCount = stats?.taskCount ?? FALLBACK_STATS.taskCount;
-  const fleetStake = stats?.tvl ?? FALLBACK_STATS.tvl;
-
-  const statCards = [
-    {
-      label: "Registered Agents",
-      value: agentCount.toLocaleString(),
-      icon: IconAgent,
-      sub: "Specialists that self register and compete for work",
-    },
-    {
-      label: "Tasks in Market",
-      value: taskCount.toLocaleString(),
-      icon: IconTask,
-      sub: "Open jobs agents bid on and execute on chain",
-    },
-    {
-      label: "Agent Roles",
-      value: "5",
-      icon: IconCoalition,
-      sub: "Arbitrage, oracle, yield, governance, and risk",
-    },
-    {
-      label: "Fleet Stake",
-      value: formatEth(fleetStake),
-      icon: IconShield,
-      sub: "Total stake backing reputation and coalition bonds",
-    },
-  ];
+  const statCards = stats
+    ? [
+        {
+          label: "Registered agents",
+          value: stats.agentCount.toLocaleString(),
+          icon: IconAgent,
+          sub: `${stats.activeAgents} active on Somnia testnet`,
+        },
+        {
+          label: "Tasks in market",
+          value: stats.taskCount.toLocaleString(),
+          icon: IconTask,
+          sub: `${stats.completedTasks} completed · ${Math.round(stats.successRate * 100)}% success`,
+        },
+        {
+          label: "Agent roles",
+          value: "5",
+          icon: IconCoalition,
+          sub: "Arbitrage, oracle, yield, governance, risk",
+        },
+        {
+          label: "Fleet stake",
+          value: formatEth(stats.tvl),
+          icon: IconShield,
+          sub: stats.circuitBreakerPaused ? "Circuit breaker halted" : "Backing reputation & coalitions",
+        },
+      ]
+    : [];
 
   const healthBadges = health
     ? [
-        { key: "sync", status: health.synced ? ("online" as const) : ("offline" as const), label: health.synced ? "Indexer Synced" : "Syncing" },
+        { key: "sync", status: health.synced ? ("online" as const) : ("offline" as const), label: health.synced ? "Indexer synced" : "Syncing" },
         { key: "block", label: `Block ${health.blockNumber.toLocaleString()}` },
         {
           key: "circuit",
           status: health.circuitBreakerPaused ? ("offline" as const) : ("online" as const),
           label: `Circuit ${health.circuitBreakerPaused ? "HALTED" : "OK"}`,
         },
+        { key: "chain", label: `Chain ${health.chainId ?? env.somniaChainId}` },
       ]
     : [];
 
   return (
     <Home>
       <HeroSection>
-        <HeroBg
-          as={motion.div}
-          aria-hidden
-          initial={{ scale: 1.07, opacity: 0.4 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={heroBgTransition}
-        />
-        <HeroScrim
-          as={motion.div}
-          aria-hidden
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={heroScrimTransition}
-        />
+        <HeroBg aria-hidden />
+        <HeroScrim aria-hidden />
         <HeroInner>
           <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
             <motion.div variants={heroItem}>
-              <HeroHeading>Swarm Autonomous agents.</HeroHeading>
+              <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia Shannon Testnet</Badge>
             </motion.div>
             <motion.div variants={heroItem}>
-              <HeroSub>Self organizing fleets on chain.</HeroSub>
+              <HeroHeading>Autonomous agent economy on Somnia.</HeroHeading>
+            </motion.div>
+            <motion.div variants={heroItem}>
+              <HeroSub>
+                Five specialized agents register on-chain, form coalitions, and execute tasks with validator-consensus
+                oracles — synchronized with live fleet health and vault reserves.
+              </HeroSub>
             </motion.div>
             <ActionRow variants={heroButton}>
               <Button variant="primary" size="sm" as={Link} to="/agents">
-                View Fleet <IconArrowRight size={16} />
+                View fleet <IconArrowRight size={16} />
+              </Button>
+              <Button variant="outline" size="sm" as={Link} to="/tasks">
+                Submit task
               </Button>
             </ActionRow>
           </HeroContent>
@@ -280,21 +266,46 @@ export default function OverviewPage() {
       </HeroSection>
 
       <StatsSection>
-        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          {statCards.map((s) => (
-            <StatCell key={s.label} variants={statCard}>
-              <StatCard>
-                <s.icon size={ICON_LG} style={{ marginBottom: 12, flexShrink: 0 }} />
-                <StatValue as={motion.div} key={s.value} variants={statValue} initial="hidden" animate="show">
-                  {s.value}
-                </StatValue>
-                <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
-                <div style={{ fontSize: "0.75rem", opacity: 0.72, marginTop: "auto", paddingTop: 8 }}>{s.sub}</div>
-              </StatCard>
-            </StatCell>
-          ))}
-        </Grid>
+        <ErrorBanner
+          message={statsError ?? healthError}
+          onRetry={() => {
+            reloadStats();
+            reloadHealth();
+          }}
+        />
+
+        {statsLoading && !stats && <p style={{ opacity: 0.72 }}>Loading protocol stats…</p>}
+
+        {statCards.length > 0 && (
+          <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
+            {statCards.map((s) => (
+              <StatCell key={s.label} variants={statCard}>
+                <StatCard>
+                  <s.icon size={ICON_LG} style={{ marginBottom: 12, flexShrink: 0 }} />
+                  <StatValue as={motion.div} key={s.value} variants={statValue} initial="hidden" animate="show">
+                    {s.value}
+                  </StatValue>
+                  <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
+                  <div style={{ fontSize: "0.75rem", opacity: 0.72, marginTop: "auto", paddingTop: 8 }}>{s.sub}</div>
+                </StatCard>
+              </StatCell>
+            ))}
+          </Grid>
+        )}
       </StatsSection>
+
+      <Section style={{ paddingTop: 0 }}>
+        <FleetHealthPanel fleet={fleet} loading={fleetLoading} compact />
+      </Section>
+
+      <Section style={{ paddingTop: 0 }}>
+        <SomniaPanel report={somnia} loading={somniaLoading} compact />
+        <div style={{ marginTop: "1rem" }}>
+          <Link to="/somnia" style={{ fontSize: "0.8125rem", opacity: 0.82 }}>
+            Full Somnia integration report →
+          </Link>
+        </div>
+      </Section>
 
       <ProtocolBand>
         <ProtocolGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
