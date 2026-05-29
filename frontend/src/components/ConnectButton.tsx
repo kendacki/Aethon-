@@ -4,6 +4,7 @@ import { shortAddr } from "../api/client";
 import { signInWithSomnia, Web3AuthError } from "../auth/web3Auth";
 import { clearAuthToken } from "../auth/token";
 import { useAuthSession } from "../auth/useAuthSession";
+import { isSomniaChain } from "../wallet/network";
 import { useWallet } from "../wallet/WalletContext";
 import { Notification } from "./Layout";
 
@@ -17,6 +18,7 @@ export function ConnectButton() {
     signer,
     error: walletError,
     connect,
+    refreshWallet,
     disconnect,
     clearError,
   } = useWallet();
@@ -44,7 +46,7 @@ export function ConnectButton() {
     let activeSigner = signer;
     let activeAddress = address;
 
-    if (!activeSigner || !activeAddress || !isCorrectChain) {
+    if (!activeSigner || !activeAddress) {
       const outcome = await connect();
       if (!outcome.ok) {
         setToast(outcome.error);
@@ -52,6 +54,20 @@ export function ConnectButton() {
       }
       activeSigner = outcome.signer;
       activeAddress = outcome.address;
+    } else if (!isCorrectChain) {
+      const synced = await refreshWallet();
+      if (synced && isSomniaChain(synced.chainId)) {
+        activeSigner = synced.signer;
+        activeAddress = synced.address;
+      } else {
+        const outcome = await connect();
+        if (!outcome.ok) {
+          setToast(outcome.error);
+          return;
+        }
+        activeSigner = outcome.signer;
+        activeAddress = outcome.address;
+      }
     }
 
     setSigningIn(true);
