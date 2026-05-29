@@ -267,9 +267,6 @@ export default function OverviewPage() {
         <ProtocolGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
-              <Badge accent>Protocol</Badge>
-            </motion.div>
-            <motion.div variants={protocolItem}>
               <SectionTitle>How it works</SectionTitle>
             </motion.div>
             <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
