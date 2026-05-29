@@ -7,7 +7,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { FleetHealthPanel } from "../components/FleetHealthPanel";
 import { SomniaPanel } from "../components/SomniaPanel";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
-import { getAuthToken } from "../auth/token";
+import { useAuthSession } from "../auth/useAuthSession";
 import { useWallet } from "../wallet/WalletContext";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
@@ -214,11 +214,23 @@ const PROTOCOL_FEATURES = [
 
 export default function OverviewPage() {
   const { address, isConnected } = useWallet();
-  const signedIn = isConnected && Boolean(address) && Boolean(getAuthToken());
+  const { isSignedIn } = useAuthSession();
+  const signedIn = isConnected && Boolean(address) && isSignedIn;
+  const walletAddress = address?.toLowerCase() ?? null;
+
   const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => api.health(), []);
-  const { data: walletStats, reload: reloadWalletStats } = useFetch(
-    () => (signedIn && address ? api.walletTaskStats(address) : Promise.resolve(null)),
-    [signedIn, address],
+  const {
+    data: walletStats,
+    error: walletStatsError,
+    reload: reloadWalletStats,
+  } = useFetch(
+    () => {
+      if (!signedIn || !walletAddress) {
+        return Promise.resolve(null);
+      }
+      return api.walletTaskStats(walletAddress);
+    },
+    [signedIn, walletAddress],
   );
   const { data: fleet, loading: fleetLoading } = useFetch(() => api.fleetHealth(), []);
   const { data: somnia, loading: somniaLoading } = useFetch(() => api.somniaReport(), []);
@@ -231,12 +243,12 @@ export default function OverviewPage() {
   }, [lastEvent]);
 
   useEffect(() => {
-    if (!signedIn || !address) return;
+    if (!signedIn || !walletAddress) return;
     if (!lastEvent || lastEvent.channel !== "tasks") return;
     if (["TASK_SUBMITTED", "TASK_QUEUED", "TASK_RELAYED", "TASK_COMPLETED", "TASK_FAILED"].includes(lastEvent.type)) {
       reloadWalletStats();
     }
-  }, [lastEvent, signedIn, address, reloadWalletStats]);
+  }, [lastEvent, signedIn, walletAddress, reloadWalletStats]);
 
   const statCards = OVERVIEW_STAT_DEFS.map((def) => {
     if (def.key === "agents" || def.key === "roles") {
@@ -292,7 +304,13 @@ export default function OverviewPage() {
       </PageHero>
 
       <StatsSection>
-        <ErrorBanner message={healthError} onRetry={reloadHealth} />
+        <ErrorBanner
+          message={healthError ?? (signedIn ? walletStatsError : null)}
+          onRetry={() => {
+            reloadHealth();
+            if (signedIn) reloadWalletStats();
+          }}
+        />
 
         <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
           {statCards.map((s) => (

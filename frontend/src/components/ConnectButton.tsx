@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "./ui";
 import { shortAddr } from "../api/client";
 import { signInWithSomnia, Web3AuthError } from "../auth/web3Auth";
-import { clearAuthToken, getAuthToken } from "../auth/token";
+import { clearAuthToken } from "../auth/token";
+import { useAuthSession } from "../auth/useAuthSession";
 import { useWallet } from "../wallet/WalletContext";
 import { Notification } from "./Layout";
 
@@ -76,11 +77,11 @@ export function ConnectButton() {
     setToast("");
   };
 
-  const authed = isConnected && Boolean(getAuthToken());
+  const { isSignedIn } = useAuthSession();
   const busy = connecting || signingIn;
   const displayError = toast || walletError || "";
 
-  if (isConnected && address && authed) {
+  if (isConnected && address && isSignedIn) {
     return (
       <>
         <Button variant="outline" size="sm" onClick={handleDisconnect} title="Disconnect wallet">
@@ -92,7 +93,7 @@ export function ConnectButton() {
     );
   }
 
-  if (isConnected && address && !authed) {
+  if (isConnected && address && !isSignedIn) {
     return (
       <>
         <Button variant="outline" size="sm" onClick={() => void handleSignIn()} disabled={busy}>
