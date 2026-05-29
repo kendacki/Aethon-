@@ -1,15 +1,12 @@
 {
   "role": "RISK_MGMT",
-  "status": "completed_new_wallet",
+  "status": "migrated_new_wallet",
   "wallet": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB",
   "retiredWallet": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
-  "registerTx": "0x13fce221064703ec6058784c92df6b61a51e95ae21d02769f0adce4187de410e",
+  "retiredReason": "ReputationEngine Already initialized — cannot re-register after deregister",
+  "onChainType": "RISK_MGMT",
   "expectedManifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/RISK_MGMT",
-  "onChain": {
-    "agentType": "RISK_MGMT",
-    "active": true,
-    "stake": "0.5"
-  },
+  "active": true,
   "railwayService": "aethon-agent-risk",
-  "nextStep": "Update AGENT_PRIVATE_KEY on Railway and redeploy aethon-agent-risk"
+  "nextStep": "Set AGENT_PRIVATE_KEY on Railway from env/railway-setup.local.txt and redeploy"
 }

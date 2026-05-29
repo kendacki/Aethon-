@@ -122,12 +122,13 @@ Skills v1.1 add **preflight param validation**, confidence scores, and role-spec
 
 ---
 
-## RISK_MGMT re-register
+## RISK_MGMT wallet
 
-If the RISK wallet was registered with the wrong on-chain type, see **[RISK_REREGISTER.md](./RISK_REREGISTER.md)** and track progress in `backend/env/reregister.risk_mgmt.json`.
+Current wallet: **`0x25229e52bd699F82C1dcF3257bC3299fC98960bB`** (see `backend/env/fleet.addresses.json`).
+
+If migrating from a bad registration, see **[RISK_REREGISTER.md](./RISK_REREGISTER.md)**.
 
 ```bash
 cd backend
-npm run reregister:status    # check timelock / on-chain state
-npm run reregister:complete  # after unlock — return stake
+npm run simulate:fleet    # on-chain + API fleet health check
 ```

@@ -77,13 +77,16 @@ Manifest example: `GET https://aethon-production-3f5a.up.railway.app/v1/agents/m
 
 Swarm (complexity 5) requires all 5 agents online.
 
-## 6. RISK_MGMT re-register (if wrong on-chain type)
+## 6. RISK_MGMT wallet
 
-If the RISK wallet (`0xBA28...`) was registered as GOVERNANCE, follow **[RISK_REREGISTER.md](./RISK_REREGISTER.md)**:
+Current RISK wallet: `0x25229e52bd699F82C1dcF3257bC3299fC98960bB`. See **[RISK_REREGISTER.md](./RISK_REREGISTER.md)** if migrating from a retired wallet.
 
-1. Keep `aethon-agent-risk` scaled to **0** during the 24h timelock
-2. After unlock, run `npm run reregister:complete` in `backend/`
-3. Scale risk worker to **1** — registers as `RISK_MGMT` with correct manifest
+Verify full fleet:
+
+```bash
+cd backend
+npm run simulate:fleet
+```
 
 ## Config reference
 

@@ -76,7 +76,9 @@ contract AgentRegistry is ReentrancyGuard {
             metadataURI: _metaURI
         });
         _activeAgents.add(msg.sender);
-        repEngine.initializeAgent(msg.sender);
+        if (!repEngine.initialized(msg.sender)) {
+            repEngine.initializeAgent(msg.sender);
+        }
         emit AgentRegistered(msg.sender, _type);
     }
 

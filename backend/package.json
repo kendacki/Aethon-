@@ -17,7 +17,8 @@
     "deploy:testnet": "hardhat run scripts/deploy_v3.cjs --network somniaTestnet",
     "deploy:local": "hardhat run scripts/deploy_v3.cjs --network hardhat",
     "reregister:status": "node scripts/reregister-agent.cjs status --role RISK_MGMT",
-    "reregister:complete": "node scripts/reregister-agent.cjs complete-deregister --role RISK_MGMT"
+    "reregister:complete": "node scripts/reregister-agent.cjs complete-deregister --role RISK_MGMT",
+    "simulate:fleet": "node scripts/simulate-fleet.cjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
