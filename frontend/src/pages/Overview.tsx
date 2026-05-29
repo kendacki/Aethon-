@@ -2,11 +2,13 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
-import { Badge, Button, Card, Grid, Section, StatValue } from "../components/ui";
+import { Badge, Button, Grid, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { FleetHealthPanel } from "../components/FleetHealthPanel";
 import { SomniaPanel } from "../components/SomniaPanel";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
+import { getAuthToken } from "../auth/token";
+import { useWallet } from "../wallet/WalletContext";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
 import { PageHero } from "../components/PageHero";
@@ -67,11 +69,77 @@ const StatCell = styled(motion.div, {
   height: "100%",
 });
 
-const StatCard = styled(Card, {
+const StatGlassCard = styled(GlassCard, {
   height: "100%",
   display: "flex",
   flexDirection: "column",
+  padding: "$6 $5",
+  background: "linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.72) 42%, rgba(0, 0, 0, 0.88) 100%)",
+  backdropFilter: "blur(22px) saturate(160%)",
+  WebkitBackdropFilter: "blur(22px) saturate(160%)",
+  border: "1px solid rgba(255, 255, 255, 0.11)",
+  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08)",
+  "@md": {
+    padding: "$8 $6",
+  },
 });
+
+const StatFigure = styled("div", {
+  fontSize: "clamp(2rem, 4vw, 2.75rem)",
+  fontWeight: "$extrabold",
+  letterSpacing: "-0.03em",
+  lineHeight: 1.05,
+  marginTop: "$4",
+});
+
+const StatTitle = styled("div", {
+  fontWeight: "$bold",
+  fontSize: "$sm",
+  marginTop: "$3",
+  letterSpacing: "-0.01em",
+});
+
+const StatDesc = styled("p", {
+  fontSize: "$xs",
+  opacity: 0.68,
+  lineHeight: 1.6,
+  marginTop: "$2",
+  marginBottom: 0,
+});
+
+const DEMO_OVERVIEW_STATS = {
+  tasks: 10,
+  stakeLabel: "50 STT",
+} as const;
+
+const OVERVIEW_STAT_DEFS = [
+  {
+    key: "agents",
+    label: "Registered Agents",
+    description: "Specialists that self register and compete for work",
+    icon: IconAgent,
+    fixedValue: "5",
+  },
+  {
+    key: "tasks",
+    label: "Tasks in Market",
+    description: "Open jobs agents bid on and execute on chain",
+    icon: IconTask,
+  },
+  {
+    key: "roles",
+    label: "Agent Roles",
+    description: "Arbitrage, oracle, yield, governance, and risk",
+    icon: IconCoalition,
+    fixedValue: "5",
+  },
+  {
+    key: "stake",
+    label: "Fleet Stake",
+    description: "Total stake backing reputation and coalition bonds",
+    icon: IconShield,
+  },
+] as const;
 
 const ActionRow = styled(motion.div, {
   display: "flex",
@@ -145,8 +213,13 @@ const PROTOCOL_FEATURES = [
 ] as const;
 
 export default function OverviewPage() {
-  const { data: stats, loading: statsLoading, error: statsError, reload: reloadStats } = useFetch(() => api.stats(), []);
+  const { address, isConnected } = useWallet();
+  const signedIn = isConnected && Boolean(address) && Boolean(getAuthToken());
   const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => api.health(), []);
+  const { data: walletStats, reload: reloadWalletStats } = useFetch(
+    () => (signedIn && address ? api.walletTaskStats(address) : Promise.resolve(null)),
+    [signedIn, address],
+  );
   const { data: fleet, loading: fleetLoading } = useFetch(() => api.fleetHealth(), []);
   const { data: somnia, loading: somniaLoading } = useFetch(() => api.somniaReport(), []);
   const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
@@ -157,34 +230,29 @@ export default function OverviewPage() {
     if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit reset. Work resumed.");
   }, [lastEvent]);
 
-  const statCards = stats
-    ? [
-        {
-          label: "Registered agents",
-          value: stats.agentCount.toLocaleString(),
-          icon: IconAgent,
-          sub: `${stats.activeAgents} active`,
-        },
-        {
-          label: "Tasks in market",
-          value: stats.taskCount.toLocaleString(),
-          icon: IconTask,
-          sub: `${stats.completedTasks} done, ${Math.round(stats.successRate * 100)}% success rate`,
-        },
-        {
-          label: "Agent roles",
-          value: "5",
-          icon: IconCoalition,
-          sub: "Arbitrage, oracle, yield, governance, risk",
-        },
-        {
-          label: "Fleet stake",
-          value: formatEth(stats.tvl),
-          icon: IconShield,
-          sub: stats.circuitBreakerPaused ? "Circuit breaker halted" : "Backing reputation & coalitions",
-        },
-      ]
-    : [];
+  useEffect(() => {
+    if (!signedIn || !address) return;
+    if (!lastEvent || lastEvent.channel !== "tasks") return;
+    if (["TASK_SUBMITTED", "TASK_QUEUED", "TASK_RELAYED", "TASK_COMPLETED", "TASK_FAILED"].includes(lastEvent.type)) {
+      reloadWalletStats();
+    }
+  }, [lastEvent, signedIn, address, reloadWalletStats]);
+
+  const statCards = OVERVIEW_STAT_DEFS.map((def) => {
+    if (def.key === "agents" || def.key === "roles") {
+      return { ...def, value: def.fixedValue! };
+    }
+    if (!signedIn) {
+      return {
+        ...def,
+        value: def.key === "tasks" ? String(DEMO_OVERVIEW_STATS.tasks) : DEMO_OVERVIEW_STATS.stakeLabel,
+      };
+    }
+    if (def.key === "tasks") {
+      return { ...def, value: String(walletStats?.taskCount ?? 0) };
+    }
+    return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
+  });
 
   const healthBadges = health
     ? [
@@ -224,32 +292,22 @@ export default function OverviewPage() {
       </PageHero>
 
       <StatsSection>
-        <ErrorBanner
-          message={statsError ?? healthError}
-          onRetry={() => {
-            reloadStats();
-            reloadHealth();
-          }}
-        />
+        <ErrorBanner message={healthError} onRetry={reloadHealth} />
 
-        {statsLoading && !stats && <p style={{ opacity: 0.72 }}>Loading stats</p>}
-
-        {statCards.length > 0 && (
-          <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-            {statCards.map((s) => (
-              <StatCell key={s.label} variants={statCard}>
-                <StatCard>
-                  <s.icon size={ICON_LG} style={{ marginBottom: 12, flexShrink: 0 }} />
-                  <StatValue as={motion.div} key={s.value} variants={statValue} initial="hidden" animate="show">
-                    {s.value}
-                  </StatValue>
-                  <div style={{ fontWeight: 600, marginTop: 8 }}>{s.label}</div>
-                  <div style={{ fontSize: "0.75rem", opacity: 0.72, marginTop: "auto", paddingTop: 8 }}>{s.sub}</div>
-                </StatCard>
-              </StatCell>
-            ))}
-          </Grid>
-        )}
+        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          {statCards.map((s) => (
+            <StatCell key={s.key} variants={statCard}>
+              <StatGlassCard>
+                <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
+                <StatFigure as={motion.div} key={`${s.key}-${s.value}`} variants={statValue} initial="hidden" animate="show">
+                  {s.value}
+                </StatFigure>
+                <StatTitle>{s.label}</StatTitle>
+                <StatDesc>{s.description}</StatDesc>
+              </StatGlassCard>
+            </StatCell>
+          ))}
+        </Grid>
       </StatsSection>
 
       <Section style={{ paddingTop: 0 }}>

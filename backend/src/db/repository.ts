@@ -129,6 +129,18 @@ export const repo = {
     return paginate(r.rows.map(rowToTask), page, pageSize, total);
   },
 
+  async getSubmitterStats(submitter: string): Promise<{ taskCount: number; totalRewardWei: string }> {
+    const r = await query<{ count: string; sum: string }>(
+      `SELECT COUNT(*)::text AS count, COALESCE(SUM(reward::numeric), 0)::text AS sum FROM tasks WHERE submitter = $1`,
+      [submitter.toLowerCase()]
+    );
+    const row = r.rows[0];
+    return {
+      taskCount: Number(row?.count ?? 0),
+      totalRewardWei: BigInt(row?.sum ?? 0).toString(),
+    };
+  },
+
   async upsertCoalition(c: CoalitionRecord): Promise<void> {
     await query(
       `INSERT INTO coalitions (address, members, lead_agent, task_id, dissolved, total_stake, formed, updated_at)

@@ -241,6 +241,19 @@ tasksRouter.get("/", async (req, res, next) => {
   }
 });
 
+tasksRouter.get("/wallet/:address/stats", async (req, res, next) => {
+  try {
+    const address = req.params.address;
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return res.status(400).json({ error: "Invalid wallet address" });
+    }
+    const data = await repo.getSubmitterStats(address);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
 tasksRouter.get("/:id", async (req, res, next) => {
   try {
     const task = await repo.getTask(Number(req.params.id));

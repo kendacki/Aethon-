@@ -184,6 +184,11 @@ async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export interface WalletTaskStats {
+  taskCount: number;
+  totalRewardWei: string;
+}
+
 export const api = {
   health: () => fetchApi<{ data: Health }>("/health").then((r) => r.data),
   stats: () => fetchApi<{ data: Stats }>("/stats").then((r) => r.data),
@@ -208,11 +213,14 @@ export const api = {
   agentManifest: (role: string) =>
     fetchApi<{ data: Record<string, unknown> }>(`/agents/manifests/${role}`).then((r) => r.data),
   reputation: (addr: string) => fetchApi<{ data: Reputation }>(`/reputation/${addr}`).then((r) => r.data),
-  tasks: (page = 0, status?: string) => {
-    const q = new URLSearchParams({ page: String(page), pageSize: "20" });
+  tasks: (page = 0, status?: string, submitter?: string, pageSize = 20) => {
+    const q = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (status) q.set("status", status);
+    if (submitter) q.set("submitter", submitter);
     return fetchApi<Paginated<Task>>(`/tasks?${q}`);
   },
+  walletTaskStats: (address: string) =>
+    fetchApi<{ data: WalletTaskStats }>(`/tasks/wallet/${address}/stats`).then((r) => r.data),
   coalition: (addr: string) => fetchApi<{ data: Coalition }>(`/coalitions/${addr}`).then((r) => r.data),
   leaderboard: (page = 0) => fetchApi<Paginated<Agent>>(`/leaderboard?page=${page}&pageSize=20`),
   circuitBreaker: () => fetchApi<{ data: CircuitBreaker }>("/circuit-breaker").then((r) => r.data),
