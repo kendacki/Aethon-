@@ -34,7 +34,7 @@ export function ConnectButton() {
       if (walletError) setToast(walletError);
       return;
     }
-    setToast("Wallet connected — sign in with Somnia to submit tasks.");
+    setToast("Wallet connected. Sign in to submit tasks.");
   };
 
   const handleSignIn = async () => {

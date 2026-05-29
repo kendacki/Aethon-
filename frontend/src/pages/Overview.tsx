@@ -166,16 +166,16 @@ const BadgeMotion = motion(Badge);
 
 const PROTOCOL_FEATURES = [
   {
-    title: "Event-driven execution",
-    body: "Tasks emit on-chain events that agents respond to in real time — no polling, sub-second finality on Somnia.",
+    title: "Fast task execution",
+    body: "Agents react to on chain events in real time. No polling needed on Somnia.",
   },
   {
     title: "Coalition formation",
-    body: "Agents bind into stake-weighted groups with cryptographic signatures and quorum rules for complex work.",
+    body: "Agents team up with stake and signatures when a job needs more than one role.",
   },
   {
-    title: "Validator-consensus oracles",
-    body: "ORACLE and GOVERNANCE tap Somnia L1 platform agents for verified price feeds and LLM summaries.",
+    title: "Verified oracles",
+    body: "ORACLE and GOVERNANCE use Somnia platform agents for prices and summaries.",
   },
 ] as const;
 
@@ -188,8 +188,8 @@ export default function OverviewPage() {
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    if (lastEvent?.type === "CIRCUIT_BREAK") setToast("Circuit breaker activated. Operations paused.");
-    if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit breaker reset. Operations resumed.");
+    if (lastEvent?.type === "CIRCUIT_BREAK") setToast("Circuit breaker on. Work paused.");
+    if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit reset. Work resumed.");
   }, [lastEvent]);
 
   const statCards = stats
@@ -204,7 +204,7 @@ export default function OverviewPage() {
           label: "Tasks in market",
           value: stats.taskCount.toLocaleString(),
           icon: IconTask,
-          sub: `${stats.completedTasks} completed · ${Math.round(stats.successRate * 100)}% success`,
+          sub: `${stats.completedTasks} done, ${Math.round(stats.successRate * 100)}% success rate`,
         },
         {
           label: "Agent roles",
@@ -242,15 +242,15 @@ export default function OverviewPage() {
         <HeroInner>
           <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
             <motion.div variants={heroItem}>
-              <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia Shannon Testnet</Badge>
+              <Badge accent style={{ marginBottom: "0.75rem" }}>Somnia testnet</Badge>
             </motion.div>
             <motion.div variants={heroItem}>
-              <HeroHeading>Autonomous agent economy on Somnia.</HeroHeading>
+              <HeroHeading>Autonomous agents on Somnia</HeroHeading>
             </motion.div>
             <motion.div variants={heroItem}>
               <HeroSub>
-                Five specialized agents register on-chain, form coalitions, and execute tasks with validator-consensus
-                oracles — synchronized with live fleet health and vault reserves.
+                Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
+                tracking.
               </HeroSub>
             </motion.div>
             <ActionRow variants={heroButton}>
@@ -274,7 +274,7 @@ export default function OverviewPage() {
           }}
         />
 
-        {statsLoading && !stats && <p style={{ opacity: 0.72 }}>Loading protocol stats…</p>}
+        {statsLoading && !stats && <p style={{ opacity: 0.72 }}>Loading stats</p>}
 
         {statCards.length > 0 && (
           <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
@@ -302,7 +302,7 @@ export default function OverviewPage() {
         <SomniaPanel report={somnia} loading={somniaLoading} compact />
         <div style={{ marginTop: "1rem" }}>
           <Link to="/somnia" style={{ fontSize: "0.8125rem", opacity: 0.82 }}>
-            Full Somnia integration report →
+            Full Somnia report
           </Link>
         </div>
       </Section>
@@ -314,7 +314,7 @@ export default function OverviewPage() {
               <Badge accent>Protocol</Badge>
             </motion.div>
             <motion.div variants={protocolItem}>
-              <SectionTitle>How the network runs</SectionTitle>
+              <SectionTitle>How it works</SectionTitle>
             </motion.div>
             <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
               {PROTOCOL_FEATURES.map((feature) => (

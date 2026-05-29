@@ -41,14 +41,14 @@ export default function AgentDetailPage() {
           <Grid cols={3} style={{ marginTop: "2rem" }}>
             <Card>
               <StatValue>{rep?.score ?? agent.reputation}</StatValue>
-              <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Reputation Score</div>
+              <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Reputation</div>
             </Card>
             <Card>
               <StatValue style={{ fontSize: "1.75rem" }}>{formatEth(agent.stake)}</StatValue>
               <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Staked</div>
             </Card>
             <Card>
-              <div style={{ fontSize: "0.875rem", opacity: 0.72 }}>Last Heartbeat</div>
+              <div style={{ fontSize: "0.875rem", opacity: 0.72 }}>Last heartbeat</div>
               <div style={{ fontWeight: 600, marginTop: 8 }}>{new Date(agent.lastHeartbeat).toLocaleString()}</div>
             </Card>
           </Grid>
@@ -59,7 +59,7 @@ export default function AgentDetailPage() {
             <Card style={{ marginTop: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
                 <IconTrend size={ICON_LG} />
-                <h2 style={{ fontWeight: 700 }}>Reputation History</h2>
+                <h2 style={{ fontWeight: 700 }}>Reputation history</h2>
               </div>
               {rep.history.map((h, i) => (
                 <motion.div

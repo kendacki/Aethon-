@@ -61,7 +61,7 @@ export function defaultPayloadForRole(role: AgentType): TaskPayload {
       version: 1,
       primaryRole: "GOVERNANCE",
       action: "analyze_proposal",
-      params: { proposalId: "AIP-1", supportStakeEth: 12, againstStakeEth: 4, quorumEth: 10 },
+      params: { proposalId: "AIP1", supportStakeEth: 12, againstStakeEth: 4, quorumEth: 10 },
       label: "Governance proposal analysis",
     },
     RISK_MGMT: {

@@ -41,10 +41,10 @@ export default function AgentsPage() {
     <PageWrap>
       <Section>
         <Badge accent>Agent Fleet</Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Registered specialists</Heading>
+        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Agent fleet</Heading>
         <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560 }}>
-          Five agent types on Somnia Shannon Testnet — discover peers, stake on-chain, and execute strategies autonomously.
-          Worker health syncs with Railway every 15 seconds.
+          Five agents on Somnia testnet. Each one stakes, finds peers, and runs tasks on its own. Health updates every 15
+          seconds.
         </p>
 
         <ErrorBanner message={error} onRetry={reload} />

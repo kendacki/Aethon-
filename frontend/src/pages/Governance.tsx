@@ -18,11 +18,11 @@ export default function GovernancePage() {
 
   useEffect(() => {
     if (lastEvent?.type === "CIRCUIT_BREAK") {
-      setToast("Circuit breaker triggered. All operations halted.");
+      setToast("Circuit breaker on. All work paused.");
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      setToast("Guardian reset circuit. Timelock enforced.");
+      setToast("Circuit reset. System running again.");
       reload();
     }
   }, [lastEvent, reload]);
@@ -34,10 +34,10 @@ export default function GovernancePage() {
           <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
           Governance
         </Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety controls</Heading>
+        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Safety</Heading>
         <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
-          Guardian multisig manages circuit resets after a one-hour timelock. Three consecutive task failures halt the
-          system. Somnia platform integration and fleet vault reserves are monitored separately.
+          The guardian wallet can reset the circuit after a one hour wait. Three failed tasks in a row pause the system.
+          Somnia and vault status are tracked separately.
         </p>
 
         <ErrorBanner message={error} onRetry={reload} />
@@ -50,9 +50,9 @@ export default function GovernancePage() {
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
                 <div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System Halted" : "System Operational"}</div>
+                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System paused" : "System running"}</div>
                   <div style={{ opacity: 0.72, fontSize: "0.875rem" }}>
-                    {cb.paused ? "Circuit breaker active. Awaiting guardian reset." : "All contracts accepting transactions"}
+                    {cb.paused ? "Waiting for guardian reset." : "All contracts are active"}
                   </div>
                 </div>
               </div>
@@ -61,15 +61,15 @@ export default function GovernancePage() {
             <Grid cols={3} style={{ marginTop: "2rem" }}>
               <Card>
                 <StatValue style={{ fontSize: "2rem" }}>{cb.consecutiveFailures}/{cb.threshold}</StatValue>
-                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Consecutive Failures</div>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Failed tasks</div>
               </Card>
               <Card>
                 <IconClock size={ICON_LG} style={{ marginBottom: 8 }} />
                 <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
-                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset Timelock</div>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset wait time</div>
               </Card>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: "0.875rem", opacity: 0.72 }}>Guardian Multisig</div>
+                <div style={{ fontWeight: 700, fontSize: "0.875rem", opacity: 0.72 }}>Guardian wallet</div>
                 <div style={{ fontFamily: "monospace", fontSize: "0.75rem", marginTop: 8, wordBreak: "break-all" }}>
                   0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6
                 </div>
@@ -77,14 +77,14 @@ export default function GovernancePage() {
             </Grid>
 
             <Card style={{ marginTop: "2rem" }}>
-              <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Security Posture</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Security</h3>
               <div style={{ display: "grid", gap: "0.75rem" }}>
                 {[
-                  "17/17 audit findings resolved (4 critical, 5 high, 5 medium, 3 low)",
-                  "12/12 attack simulations blocked",
-                  "AccessControl enforced on reputation mutations",
-                  "Coalition dissolution restricted to authorized parties",
-                  "Platform fees routed to treasury",
+                  "All audit findings resolved",
+                  "All attack simulations blocked",
+                  "Reputation changes require authorized contracts",
+                  "Only approved parties can dissolve coalitions",
+                  "Platform fees go to treasury",
                 ].map((item, i) => (
                   <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ ...spring, delay: i * 0.05 }} style={{ fontSize: "0.875rem", opacity: 0.82, display: "flex", gap: 8 }}>
                     <span>✓</span> {item}

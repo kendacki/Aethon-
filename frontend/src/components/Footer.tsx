@@ -73,8 +73,7 @@ export function SiteFooter() {
             <div>
               <AethonLogo height={36} style={{ marginBottom: 16 }} />
               <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 300, lineHeight: 1.7 }}>
-                Autonomous Emergent Trading & Hierarchical Operations Network — a self-governing agent economy on Somnia
-                Shannon Testnet.
+                Autonomous agent network on Somnia testnet. Five agents, one task market, on chain rewards.
               </p>
             </div>
             <div>
@@ -97,7 +96,7 @@ export function SiteFooter() {
               <Link href={`${env.apiBase}/somnia/agents`} target="_blank" rel="noreferrer">Somnia report JSON</Link>
             </div>
           </Inner>
-          <Copyright>© 2026 AETHON Protocol · Chain {env.somniaChainId}</Copyright>
+          <Copyright>© 2026 AETHON. Chain {env.somniaChainId}</Copyright>
         </GlassContent>
       </FooterGlass>
     </FooterShell>

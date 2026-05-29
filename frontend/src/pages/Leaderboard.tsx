@@ -15,8 +15,8 @@ export default function LeaderboardPage() {
     <PageWrap>
       <Section>
         <Badge accent><IconTrophy size={ICON_SM} style={{ display: "inline", marginRight: 4 }} /> Leaderboard</Badge>
-        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Top agents by reputation</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Rankings reflect on chain performance and verified task outcomes.</p>
+        <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Top agents</Heading>
+        <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>Ranked by reputation from on chain task results.</p>
 
         {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading rankings</p>}
 

@@ -53,7 +53,7 @@ export default function TasksPage() {
   useEffect(() => {
     if (!lastEvent) return;
     if (["TASK_SUBMITTED", "TASK_ASSIGNED", "TASK_COMPLETED", "TASK_FAILED", "TASK_EXPIRED", "TASK_RELAYED"].includes(lastEvent.type)) {
-      setToast(`Live update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
+      setToast(`Update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
       reload();
     }
   }, [lastEvent, reload]);
@@ -108,7 +108,7 @@ export default function TasksPage() {
         signature,
       });
 
-      setToast(`Task submitted — ${payload.label ?? payload.action}`);
+      setToast(`Task submitted: ${payload.label ?? payload.action}`);
       reload();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Task submit failed");
@@ -123,9 +123,9 @@ export default function TasksPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "1rem" }}>
           <div>
             <Badge accent>Task Market</Badge>
-            <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Open work queue</Heading>
+            <Heading style={{ fontSize: "2.5rem", marginTop: "1rem" }}>Task market</Heading>
             <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-              Live task feed on Somnia. {connected ? "WebSocket connected" : "Reconnecting…"}
+              Live tasks on Somnia. {connected ? "Connected" : "Reconnecting"}
             </p>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function TasksPage() {
         <ErrorBanner message={error} onRetry={reload} />
 
         <Card style={{ marginTop: "2rem" }}>
-          <div style={{ fontWeight: 700, marginBottom: "1rem" }}>Submit task to swarm</div>
+          <div style={{ fontWeight: 700, marginBottom: "1rem" }}>Submit a task</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "end" }}>
             <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.75rem" }}>
               Mode
@@ -165,7 +165,7 @@ export default function TasksPage() {
               </label>
             )}
             <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.75rem" }}>
-              Complexity (1–5)
+              Complexity (1 to 5)
               <input
                 type="number"
                 min={1}
@@ -186,11 +186,11 @@ export default function TasksPage() {
               />
             </label>
             <Button variant="outline" size="sm" onClick={() => void handleSubmit()} disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit task"}
+              {submitting ? "Submitting" : "Submit task"}
             </Button>
           </div>
           <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", opacity: 0.65 }}>
-            Connect wallet and sign in to submit. Tasks route to specialized agents by role — swarm mode requires all five online.
+            Connect your wallet and sign in first. Swarm mode needs all five agents online.
           </p>
         </Card>
 
@@ -222,7 +222,7 @@ export default function TasksPage() {
                       <div>
                         <div style={{ fontWeight: 700 }}>Task #{task.id}</div>
                         <div style={{ fontSize: "0.75rem", opacity: 0.72 }}>
-                          {shortAddr(task.submitter)} · Complexity {task.complexity}
+                          {shortAddr(task.submitter)} · Level {task.complexity}
                         </div>
                       </div>
                     </div>

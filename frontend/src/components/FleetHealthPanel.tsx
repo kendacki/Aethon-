@@ -85,7 +85,7 @@ function AgentHealthCard({ agent, index }: { agent: AgentFleetHealth; index: num
 
         <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", fontSize: "0.8125rem", flexWrap: "wrap" }}>
           <span>
-            On-chain <strong>{agent.online ? "Online" : "Offline"}</strong>
+            On chain <strong>{agent.online ? "Online" : "Offline"}</strong>
           </span>
           {typeof metrics?.uptimeSec === "number" && (
             <span>
@@ -109,7 +109,7 @@ function AgentHealthCard({ agent, index }: { agent: AgentFleetHealth; index: num
 
         {agent.snapshot?.checks?.some((c) => c.name === "vault_reserve") && (
           <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", opacity: 0.72 }}>
-            Vault: {agent.snapshot?.checks?.find((c) => c.name === "vault_reserve")?.message ?? "—"}
+            Vault: {agent.snapshot?.checks?.find((c) => c.name === "vault_reserve")?.message ?? "none"}
           </p>
         )}
 
@@ -135,7 +135,7 @@ interface FleetHealthPanelProps {
 
 export function FleetHealthPanel({ fleet, loading, compact }: FleetHealthPanelProps) {
   if (loading && !fleet) {
-    return <p style={{ marginTop: compact ? 0 : "2rem", opacity: 0.72 }}>Loading fleet health…</p>;
+    return <p style={{ marginTop: compact ? 0 : "2rem", opacity: 0.72 }}>Loading fleet health</p>;
   }
   if (!fleet) return null;
 
@@ -150,13 +150,13 @@ export function FleetHealthPanel({ fleet, loading, compact }: FleetHealthPanelPr
       <p style={{ opacity: 0.72, fontSize: "0.875rem", marginBottom: compact ? "1rem" : "1.5rem" }}>
         {compact ? (
           <>
-            {fleet.healthyCount}/{fleet.totalRoles} workers healthy ·{" "}
+            {fleet.healthyCount}/{fleet.totalRoles} workers healthy.{" "}
             <Link to="/agents" style={{ opacity: 0.9 }}>View agents</Link>
           </>
         ) : (
           <>
-            Live worker diagnostics — {fleet.healthyCount}/{fleet.totalRoles} healthy
-            {fleet.configuredWorkers < fleet.totalRoles && " (configure AGENT_HEALTH_URLS on API for full coverage)"}
+            {fleet.healthyCount}/{fleet.totalRoles} workers healthy
+            {fleet.configuredWorkers < fleet.totalRoles && " (set AGENT_HEALTH_URLS on API for full coverage)"}
           </>
         )}
       </p>

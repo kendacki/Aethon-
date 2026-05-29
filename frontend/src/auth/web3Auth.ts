@@ -55,7 +55,7 @@ export async function signInWithSomnia(signer: JsonRpcSigner, address: string): 
   }
 
   if (nonceRes.status === 429) {
-    throw new Web3AuthError("Too many sign-in attempts. Please wait a minute.", "RATE_LIMIT");
+    throw new Web3AuthError("Too many sign in attempts. Please wait a minute.", "RATE_LIMIT");
   }
   if (!nonceRes.ok) {
     throw new Web3AuthError(await parseApiError(nonceRes), "VERIFY_FAILED");
@@ -66,7 +66,7 @@ export async function signInWithSomnia(signer: JsonRpcSigner, address: string): 
   const message = new SiweMessage({
     domain: siweDomain(),
     address: checksummed,
-    statement: "Sign in to AETHON — authorize agent swarm operations.",
+    statement: "Sign in to AETHON to submit tasks and use the app.",
     uri: siweUri(),
     version: "1",
     chainId: env.somniaChainId,

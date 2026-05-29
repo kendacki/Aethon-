@@ -44,7 +44,7 @@ interface SomniaPanelProps {
 
 export function SomniaPanel({ report, loading, compact, showAllModules }: SomniaPanelProps) {
   if (loading && !report) {
-    return <p style={{ marginTop: compact ? 0 : "2rem", opacity: 0.72 }}>Loading Somnia integration status…</p>;
+    return <p style={{ marginTop: compact ? 0 : "2rem", opacity: 0.72 }}>Loading Somnia status</p>;
   }
   if (!report) return null;
 
@@ -57,26 +57,26 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
       {!compact && (
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
           <IconShield size={ICON_LG} />
-          <h2 style={{ fontWeight: 700, fontSize: "1.25rem" }}>Somnia L1 integration</h2>
+          <h2 style={{ fontWeight: 700, fontSize: "1.25rem" }}>Somnia integration</h2>
           <Badge status={agentathonReady ? "online" : undefined} accent={!agentathonReady}>
-            {agentathonReady ? "Agentathon ready" : "Setup incomplete"}
+            {agentathonReady ? "Ready" : "Not ready"}
           </Badge>
         </div>
       )}
 
       {!compact && (
         <p style={{ opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.5rem", maxWidth: "42rem" }}>
-          AETHON runs on Somnia Shannon Testnet (chain {report.network.chainId}). Platform agents power ORACLE price
-          feeds and GOVERNANCE summaries via validator consensus — layered on top of our own task market and coalitions.
+          AETHON runs on Somnia testnet (chain {report.network.chainId}). Platform agents power ORACLE prices and
+          GOVERNANCE summaries on top of our task market and coalitions.
         </p>
       )}
 
       <Grid cols={compact ? 2 : 3}>
         <Card>
           <div style={{ fontWeight: 700, marginBottom: "0.75rem" }}>Platform agents</div>
-          <FeatureRow label="Somnia agents enabled" ok={config.enabled} />
-          <FeatureRow label="Consumer deployed" ok={features.somniaPlatformAgents.consumerDeployed} />
-          <FeatureRow label="JSON API oracle (ORACLE)" ok={features.somniaPlatformAgents.jsonApiOracle} />
+          <FeatureRow label="Somnia agents on" ok={config.enabled} />
+          <FeatureRow label="Consumer live" ok={features.somniaPlatformAgents.consumerDeployed} />
+          <FeatureRow label="Price oracle (ORACLE)" ok={features.somniaPlatformAgents.jsonApiOracle} />
           <FeatureRow label="LLM summary (GOVERNANCE)" ok={features.somniaPlatformAgents.llmGovernanceSummary} />
           {config.consumerAddr && (
             <a
@@ -119,7 +119,7 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
               {Object.entries(kitAgents).map(([role, info]) => (
                 <div key={role} style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", opacity: 0.82 }}>
                   <span>{role}</span>
-                  <span>#{info.id ?? "—"}</span>
+                  <span>#{info.id ?? "n/a"}</span>
                 </div>
               ))}
             </div>
@@ -129,7 +129,7 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
 
       {!compact && somniaAgentKit.modules && (
         <Card style={{ marginTop: "1.5rem" }}>
-          <div style={{ fontWeight: 700, marginBottom: "0.75rem" }}>Agent Kit SDK modules</div>
+          <div style={{ fontWeight: 700, marginBottom: "0.75rem" }}>Agent Kit modules</div>
           <p style={{ fontSize: "0.8125rem", opacity: 0.65, marginBottom: "1rem" }}>{somniaAgentKit.note}</p>
           <div style={{ display: "grid", gap: "0.75rem" }}>
             {(showAllModules ? somniaAgentKit.modules : somniaAgentKit.modules.slice(0, 8)).map((m) => (
@@ -155,7 +155,7 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
           </div>
           {!showAllModules && somniaAgentKit.modules.length > 8 && (
             <Link to="/somnia" style={{ display: "inline-block", marginTop: "1rem", fontSize: "0.8125rem", opacity: 0.82 }}>
-              View full module matrix →
+              View all modules
             </Link>
           )}
         </Card>
@@ -163,7 +163,7 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
 
       {gaps.length > 0 && (
         <Card style={{ marginTop: "1.5rem", borderColor: "rgba(255,255,255,0.22)" }}>
-          <div style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Configuration gaps</div>
+          <div style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Setup gaps</div>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.8125rem", opacity: 0.82, lineHeight: 1.6 }}>
             {gaps.map((g) => (
               <li key={g}>{g}</li>

@@ -30,15 +30,15 @@ export default function CoalitionDetailPage() {
           <Card style={{ marginTop: "2rem" }}>
             <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
               <div>
-                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Lead Agent</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Lead agent</div>
                 <Link to={`/agents/${coalition.leadAgent}`} style={{ fontWeight: 600, textDecoration: "underline" }}>{shortAddr(coalition.leadAgent)}</Link>
               </div>
               <div>
-                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Task ID</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Task</div>
                 <div style={{ fontWeight: 600 }}>#{coalition.taskId}</div>
               </div>
               <div>
-                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Total Stake</div>
+                <div style={{ opacity: 0.72, fontSize: "0.75rem" }}>Total stake</div>
                 <div style={{ fontWeight: 600 }}>{formatEth(coalition.totalStake)}</div>
               </div>
               <div>
