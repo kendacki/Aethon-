@@ -60,6 +60,14 @@ export function useWebSocket(channels: WsChannel[]) {
   return { lastEvent, connected };
 }
 
+function friendlyFetchError(err: unknown): string {
+  if (err instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(err.message)) {
+    return "Could not reach the API. Check your connection and try again.";
+  }
+  if (err instanceof Error) return err.message;
+  return "Request failed.";
+}
+
 export function useFetch<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,7 +81,7 @@ export function useFetch<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
     fetcherRef
       .current()
       .then(setData)
-      .catch((e: Error) => setError(e.message))
+      .catch((err: unknown) => setError(friendlyFetchError(err)))
       .finally(() => setLoading(false));
   }, deps);
 

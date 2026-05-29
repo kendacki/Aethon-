@@ -34,11 +34,39 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
 
-const corsOrigin = process.env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? ["http://localhost:5173", "http://localhost:3000"];
+const defaultCorsOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://aethon-lemon.vercel.app",
+];
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+  const configured = process.env.CORS_ORIGIN?.split(",").map((s) => s.trim()).filter(Boolean);
+  const allowed = configured?.length ? configured : defaultCorsOrigins;
+  if (allowed.includes(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
 
 app.set("trust proxy", 1);
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: corsOrigin }));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+  }),
+);
 app.use(express.json({ limit: "1mb" }));
 app.use(globalLimiter);
 
