@@ -76,6 +76,45 @@ async function checkApi(apiBase) {
   };
 }
 
+async function checkVaults(provider, agents) {
+  const vaultAddr =
+    process.env.AETHON_FLEET_VAULT_ADDR ??
+    (() => {
+      try {
+        return JSON.parse(
+          fs.readFileSync(path.join(__dirname, "..", "deployments", "aethon-vault-somniaTestnet.json"), "utf8")
+        ).AethonFleetVault;
+      } catch {
+        return null;
+      }
+    })();
+
+  if (!vaultAddr) return { skipped: true, rows: [], ok: 0, total: 0 };
+
+  const vault = new ethers.Contract(
+    vaultAddr,
+    ["function isVaultActive(address) view returns (bool)", "function getNativeBalance(address) view returns (uint256)"],
+    provider
+  );
+
+  const rows = [];
+  let ok = 0;
+  for (const [role, address] of Object.entries(agents)) {
+    const active = await vault.isVaultActive(address);
+    const balance = active ? await vault.getNativeBalance(address) : 0n;
+    const pass = active;
+    if (pass) ok += 1;
+    rows.push({
+      role,
+      address,
+      active,
+      balanceStt: ethers.formatEther(balance),
+      pass,
+    });
+  }
+  return { skipped: false, vaultAddr, rows, ok, total: Object.keys(agents).length };
+}
+
 async function main() {
   const apiArgIdx = process.argv.indexOf("--api");
   const apiBase =
@@ -97,6 +136,21 @@ async function main() {
     }
   }
   console.log(`\nOn-chain: ${chain.ok}/${chain.total} agents active with correct type/manifest`);
+
+  const vault = await checkVaults(provider, agents);
+  if (!vault.skipped) {
+    console.log("\n=== Fleet vault reserves ===");
+    console.log(`Vault: ${vault.vaultAddr}`);
+    for (const row of vault.rows) {
+      console.log(
+        `${row.pass ? "OK" : "FAIL"} ${row.role.padEnd(10)} ${row.address} active=${row.active} reserve=${row.balanceStt} STT`,
+      );
+    }
+    console.log(`\nVault: ${vault.ok}/${vault.total} agent vaults active`);
+  } else {
+    console.log("\n=== Fleet vault reserves ===");
+    console.log("Skipped (AETHON_FLEET_VAULT_ADDR not set — run npm run deploy:aethon-vault)");
+  }
 
   let apiOk = true;
   try {

@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import type { AgentConfig } from "../config.js";
 import { HealthReporter } from "./HealthReporter.js";
 import type { AgentHealthSnapshot, HealthCheck, HealthEvent, HealthStatus } from "./types.js";
+import { AgentVaultClient, loadVaultConfig } from "../../somnia/AgentVaultClient.js";
 
 const REGISTRY_ABI = [
   "function isAgentActive(address) view returns (bool)",
@@ -27,6 +28,7 @@ export class AgentHealthMonitor extends EventEmitter {
   private lastRpcLatencyMs = 0;
   private lastGasPriceGwei = "0";
   private lastBalanceWei = "0";
+  private vaultClient: AgentVaultClient | null = null;
 
   constructor(
     private config: AgentConfig,
@@ -34,6 +36,7 @@ export class AgentHealthMonitor extends EventEmitter {
   ) {
     super();
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
+    this.vaultClient = AgentVaultClient.fromEnv(this.provider);
 
     if (config.agentRegistryAddr !== ethers.ZeroAddress) {
       this.registry = new ethers.Contract(config.agentRegistryAddr, REGISTRY_ABI, this.provider);
@@ -114,6 +117,7 @@ export class AgentHealthMonitor extends EventEmitter {
       this.checkApiReachability(),
       this.checkOnChainRegistration(),
       this.checkHeartbeatHealth(),
+      this.checkVaultReserve(),
     ]);
 
     this.lastChecks = checks;
@@ -284,6 +288,31 @@ export class AgentHealthMonitor extends EventEmitter {
     return this.check("heartbeat", ok, ok ? "info" : "warning", ok
       ? `Heartbeats healthy (${this.heartbeatFailures} recent failures)`
       : `${this.heartbeatFailures} consecutive heartbeat failures`, this.heartbeatFailures);
+  }
+
+  private async checkVaultReserve(): Promise<HealthCheck> {
+    const vaultCfg = loadVaultConfig();
+    if (!vaultCfg.enabled || !this.vaultClient) {
+      return this.check("vault_reserve", true, "info", "Vault not enabled — skipped");
+    }
+    try {
+      const status = await this.vaultClient.getStatus(this.wallet.address);
+      if (!status.active) {
+        return this.check("vault_reserve", false, "warning", "Fleet vault not active for this agent");
+      }
+      const ok = status.balanceWei >= vaultCfg.minVaultBalanceWei;
+      return this.check(
+        "vault_reserve",
+        ok,
+        ok ? "info" : "warning",
+        ok
+          ? `Vault reserve ${ethers.formatEther(status.balanceWei)} STT`
+          : `Vault reserve ${ethers.formatEther(status.balanceWei)} STT below ${ethers.formatEther(vaultCfg.minVaultBalanceWei)} STT`,
+        { balanceWei: status.balanceWei.toString(), remainingDailyWei: status.remainingWei.toString() },
+      );
+    } catch (err) {
+      return this.check("vault_reserve", false, "warning", err instanceof Error ? err.message : "Vault check failed");
+    }
   }
 
   private check(

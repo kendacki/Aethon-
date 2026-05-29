@@ -9,6 +9,7 @@ import {
   SOMNIA_PRACTICAL_DEPOSIT_WEI,
 } from "../somnia/constants.js";
 import { isSomniaAgentsReady, loadSomniaConfig } from "../somnia/SomniaAgentsClient.js";
+import { SOMNIA_KIT_CONTRACTS, summarizeKitModules } from "../somnia/kitModules.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -53,6 +54,12 @@ export function getSomniaCompatibilityReport() {
       fleetRegistered: Boolean(kitReg?.agents),
       agents: kitReg?.agents ?? null,
     },
+    fleetVault: {
+      enabled: process.env.SOMNIA_VAULT_ENABLED === "true",
+      address: process.env.AETHON_FLEET_VAULT_ADDR ?? null,
+      dailyLimitStt: process.env.SOMNIA_VAULT_DAILY_LIMIT_STT ?? "10",
+      note: "AethonFleetVault — Kit-compatible reserve per agent (not shared Kit vault).",
+    },
   };
 
   const gaps: string[] = [];
@@ -63,9 +70,17 @@ export function getSomniaCompatibilityReport() {
   if (!process.env.AGENT_HEALTH_URLS && !process.env.FLEET_HEALTH_URLS_FILE) {
     gaps.push("Configure AGENT_HEALTH_URLS for production fleet health aggregation.");
   }
+  if (process.env.SOMNIA_VAULT_ENABLED === "true" && !process.env.AETHON_FLEET_VAULT_ADDR) {
+    gaps.push("Deploy AethonFleetVault and set AETHON_FLEET_VAULT_ADDR (npm run deploy:aethon-vault).");
+  }
 
   return {
     fit: AETHON_SOMNIA_FIT,
+    somniaAgentKit: {
+      ...summarizeKitModules(),
+      contracts: SOMNIA_KIT_CONTRACTS,
+      note: "somnia-agent-kit npm is a dev reference; runtime uses custom ethers clients — see module matrix.",
+    },
     network: {
       chainId,
       platformAddr,

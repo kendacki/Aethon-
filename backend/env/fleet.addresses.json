@@ -33,5 +33,6 @@
       "address": "0xBA28D4122d23b64DCa1af35B49D6dA5c1d3CB2EC",
       "reason": "Registered as GOVERNANCE; ReputationEngine blocks re-register after deregister"
     }
-  }
+  },
+  "aethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3"
 }

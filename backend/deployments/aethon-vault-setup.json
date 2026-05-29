@@ -1,0 +1,32 @@
+{
+  "vault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3",
+  "dailyLimitStt": "10",
+  "agents": {
+    "ARBITRAGE": {
+      "address": "0x0eec621450cA9a0445DBdadC0624FDD5cc888037",
+      "balanceStt": "0.05",
+      "active": true
+    },
+    "ORACLE": {
+      "address": "0xfc501c679aFb3689191448f92621ACD49e86482C",
+      "balanceStt": "0.05",
+      "active": true
+    },
+    "YIELD_OPT": {
+      "address": "0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e",
+      "balanceStt": "0.05",
+      "active": true
+    },
+    "GOVERNANCE": {
+      "address": "0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0",
+      "balanceStt": "0.05",
+      "active": true
+    },
+    "RISK_MGMT": {
+      "address": "0x25229e52bd699F82C1dcF3257bC3299fC98960bB",
+      "balanceStt": "0.05",
+      "active": true
+    }
+  },
+  "updatedAt": "2026-05-29T02:37:04.808Z"
+}

@@ -19,6 +19,8 @@
     "fund:fleet": "node scripts/fund-agent-fleet.cjs",
     "register:somnia-kit": "node scripts/register-somnia-kit-agents.cjs",
     "verify:somnia": "node scripts/verify-somnia-integration.cjs",
+    "deploy:aethon-vault": "hardhat run scripts/deploy-aethon-vault.cjs --network somniaTestnet",
+    "setup:agent-vaults": "node scripts/setup-agent-vaults.cjs",
     "deploy:local": "hardhat run scripts/deploy_v3.cjs --network hardhat",
     "reregister:status": "node scripts/reregister-agent.cjs status --role RISK_MGMT",
     "reregister:complete": "node scripts/reregister-agent.cjs complete-deregister --role RISK_MGMT",
@@ -51,6 +53,7 @@
     "@types/swagger-ui-express": "^4.1.7",
     "@types/ws": "^8.5.13",
     "hardhat": "^2.22.17",
+    "somnia-agent-kit": "^3.0.11",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

@@ -79,6 +79,50 @@ async function main() {
     detail: process.env.SOMNIA_AGENTS_ENABLED ?? "(unset)",
   });
 
+  const vaultAddr =
+    process.env.AETHON_FLEET_VAULT_ADDR ??
+    (() => {
+      try {
+        return JSON.parse(
+          fs.readFileSync(path.join(__dirname, "..", "deployments", "aethon-vault-somniaTestnet.json"), "utf8")
+        ).AethonFleetVault;
+      } catch {
+        return null;
+      }
+    })();
+
+  if (vaultAddr) {
+    const vaultCode = await provider.getCode(vaultAddr);
+    checks.push({
+      name: "AethonFleetVault deployed",
+      ok: vaultCode.length > 2,
+      detail: vaultAddr,
+    });
+
+    const vault = new ethers.Contract(
+      vaultAddr,
+      ["function isVaultActive(address) view returns (bool)", "function getNativeBalance(address) view returns (uint256)"],
+      provider
+    );
+
+    for (const role of Object.keys(fleet.agents)) {
+      const addr = fleet.agents[role];
+      const active = await vault.isVaultActive(addr);
+      const bal = active ? await vault.getNativeBalance(addr) : 0n;
+      checks.push({
+        name: `Fleet vault: ${role}`,
+        ok: active,
+        detail: active ? `${ethers.formatEther(bal)} STT reserved` : "vault not created",
+      });
+    }
+  } else if (process.env.SOMNIA_VAULT_ENABLED === "true") {
+    checks.push({
+      name: "AethonFleetVault configured",
+      ok: false,
+      detail: "SOMNIA_VAULT_ENABLED but AETHON_FLEET_VAULT_ADDR unset",
+    });
+  }
+
   let failed = 0;
   for (const c of checks) {
     const mark = c.ok ? "PASS" : "FAIL";

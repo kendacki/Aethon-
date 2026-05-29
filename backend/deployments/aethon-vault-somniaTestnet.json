@@ -1,0 +1,8 @@
+{
+  "network": "somniaTestnet",
+  "chainId": 50312,
+  "AethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3",
+  "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
+  "deployedAt": "2026-05-29T02:35:30.722Z",
+  "note": "Kit-compatible vault owned by AETHON deployer (shared Kit vault is third-party admin-only)."
+}
