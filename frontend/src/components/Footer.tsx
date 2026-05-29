@@ -93,7 +93,6 @@ export function SiteFooter() {
               <ColTitle>Developers</ColTitle>
               <Link href={env.apiHealthUrl} target="_blank" rel="noreferrer">API health</Link>
               <Link href={env.apiDocsUrl} target="_blank" rel="noreferrer">OpenAPI</Link>
-              <Link href={`${env.apiBase}/somnia/agents`} target="_blank" rel="noreferrer">Somnia report JSON</Link>
             </div>
           </Inner>
           <Copyright>© 2026 AETHON. Chain {env.somniaChainId}</Copyright>

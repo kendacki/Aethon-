@@ -83,8 +83,12 @@ export default function TasksPage() {
       return;
     }
     if (!isCorrectChain) {
-      setToast("Switch to Somnia Shannon Testnet in your wallet.");
-      await connect();
+      const outcome = await connect();
+      if (!outcome.ok) {
+        setToast(outcome.error);
+      } else {
+        setToast("Switched to Somnia testnet.");
+      }
       return;
     }
     if (!getAuthToken()) {

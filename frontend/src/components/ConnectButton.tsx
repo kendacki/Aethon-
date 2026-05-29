@@ -29,9 +29,9 @@ export function ConnectButton() {
 
   const handleConnectWallet = async () => {
     setToast("");
-    const result = await connect();
-    if (!result) {
-      if (walletError) setToast(walletError);
+    const outcome = await connect();
+    if (!outcome.ok) {
+      setToast(outcome.error);
       return;
     }
     setToast("Wallet connected. Sign in to submit tasks.");
@@ -39,19 +39,23 @@ export function ConnectButton() {
 
   const handleSignIn = async () => {
     setToast("");
-    if (!signer || !address) {
-      showToast("Connect your wallet first.");
-      return;
-    }
-    if (!isCorrectChain) {
-      showToast(`Switch to Somnia Shannon Testnet, then try again.`);
-      await connect();
-      return;
+
+    let activeSigner = signer;
+    let activeAddress = address;
+
+    if (!activeSigner || !activeAddress || !isCorrectChain) {
+      const outcome = await connect();
+      if (!outcome.ok) {
+        setToast(outcome.error);
+        return;
+      }
+      activeSigner = outcome.signer;
+      activeAddress = outcome.address;
     }
 
     setSigningIn(true);
     try {
-      await signInWithSomnia(signer, address);
+      await signInWithSomnia(activeSigner, activeAddress);
       setToast("");
     } catch (err) {
       if (err instanceof Web3AuthError) {

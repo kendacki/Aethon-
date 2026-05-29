@@ -4,11 +4,19 @@ import { clearAuthToken } from "../auth/token";
 import { SOMNIA_CHAIN, SOMNIA_CHAIN_HEX, SOMNIA_CHAIN_ID } from "./config";
 import { resolveEthereumProvider, resetEthereumProviderCache, type EthereumProvider } from "./provider";
 
-type ConnectResult = {
+export type ConnectSuccess = {
+  ok: true;
   address: string;
   signer: JsonRpcSigner;
   chainId: number;
 };
+
+export type ConnectFailure = {
+  ok: false;
+  error: string;
+};
+
+export type ConnectOutcome = ConnectSuccess | ConnectFailure;
 
 type WalletContextValue = {
   address: string | null;
@@ -20,27 +28,64 @@ type WalletContextValue = {
   hasWallet: boolean;
   provider: BrowserProvider | null;
   signer: JsonRpcSigner | null;
-  connect: () => Promise<ConnectResult | null>;
+  connect: () => Promise<ConnectOutcome>;
   disconnect: () => void;
   clearError: () => void;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
-async function ensureSomniaNetwork(ethereum: EthereumProvider) {
-  try {
+function parseChainId(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    return Number.parseInt(trimmed, trimmed.startsWith("0x") ? 16 : 10);
+  }
+  if (typeof value === "bigint") return Number(value);
+  return null;
+}
+
+async function readChainId(ethereum: EthereumProvider): Promise<number> {
+  const hex = (await ethereum.request({ method: "eth_chainId" })) as string;
+  return parseChainId(hex) ?? 0;
+}
+
+async function ensureSomniaNetwork(ethereum: EthereumProvider): Promise<void> {
+  const switchChain = async () => {
     await ethereum.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: SOMNIA_CHAIN_HEX }],
     });
+  };
+
+  try {
+    await switchChain();
+    return;
   } catch (err) {
     const code = (err as { code?: number }).code;
-    if (code !== 4902) throw err;
+    if (code === 4001) {
+      throw new Error("Network switch rejected in wallet.");
+    }
+    if (code !== 4902) {
+      throw err instanceof Error ? err : new Error("Could not switch to Somnia testnet.");
+    }
+  }
+
+  try {
     await ethereum.request({
       method: "wallet_addEthereumChain",
       params: [SOMNIA_CHAIN],
     });
+  } catch (err) {
+    const code = (err as { code?: number }).code;
+    if (code === 4001) {
+      throw new Error("Add network rejected in wallet.");
+    }
+    // Chain may already exist — try switching again.
   }
+
+  await switchChain();
 }
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -62,9 +107,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return null;
     }
 
-    const browserProvider = new BrowserProvider(eth);
-    const network = await browserProvider.getNetwork();
-    const nextChainId = Number(network.chainId);
+    const nextChainId = await readChainId(eth);
+    const browserProvider = new BrowserProvider(eth, nextChainId);
     setChainId(nextChainId);
     setProvider(browserProvider);
 
@@ -91,43 +135,57 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, []);
 
-  const connect = useCallback(async (): Promise<ConnectResult | null> => {
+  const fail = useCallback((message: string): ConnectFailure => {
+    setError(message);
+    return { ok: false, error: message };
+  }, []);
+
+  const connect = useCallback(async (): Promise<ConnectOutcome> => {
     resetEthereumProviderCache();
     const eth = resolveEthereumProvider();
     setHasWallet(Boolean(eth));
     if (!eth) {
-      setError("No wallet found. Install MetaMask or another Web3 wallet.");
-      return null;
+      return fail("No wallet found. Install MetaMask or another Web3 wallet.");
     }
 
     setConnecting(true);
     setError(null);
 
     try {
-      await eth.request({ method: "eth_requestAccounts" });
+      const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
+      if (!accounts.length) {
+        return fail("Wallet connected but no account returned.");
+      }
+
       await ensureSomniaNetwork(eth);
+
       const synced = await syncWallet(eth);
       if (!synced) {
-        setError("Wallet connected but no account returned.");
-        return null;
+        return fail("Wallet connected but no account returned.");
       }
+
       if (synced.chainId !== SOMNIA_CHAIN_ID) {
-        setError(`Switch to Somnia Shannon Testnet (chain ${SOMNIA_CHAIN_ID}).`);
-        return null;
+        return fail(`Switch to Somnia testnet (chain ${SOMNIA_CHAIN_ID}) in your wallet.`);
       }
-      return synced;
+
+      setError(null);
+      return {
+        ok: true,
+        address: synced.address,
+        signer: synced.signer,
+        chainId: synced.chainId,
+      };
     } catch (err) {
       const code = (err as { code?: number }).code;
       if (code === 4001) {
-        setError("Connection rejected in wallet.");
-      } else {
-        setError(err instanceof Error ? err.message : "Wallet connection failed.");
+        return fail("Connection rejected in wallet.");
       }
-      return null;
+      const message = err instanceof Error ? err.message : "Wallet connection failed.";
+      return fail(message);
     } finally {
       setConnecting(false);
     }
-  }, [syncWallet]);
+  }, [fail, syncWallet]);
 
   useEffect(() => {
     const eth = resolveEthereumProvider();

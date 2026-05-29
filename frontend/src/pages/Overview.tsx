@@ -300,11 +300,6 @@ export default function OverviewPage() {
 
       <Section style={{ paddingTop: 0 }}>
         <SomniaPanel report={somnia} loading={somniaLoading} compact />
-        <div style={{ marginTop: "1rem" }}>
-          <Link to="/somnia" style={{ fontSize: "0.8125rem", opacity: 0.82 }}>
-            Full Somnia report
-          </Link>
-        </div>
       </Section>
 
       <ProtocolBand>

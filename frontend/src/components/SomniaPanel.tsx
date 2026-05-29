@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import type { SomniaReport } from "../api/client";
 import { shortAddr } from "../api/client";
 import { env } from "../config/env";
@@ -153,11 +152,6 @@ export function SomniaPanel({ report, loading, compact, showAllModules }: Somnia
               </div>
             ))}
           </div>
-          {!showAllModules && somniaAgentKit.modules.length > 8 && (
-            <Link to="/somnia" style={{ display: "inline-block", marginTop: "1rem", fontSize: "0.8125rem", opacity: 0.82 }}>
-              View all modules
-            </Link>
-          )}
         </Card>
       )}
 
