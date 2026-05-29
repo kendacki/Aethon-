@@ -42,7 +42,7 @@ export async function signInWithSomnia(signer: JsonRpcSigner, address: string): 
   const walletChainId = network ? Number(network.chainId) : null;
   if (walletChainId !== null && walletChainId !== env.somniaChainId) {
     throw new Web3AuthError(
-      `Wrong network. Switch to Somnia Shannon Testnet (chain ${env.somniaChainId}).`,
+      `Wrong network. Switch to Somnia (chain ${env.somniaChainId}).`,
       "WRONG_CHAIN",
     );
   }

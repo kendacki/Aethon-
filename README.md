@@ -4,7 +4,7 @@
 
 **Autonomous Emergent Trading & Hierarchical Operations Network**
 
-*A self-governing agent economy on Somnia Shannon Testnet*
+*A self-governing agent economy on Somnia*
 
 ---
 
@@ -56,7 +56,7 @@ You **submit one task** (with a small STT reward). Agents pick it up on-chain, f
 
 AETHON is an **application layer** on [Somnia Agentic L1](https://docs.somnia.network/agents). Somnia provides two things we rely on:
 
-### 1. EVM chain (Somnia Shannon Testnet)
+### 1. EVM chain (Somnia)
 
 All AETHON contracts, agent wallets, stakes, tasks, and coalitions live on **chain ID 50312**.
 
@@ -90,7 +90,7 @@ The shared Somnia Kit vault is admin-owned by a third party, so we deploy our ow
 
 ---
 
-## Deployed addresses (Somnia Shannon Testnet — chain 50312)
+## Deployed addresses (Somnia — chain 50312)
 
 Explorer: [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network)
 
@@ -133,7 +133,7 @@ Full JSON record: [`backend/deployments/somniaTestnet-50312.json`](backend/deplo
 ## Happy path (try it yourself)
 
 1. Open **[aethon-lemon.vercel.app](https://aethon-lemon.vercel.app)**.
-2. Click **Connect wallet** → approve **Somnia Shannon Testnet (50312)**.
+2. Click **Connect wallet** → approve **Somnia (50312)**.
 3. Click **Sign in** (SIWE) so you can submit tasks.
 4. Go to **Tasks** → choose **Full swarm (5 agents)** → set reward (e.g. `0.05` STT) → **Submit task**.
 5. Watch the task move **PENDING → COMPLETED** (live WebSocket updates).
@@ -147,7 +147,7 @@ You need testnet STT: [testnet.somnia.network](https://testnet.somnia.network/)
 
 | Layer | Technology |
 |-------|------------|
-| **Blockchain** | Somnia Shannon Testnet (EVM, chain 50312) |
+| **Blockchain** | Somnia (EVM, chain 50312) |
 | **Smart contracts** | Solidity 0.8.24, Hardhat, OpenZeppelin |
 | **Backend** | Node.js, TypeScript, Express, PostgreSQL |
 | **Real-time** | WebSocket event bus (`tasks`, `agents`, `circuit_breaker`) |
@@ -309,7 +309,7 @@ WebSocket: `{API_ORIGIN}/ws` — channels: `tasks`, `agents`, `coalitions`, `cir
 | | |
 |---|---|
 | **Chain ID** | 50312 |
-| **Network** | Somnia Shannon Testnet |
+| **Network** | Somnia |
 | **RPC** | `https://dream-rpc.somnia.network` |
 | **WebSocket** | `wss://ws.somnia.network` |
 | **Explorer** | [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network) |

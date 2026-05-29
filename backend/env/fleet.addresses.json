@@ -1,5 +1,5 @@
 {
-  "network": "Somnia Shannon Testnet",
+  "network": "Somnia",
   "chainId": 50312,
   "faucet": "https://testnet.somnia.network/",
   "fundEachWithStt": "3",
