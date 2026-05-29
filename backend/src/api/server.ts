@@ -62,7 +62,7 @@ v1.use("/coalitions", coalitionsRouter);
 v1.use("/circuit-breaker", circuitBreakerRouter);
 v1.use("/stats", statsRouter);
 v1.use("/leaderboard", leaderboardRouter);
-v1.use("/somnia/agents", somniaRouter);
+v1.use("/somnia", somniaRouter);
 v1.use("/", writeRouter);
 
 app.use("/v1", v1);

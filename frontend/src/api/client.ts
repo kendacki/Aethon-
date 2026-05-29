@@ -168,6 +168,19 @@ export interface Reputation {
   history: Array<{ oldScore: number; newScore: number; reason: string; createdAt: string }>;
 }
 
+async function parseApiJson<T>(res: Response, path: string): Promise<T> {
+  const text = await res.text();
+  const trimmed = text.trim();
+  if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+    throw new Error(`API unavailable for ${path}. Received HTML instead of JSON.`);
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`API returned invalid JSON for ${path}.`);
+  }
+}
+
 async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -181,7 +194,7 @@ async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 401) throw new Error("Session expired. Connect your wallet and sign in again.");
   if (res.status === 403) throw new Error("Access denied. Sign in with your wallet.");
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
-  return res.json();
+  return parseApiJson<T>(res, path);
 }
 
 export interface WalletTaskStats {
@@ -205,7 +218,7 @@ export const api = {
     });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`API ${res.status}: /agents/${addr}/health`);
-    const body = (await res.json()) as { data: AgentFleetHealth };
+    const body = await parseApiJson<{ data: AgentFleetHealth }>(res, `/agents/${addr}/health`);
     return body.data;
   },
   fleetHealth: () => fetchApi<{ data: FleetHealth }>("/agents/fleet-health").then((r) => r.data),

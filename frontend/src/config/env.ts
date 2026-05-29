@@ -1,8 +1,14 @@
 const trimSlash = (value: string) => value.replace(/\/+$/, "");
 
+/** Production API fallback when VITE_API_URL is missing from the build environment. */
+const PRODUCTION_API_ORIGIN = "https://aethon-production-3f5a.up.railway.app";
+
 function resolveApiBase(): string {
   const raw = import.meta.env.VITE_API_URL?.trim();
-  if (!raw) return "/v1";
+  if (!raw) {
+    if (import.meta.env.PROD) return `${PRODUCTION_API_ORIGIN}/v1`;
+    return "/v1";
+  }
 
   const clean = trimSlash(raw);
   if (clean.endsWith("/v1")) return clean;
@@ -15,7 +21,8 @@ function resolveApiOrigin(apiBase: string): string {
     return trimSlash(apiBase.replace(/\/v1$/, ""));
   }
   if (import.meta.env.DEV) return "http://localhost:3001";
-  return typeof window !== "undefined" ? window.location.origin : "";
+  if (apiBase.startsWith("http")) return trimSlash(apiBase.replace(/\/v1$/, ""));
+  return PRODUCTION_API_ORIGIN;
 }
 
 function resolveWsUrl(apiBase: string, apiOrigin: string): string {

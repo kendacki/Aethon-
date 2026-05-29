@@ -3,5 +3,15 @@
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install --prefix frontend",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "https://aethon-production-3f5a.up.railway.app/v1/:path*"
+    },
+    {
+      "source": "/ws",
+      "destination": "https://aethon-production-3f5a.up.railway.app/ws"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
