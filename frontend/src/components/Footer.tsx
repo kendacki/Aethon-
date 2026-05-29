@@ -3,6 +3,7 @@ import { styled } from "../stitches.config";
 import { GlassContent, GlassPanel } from "./GlassPanel";
 import { AethonLogo } from "./Logo";
 import { env } from "../config/env";
+import { MAIN_NAV } from "../config/navigation";
 
 const FooterShell = styled("footer", {
   position: "relative",
@@ -83,11 +84,12 @@ export function SiteFooter() {
               <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Somnia docs</Link>
             </div>
             <div>
-              <ColTitle>Protocol</ColTitle>
-              <FooterLink to="/agents">Agent fleet</FooterLink>
-              <FooterLink to="/tasks">Task market</FooterLink>
-              <FooterLink to="/somnia">Somnia integration</FooterLink>
-              <FooterLink to="/governance">Governance</FooterLink>
+              <ColTitle>Explore</ColTitle>
+              {MAIN_NAV.map((item) => (
+                <FooterLink key={item.to} to={item.to}>
+                  {item.label}
+                </FooterLink>
+              ))}
             </div>
             <div>
               <ColTitle>Developers</ColTitle>

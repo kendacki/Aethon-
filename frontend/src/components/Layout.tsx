@@ -5,6 +5,7 @@ import { styled } from "../stitches.config";
 import { ConnectButton } from "./ConnectButton";
 import { AethonLogo } from "./Logo";
 import { spring } from "../stitches.config";
+import { MAIN_NAV, isNavActive } from "../config/navigation";
 
 const Nav = styled("nav", {
   position: "fixed",
@@ -18,21 +19,33 @@ const Nav = styled("nav", {
 });
 
 const Inner = styled("div", {
+  position: "relative",
   maxWidth: "1200px",
   margin: "0 auto",
-  display: "grid",
-  gridTemplateColumns: "1fr auto 1fr",
+  display: "flex",
   alignItems: "center",
-  gap: "$4",
+  justifyContent: "space-between",
+  minHeight: "2.75rem",
 });
 
 const Links = styled("div", {
+  position: "absolute",
+  left: "50%",
+  top: "50%",
+  transform: "translate(-50%, -50%)",
   display: "none",
   alignItems: "center",
   justifyContent: "center",
-  gap: "$1",
-  justifySelf: "center",
-  "@md": { display: "flex" },
+  gap: "0.125rem",
+  whiteSpace: "nowrap",
+  pointerEvents: "none",
+  "@lg": {
+    display: "flex",
+    gap: "$1",
+  },
+  "@xl": {
+    gap: "$2",
+  },
 });
 
 const NavAction = styled("div", {
@@ -40,27 +53,35 @@ const NavAction = styled("div", {
   justifyContent: "flex-end",
   alignItems: "center",
   gap: "$2",
-  justifySelf: "end",
+  flexShrink: 0,
+  zIndex: 1,
+  marginLeft: "auto",
 });
 
 const LogoLink = styled(Link, {
   display: "flex",
   alignItems: "center",
-  justifySelf: "start",
+  flexShrink: 0,
+  zIndex: 1,
 });
 
 const NavLink = styled(Link, {
-  fontSize: "$sm",
+  fontSize: "0.8125rem",
   fontWeight: "$medium",
-  padding: "$2 $4",
+  padding: "$2 $2",
   borderRadius: "$pill",
   color: "$text",
   opacity: 0.72,
   transition: "all $fast",
+  pointerEvents: "auto",
   "&:hover, &[data-active=true]": {
     color: "$text",
     opacity: 1,
     background: "$bgGlass",
+  },
+  "@xl": {
+    fontSize: "$sm",
+    padding: "$2 $4",
   },
   variants: {
     active: {
@@ -81,7 +102,7 @@ const MenuBtn = styled("button", {
   border: "1px solid $border",
   borderRadius: "$md",
   cursor: "pointer",
-  "@md": { display: "none" },
+  "@lg": { display: "none" },
 });
 
 const MenuBar = styled("span", {
@@ -126,20 +147,6 @@ const MobileNavLink = styled(Link, {
   },
 });
 
-const links = [
-  { to: "/", label: "Overview" },
-  { to: "/agents", label: "Agents" },
-  { to: "/tasks", label: "Tasks" },
-  { to: "/somnia", label: "Somnia" },
-  { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/governance", label: "Governance" },
-];
-
-function isActive(pathname: string, to: string): boolean {
-  if (to === "/") return pathname === "/";
-  return pathname === to || pathname.startsWith(`${to}/`);
-}
-
 export function Navbar() {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -151,9 +158,9 @@ export function Navbar() {
           <LogoLink to="/" onClick={() => setMenuOpen(false)}>
             <AethonLogo height={40} />
           </LogoLink>
-          <Links>
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} data-active={isActive(pathname, l.to)}>
+          <Links aria-label="Main navigation">
+            {MAIN_NAV.map((l) => (
+              <NavLink key={l.to} to={l.to} data-active={isNavActive(pathname, l.to)}>
                 {l.label}
               </NavLink>
             ))}
@@ -187,11 +194,11 @@ export function Navbar() {
               <div style={{ marginBottom: "1rem", fontWeight: 700, opacity: 0.72, fontSize: "0.75rem", letterSpacing: "0.08em" }}>
                 NAVIGATION
               </div>
-              {links.map((l) => (
+              {MAIN_NAV.map((l) => (
                 <MobileNavLink
                   key={l.to}
                   to={l.to}
-                  data-active={isActive(pathname, l.to)}
+                  data-active={isNavActive(pathname, l.to)}
                   onClick={() => setMenuOpen(false)}
                 >
                   {l.label}
