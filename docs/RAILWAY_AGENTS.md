@@ -49,7 +49,7 @@ API_PUBLIC_URL=https://aethon-production-3f5a.up.railway.app
 API_BASE_URL=https://aethon-production-3f5a.up.railway.app/v1
 RELAYER_PRIVATE_KEY=<deployer key — funded for task rewards>
 REACTIVITY_ENABLED=true
-AGENT_HEALTH_URLS={"ARBITRAGE":"https://your-arbitrage-service.up.railway.app","ORACLE":"https://...","YIELD_OPT":"https://...","GOVERNANCE":"https://...","RISK_MGMT":"https://..."}
+AGENT_HEALTH_URLS={"ARBITRAGE":"https://aethon-agent-arbitrage-production.up.railway.app","ORACLE":"https://aethon-agent-oracle-production.up.railway.app","YIELD_OPT":"https://aethon-agent-yield-production.up.railway.app","GOVERNANCE":"https://aethon-agent-governance-production.up.railway.app","RISK_MGMT":"https://aethon-agent-risk-production.up.railway.app"}
 ```
 
 Use each agent worker's public Railway URL (health is served on `PORT`). See `backend/env/fleet.health-urls.example.json`.

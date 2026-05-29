@@ -8,5 +8,5 @@
   "expectedManifest": "https://aethon-production-3f5a.up.railway.app/v1/agents/manifests/RISK_MGMT",
   "active": true,
   "railwayService": "aethon-agent-risk",
-  "nextStep": "Set AGENT_PRIVATE_KEY on Railway from env/railway-setup.local.txt and redeploy"
+  "nextStep": "AGENT_HEALTH_URLS set on Railway API — see env/railway-api.env.example"
 }
