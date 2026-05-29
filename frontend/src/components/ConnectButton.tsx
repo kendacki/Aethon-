@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { BrowserProvider } from "ethers";
 import { Button } from "./ui";
 import { shortAddr } from "../api/client";
 import { signInWithSomnia, Web3AuthError } from "../auth/web3Auth";
@@ -7,33 +6,60 @@ import { clearAuthToken, getAuthToken } from "../auth/token";
 import { useWallet } from "../wallet/WalletContext";
 import { Notification } from "./Layout";
 
-async function signInFromWallet(): Promise<void> {
-  const eth = window.ethereum;
-  if (!eth) throw new Web3AuthError("No wallet found.", "WALLET_REJECTED");
-  const provider = new BrowserProvider(eth);
-  const walletSigner = await provider.getSigner();
-  const active = await walletSigner.getAddress();
-  await signInWithSomnia(walletSigner, active);
-}
-
 export function ConnectButton() {
-  const { address, connecting, isConnected, isCorrectChain, connect, disconnect } = useWallet();
+  const {
+    address,
+    connecting,
+    isConnected,
+    isCorrectChain,
+    hasWallet,
+    signer,
+    error: walletError,
+    connect,
+    disconnect,
+    clearError,
+  } = useWallet();
   const [signingIn, setSigningIn] = useState(false);
   const [toast, setToast] = useState("");
 
-  const handleConnect = async () => {
+  const showToast = (message: string) => {
+    setToast(message);
+    clearError();
+  };
+
+  const handleConnectWallet = async () => {
     setToast("");
+    const result = await connect();
+    if (!result) {
+      if (walletError) setToast(walletError);
+      return;
+    }
+    setToast("Wallet connected. Click Sign in to continue.");
+  };
+
+  const handleSignIn = async () => {
+    setToast("");
+    if (!signer || !address) {
+      showToast("Connect your wallet first.");
+      return;
+    }
+    if (!isCorrectChain) {
+      showToast(`Switch to Somnia Shannon Testnet, then try again.`);
+      await connect();
+      return;
+    }
+
+    setSigningIn(true);
     try {
-      if (!isConnected) await connect();
-      setSigningIn(true);
-      await signInFromWallet();
+      await signInWithSomnia(signer, address);
+      setToast("");
     } catch (err) {
       if (err instanceof Web3AuthError) {
-        setToast(err.message);
+        showToast(err.message);
       } else if (err instanceof Error) {
-        setToast(err.message);
+        showToast(err.message);
       } else {
-        setToast("Sign in failed.");
+        showToast("Sign in failed.");
       }
     } finally {
       setSigningIn(false);
@@ -47,6 +73,8 @@ export function ConnectButton() {
   };
 
   const authed = isConnected && Boolean(getAuthToken());
+  const busy = connecting || signingIn;
+  const displayError = toast || walletError || "";
 
   if (isConnected && address && authed) {
     return (
@@ -55,7 +83,21 @@ export function ConnectButton() {
           {shortAddr(address)}
           {!isCorrectChain ? " · wrong network" : ""}
         </Button>
-        <Notification message={toast} onClose={() => setToast("")} />
+        <Notification message={displayError} onClose={() => { setToast(""); clearError(); }} />
+      </>
+    );
+  }
+
+  if (isConnected && address && !authed) {
+    return (
+      <>
+        <Button variant="outline" size="sm" onClick={() => void handleSignIn()} disabled={busy}>
+          {signingIn ? "Sign in..." : isCorrectChain ? "Sign in" : "Switch network"}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleDisconnect} disabled={busy}>
+          {shortAddr(address)}
+        </Button>
+        <Notification message={displayError} onClose={() => { setToast(""); clearError(); }} />
       </>
     );
   }
@@ -65,12 +107,12 @@ export function ConnectButton() {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => void handleConnect()}
-        disabled={connecting || signingIn}
+        onClick={() => void handleConnectWallet()}
+        disabled={busy}
       >
-        {connecting ? "Connecting..." : signingIn ? "Sign in..." : isConnected ? "Sign in" : "Connect"}
+        {connecting ? "Connecting..." : hasWallet ? "Connect wallet" : "Install wallet"}
       </Button>
-      <Notification message={toast} onClose={() => setToast("")} />
+      <Notification message={displayError} onClose={() => { setToast(""); clearError(); }} />
     </>
   );
 }

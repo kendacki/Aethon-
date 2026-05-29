@@ -1,7 +1,14 @@
-import { BrowserProvider, JsonRpcSigner } from "ethers";
+import { BrowserProvider, JsonRpcSigner, getAddress } from "ethers";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { clearAuthToken } from "../auth/token";
 import { SOMNIA_CHAIN, SOMNIA_CHAIN_HEX, SOMNIA_CHAIN_ID } from "./config";
+import { resolveEthereumProvider, resetEthereumProviderCache, type EthereumProvider } from "./provider";
+
+type ConnectResult = {
+  address: string;
+  signer: JsonRpcSigner;
+  chainId: number;
+};
 
 type WalletContextValue = {
   address: string | null;
@@ -10,19 +17,17 @@ type WalletContextValue = {
   error: string | null;
   isConnected: boolean;
   isCorrectChain: boolean;
+  hasWallet: boolean;
   provider: BrowserProvider | null;
   signer: JsonRpcSigner | null;
-  connect: () => Promise<void>;
+  connect: () => Promise<ConnectResult | null>;
   disconnect: () => void;
+  clearError: () => void;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
-function getEthereum() {
-  return typeof window !== "undefined" ? window.ethereum : undefined;
-}
-
-async function ensureSomniaNetwork(ethereum: NonNullable<typeof window.ethereum>) {
+async function ensureSomniaNetwork(ethereum: EthereumProvider) {
   try {
     await ethereum.request({
       method: "wallet_switchEthereumChain",
@@ -45,14 +50,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
+  const [hasWallet, setHasWallet] = useState(false);
 
-  const syncWallet = useCallback(async (eth = getEthereum()) => {
+  const syncWallet = useCallback(async (eth = resolveEthereumProvider()) => {
+    setHasWallet(Boolean(eth));
     if (!eth) {
       setAddress(null);
       setChainId(null);
       setProvider(null);
       setSigner(null);
-      return;
+      return null;
     }
 
     const browserProvider = new BrowserProvider(eth);
@@ -65,12 +72,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     if (accounts.length === 0) {
       setAddress(null);
       setSigner(null);
-      return;
+      return null;
     }
 
-    setAddress(accounts[0]);
-    setSigner(await browserProvider.getSigner());
+    const checksummed = getAddress(accounts[0]);
+    const nextSigner = await browserProvider.getSigner();
+    setAddress(checksummed);
+    setSigner(nextSigner);
+    return { address: checksummed, signer: nextSigner, chainId: nextChainId };
   }, []);
+
+  const clearError = useCallback(() => setError(null), []);
 
   const disconnect = useCallback(() => {
     clearAuthToken();
@@ -79,11 +91,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, []);
 
-  const connect = useCallback(async () => {
-    const eth = getEthereum();
+  const connect = useCallback(async (): Promise<ConnectResult | null> => {
+    resetEthereumProviderCache();
+    const eth = resolveEthereumProvider();
+    setHasWallet(Boolean(eth));
     if (!eth) {
       setError("No wallet found. Install MetaMask or another Web3 wallet.");
-      return;
+      return null;
     }
 
     setConnecting(true);
@@ -92,28 +106,49 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       await eth.request({ method: "eth_requestAccounts" });
       await ensureSomniaNetwork(eth);
-      await syncWallet(eth);
+      const synced = await syncWallet(eth);
+      if (!synced) {
+        setError("Wallet connected but no account returned.");
+        return null;
+      }
+      if (synced.chainId !== SOMNIA_CHAIN_ID) {
+        setError(`Switch to Somnia Shannon Testnet (chain ${SOMNIA_CHAIN_ID}).`);
+        return null;
+      }
+      return synced;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wallet connection failed.");
-      disconnect();
+      const code = (err as { code?: number }).code;
+      if (code === 4001) {
+        setError("Connection rejected in wallet.");
+      } else {
+        setError(err instanceof Error ? err.message : "Wallet connection failed.");
+      }
+      return null;
     } finally {
       setConnecting(false);
     }
-  }, [disconnect, syncWallet]);
+  }, [syncWallet]);
 
   useEffect(() => {
-    const eth = getEthereum();
+    const eth = resolveEthereumProvider();
+    setHasWallet(Boolean(eth));
     if (!eth) return;
 
     void syncWallet(eth);
 
     const onAccountsChanged = (accounts: unknown) => {
       const list = accounts as string[];
-      if (list.length === 0) disconnect();
-      else void syncWallet(eth);
+      clearAuthToken();
+      if (list.length === 0) {
+        setAddress(null);
+        setSigner(null);
+      } else {
+        void syncWallet(eth);
+      }
     };
 
     const onChainChanged = () => {
+      clearAuthToken();
       void syncWallet(eth);
     };
 
@@ -124,7 +159,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       eth.removeListener?.("accountsChanged", onAccountsChanged);
       eth.removeListener?.("chainChanged", onChainChanged);
     };
-  }, [disconnect, syncWallet]);
+  }, [syncWallet]);
 
   const value = useMemo<WalletContextValue>(
     () => ({
@@ -134,12 +169,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       error,
       isConnected: Boolean(address),
       isCorrectChain: chainId === SOMNIA_CHAIN_ID,
+      hasWallet,
       provider,
       signer,
       connect,
       disconnect,
+      clearError,
     }),
-    [address, chainId, connect, connecting, disconnect, error, provider, signer],
+    [address, chainId, connect, connecting, clearError, disconnect, error, hasWallet, provider, signer],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

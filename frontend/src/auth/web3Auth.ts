@@ -1,12 +1,12 @@
 import { SiweMessage } from "siwe";
-import type { JsonRpcSigner } from "ethers";
+import { getAddress, type JsonRpcSigner } from "ethers";
 import { env } from "../config/env";
 import { setAuthToken } from "./token";
 
 export class Web3AuthError extends Error {
   constructor(
     message: string,
-    readonly code?: "WALLET_REJECTED" | "RATE_LIMIT" | "VERIFY_FAILED" | "NETWORK",
+    readonly code?: "WALLET_REJECTED" | "RATE_LIMIT" | "VERIFY_FAILED" | "NETWORK" | "WRONG_CHAIN",
   ) {
     super(message);
     this.name = "Web3AuthError";
@@ -26,8 +26,26 @@ async function parseApiError(res: Response): Promise<string> {
   return `Request failed (${res.status})`;
 }
 
+function siweDomain(): string {
+  return env.siweDomain ?? window.location.host;
+}
+
+function siweUri(): string {
+  return env.siweUri ?? window.location.origin;
+}
+
 export async function signInWithSomnia(signer: JsonRpcSigner, address: string): Promise<string> {
-  const normalized = address.toLowerCase();
+  const checksummed = getAddress(address);
+  const normalized = checksummed.toLowerCase();
+
+  const network = await signer.provider?.getNetwork();
+  const walletChainId = network ? Number(network.chainId) : null;
+  if (walletChainId !== null && walletChainId !== env.somniaChainId) {
+    throw new Web3AuthError(
+      `Wrong network. Switch to Somnia Shannon Testnet (chain ${env.somniaChainId}).`,
+      "WRONG_CHAIN",
+    );
+  }
 
   let nonceRes: Response;
   try {
@@ -46,10 +64,10 @@ export async function signInWithSomnia(signer: JsonRpcSigner, address: string): 
   const { data } = (await nonceRes.json()) as { data: { nonce: string } };
 
   const message = new SiweMessage({
-    domain: window.location.host,
-    address: normalized,
+    domain: siweDomain(),
+    address: checksummed,
     statement: "Sign in to AETHON — authorize agent swarm operations.",
-    uri: window.location.origin,
+    uri: siweUri(),
     version: "1",
     chainId: env.somniaChainId,
     nonce: data.nonce,

@@ -8,8 +8,13 @@ import { JWT_SECRET } from "./authenticateToken.js";
 export const authRouter = Router();
 
 const JWT_EXPIRES = process.env.JWT_EXPIRES_IN ?? "24h";
-const SIWE_DOMAIN = process.env.SIWE_DOMAIN;
-const SIWE_URI = process.env.SIWE_URI;
+function parseAllowedList(raw: string | undefined): string[] | null {
+  if (!raw?.trim()) return null;
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+const ALLOWED_SIWE_DOMAINS = parseAllowedList(process.env.SIWE_DOMAIN);
+const ALLOWED_SIWE_URIS = parseAllowedList(process.env.SIWE_URI);
 
 authRouter.get("/nonce", (req, res) => {
   purgeExpiredNonces();
@@ -42,11 +47,11 @@ authRouter.post("/verify", async (req, res, next) => {
       return res.status(401).json({ error: `Invalid chain. Expected Somnia chain ${expectedChainId}.` });
     }
 
-    if (SIWE_DOMAIN && fields.data.domain !== SIWE_DOMAIN) {
+    if (ALLOWED_SIWE_DOMAINS && !ALLOWED_SIWE_DOMAINS.includes(fields.data.domain)) {
       return res.status(401).json({ error: "Invalid SIWE domain" });
     }
 
-    if (SIWE_URI && fields.data.uri !== SIWE_URI) {
+    if (ALLOWED_SIWE_URIS && !ALLOWED_SIWE_URIS.includes(fields.data.uri)) {
       return res.status(401).json({ error: "Invalid SIWE uri" });
     }
 

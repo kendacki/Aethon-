@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BrowserProvider } from "ethers";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Card, PageWrap, Section, Heading } from "../components/ui";
@@ -44,7 +43,7 @@ export default function TasksPage() {
   const [swarmMode, setSwarmMode] = useState(false);
   const { data, loading, reload } = useFetch(() => api.tasks(page, status || undefined), [page, status]);
   const { lastEvent, connected } = useWebSocket(["tasks"]);
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, signer, isCorrectChain, connect } = useWallet();
 
   useEffect(() => {
     if (data) setTasks(data.data);
@@ -78,8 +77,13 @@ export default function TasksPage() {
 
   const handleSubmit = async () => {
     setToast("");
-    if (!isConnected || !address) {
+    if (!isConnected || !address || !signer) {
       setToast("Connect your wallet and sign in first.");
+      return;
+    }
+    if (!isCorrectChain) {
+      setToast("Switch to Somnia Shannon Testnet in your wallet.");
+      await connect();
       return;
     }
     if (!getAuthToken()) {
@@ -89,10 +93,6 @@ export default function TasksPage() {
 
     setSubmitting(true);
     try {
-      const eth = window.ethereum;
-      if (!eth) throw new Error("No wallet found");
-      const provider = new BrowserProvider(eth);
-      const signer = await provider.getSigner();
       const payload = swarmMode ? swarmPayload(complexity) : defaultPayloadForRole(role);
       const taskHash = hashTaskPayload(payload);
       const rewardWei = parseEthToWei(rewardEth);

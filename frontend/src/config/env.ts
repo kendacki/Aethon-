@@ -55,5 +55,7 @@ export const env = {
   somniaChainId: Number(import.meta.env.VITE_SOMNIA_CHAIN_ID ?? 50312),
   somniaRpcUrl: import.meta.env.VITE_SOMNIA_RPC_URL ?? "https://dream-rpc.somnia.network",
   somniaExplorer: import.meta.env.VITE_SOMNIA_EXPLORER ?? "https://shannon-explorer.somnia.network",
+  siweDomain: import.meta.env.VITE_SIWE_DOMAIN?.trim() || undefined,
+  siweUri: import.meta.env.VITE_SIWE_URI?.trim() || undefined,
   isDev: import.meta.env.DEV,
 };
