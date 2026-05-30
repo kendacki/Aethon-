@@ -11,17 +11,25 @@ export class NonceMgr {
   ) {}
 
   async acquireNonce(): Promise<number> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const tryAcquire = async () => {
         if (this.locked) {
           this.queue.push(tryAcquire);
           return;
         }
         this.locked = true;
-        if (this.nonce === null) {
-          this.nonce = await this.provider.getTransactionCount(this.wallet.address, "pending");
+        try {
+          const live = await this.provider.getTransactionCount(this.wallet.address, "latest");
+          if (this.nonce === null || live > this.nonce) {
+            this.nonce = live;
+          }
+          const val = this.nonce;
+          this.nonce++;
+          resolve(val);
+        } catch (err) {
+          this.release();
+          reject(err);
         }
-        resolve(this.nonce++);
       };
       tryAcquire();
     });
@@ -39,6 +47,6 @@ export class NonceMgr {
     this.nonce = null;
     this.locked = false;
     this.queue = [];
-    this.nonce = await this.provider.getTransactionCount(this.wallet.address, "pending");
+    this.nonce = await this.provider.getTransactionCount(this.wallet.address, "latest");
   }
 }

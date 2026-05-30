@@ -14,7 +14,7 @@ import { withRetry } from "./utils/retry.js";
 
 const COALITION_ABI = [
   "function formCoalition(address[] members, uint256 taskId, bytes[] signatures) returns (address)",
-  "function coalitions(address) view returns (address[] members, address leadAgent, uint256 formed, uint256 taskId, bool dissolved, uint256 totalStake)",
+  "function coalitions(address) view returns (address leadAgent, uint256 formed, uint256 taskId, bool dissolved, uint256 totalStake)",
 ];
 
 const TASK_MARKET_ABI = [

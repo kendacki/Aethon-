@@ -13,6 +13,7 @@
     "start:agent": "node dist/agent/index.js",
     "db:migrate": "tsx src/db/migrate.ts",
     "compile": "hardhat compile",
+    "test": "npm run test:contracts",
     "test:contracts": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy_v3.cjs --network somniaTestnet",
     "deploy:somnia-consumer": "hardhat run scripts/deploy-somnia-consumer.cjs --network somniaTestnet",

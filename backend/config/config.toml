@@ -1,7 +1,7 @@
 # config.toml — Somnia Node Configuration (AETHON v3.0 reference)
 
 [node]
-network       = "somnia-mainnet"
+network       = "somnia-shannon-testnet"
 chain_id      = 50312
 rpc_port      = 8545
 ws_port       = 8546
