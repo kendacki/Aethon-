@@ -1,0 +1,14 @@
+{
+  "label": "Pre-Oracle deploy snapshot (Shannon testnet, chainId 50312)",
+  "capturedAt": "2026-05-25",
+  "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
+  "note": "Registry/coalition state wiped after full redeploy. Roll back to these only if oracle deploy is abandoned.",
+  "addresses": {
+    "ReputationEngine": "0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab",
+    "CircuitBreaker": "0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0",
+    "AgentRegistry": "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",
+    "CoalitionManager": "0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B",
+    "TaskMarket": "0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8",
+    "OracleResolver": null
+  }
+}
