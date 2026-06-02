@@ -11,7 +11,7 @@ import { useAuthSession } from "../auth/useAuthSession";
 import { useWallet } from "../wallet/WalletContext";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import { Notification } from "../components/Layout";
-import { PageHero } from "../components/PageHero";
+import { HomePageHero } from "../components/HomePageHero";
 import {
   healthBadge,
   healthSequence,
@@ -281,7 +281,7 @@ export default function OverviewPage() {
 
   return (
     <Home>
-      <PageHero tall>
+      <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
           <motion.div variants={heroItem}>
             <HeroHeading>Autonomous agents on Somnia</HeroHeading>
@@ -301,7 +301,7 @@ export default function OverviewPage() {
             </Button>
           </ActionRow>
         </HeroContent>
-      </PageHero>
+      </HomePageHero>
 
       <StatsSection>
         <ErrorBanner
