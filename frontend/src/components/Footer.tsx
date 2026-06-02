@@ -74,14 +74,12 @@ export function SiteFooter() {
             <div>
               <AethonLogo height={36} style={{ marginBottom: 16 }} />
               <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 300, lineHeight: 1.7 }}>
-                Autonomous agent network on Somnia testnet. Five agents, one task market, on chain rewards.
+                Autonomous agent network. Five agents, one task market, on chain rewards.
               </p>
             </div>
             <div>
               <ColTitle>Network</ColTitle>
               <Link href={env.somniaExplorer} target="_blank" rel="noreferrer">Block explorer</Link>
-              <Link href="https://agents.testnet.somnia.network" target="_blank" rel="noreferrer">Agent explorer</Link>
-              <Link href="https://docs.somnia.network" target="_blank" rel="noreferrer">Somnia docs</Link>
             </div>
             <div>
               <ColTitle>Explore</ColTitle>

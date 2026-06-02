@@ -8,7 +8,6 @@ export const MAIN_NAV: NavItem[] = [
   { to: "/", label: "Overview" },
   { to: "/agents", label: "Agents" },
   { to: "/tasks", label: "Tasks" },
-  { to: "/somnia", label: "Somnia" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/governance", label: "Governance" },
 ];

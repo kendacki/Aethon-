@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch } from "../api/hooks";
-import { AgentHealthDetail } from "../components/FleetHealthPanel";
 import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Section, StatValue } from "../components/ui";
 import { IconArrowLeft, IconTrend, ICON_LG, ICON_SM } from "../components/icons";
@@ -72,8 +71,6 @@ export default function AgentDetailPage() {
               <div style={{ fontWeight: 600, marginTop: 8 }}>{new Date(agent.lastHeartbeat).toLocaleString()}</div>
             </Card>
           </Grid>
-
-          <AgentHealthDetail health={health} />
 
           {rep && rep.history.length > 0 && (
             <Card style={{ marginTop: "2rem" }}>

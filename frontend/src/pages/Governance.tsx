@@ -5,7 +5,6 @@ import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
 import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { SomniaPanel } from "../components/SomniaPanel";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
@@ -13,7 +12,6 @@ import { useState, useEffect } from "react";
 export default function GovernancePage() {
   const { data: cb, loading, error, reload } = useFetch(() => api.circuitBreaker(), []);
   const { data: health } = useFetch(() => api.health(), []);
-  const { data: somnia } = useFetch(() => api.somniaReport(), []);
   const { lastEvent } = useWebSocket(["circuit_breaker"]);
   const [toast, setToast] = useState("");
 
@@ -38,7 +36,6 @@ export default function GovernancePage() {
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
         <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
           The guardian wallet can reset the circuit after a one hour wait. Three failed tasks in a row pause the system.
-          Somnia and vault status are tracked separately.
         </p>
       </PageHero>
 
@@ -100,11 +97,8 @@ export default function GovernancePage() {
               <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <Badge status={health.database ? "online" : "offline"}>DB {health.database ? "OK" : "Down"}</Badge>
                 <Badge>Indexed block {health.lastIndexedBlock?.toLocaleString()}</Badge>
-                {somnia?.agentathonReady && <Badge status="online">Somnia ready</Badge>}
               </div>
             )}
-
-            <SomniaPanel report={somnia ?? null} compact />
           </motion.div>
         )}
       </Section>

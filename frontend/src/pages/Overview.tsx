@@ -4,8 +4,6 @@ import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { Badge, Button, Grid, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { FleetHealthPanel } from "../components/FleetHealthPanel";
-import { SomniaPanel } from "../components/SomniaPanel";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { useAuthSession } from "../auth/useAuthSession";
 import { useWallet } from "../wallet/WalletContext";
@@ -200,7 +198,7 @@ const BadgeMotion = motion(Badge);
 const PROTOCOL_FEATURES = [
   {
     title: "Fast task execution",
-    body: "Agents react to on chain events in real time. No polling needed on Somnia.",
+    body: "Agents react to on chain events in real time. No polling needed.",
   },
   {
     title: "Coalition formation",
@@ -208,7 +206,7 @@ const PROTOCOL_FEATURES = [
   },
   {
     title: "Verified oracles",
-    body: "ORACLE and GOVERNANCE use Somnia platform agents for prices and summaries.",
+    body: "ORACLE and GOVERNANCE use trusted platform agents for prices and summaries.",
   },
 ] as const;
 
@@ -218,7 +216,10 @@ export default function OverviewPage() {
   const signedIn = isConnected && Boolean(address) && isSignedIn;
   const walletAddress = address?.toLowerCase() ?? null;
 
-  const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => api.health(), []);
+  const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => {
+    if (!signedIn) return Promise.resolve(null);
+    return api.health();
+  }, [signedIn]);
   const {
     data: walletStats,
     error: walletStatsError,
@@ -232,8 +233,6 @@ export default function OverviewPage() {
     },
     [signedIn, walletAddress],
   );
-  const { data: fleet, loading: fleetLoading } = useFetch(() => api.fleetHealth(), []);
-  const { data: somnia, loading: somniaLoading } = useFetch(() => api.somniaReport(), []);
   const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
   const [toast, setToast] = useState("");
 
@@ -266,7 +265,7 @@ export default function OverviewPage() {
     return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
   });
 
-  const healthBadges = health
+  const healthBadges = signedIn && health
     ? [
         { key: "sync", status: health.synced ? ("online" as const) : ("offline" as const), label: health.synced ? "Indexer synced" : "Syncing" },
         { key: "block", label: `Block ${health.blockNumber.toLocaleString()}` },
@@ -305,10 +304,12 @@ export default function OverviewPage() {
 
       <StatsSection>
         <ErrorBanner
-          message={healthError ?? (signedIn ? walletStatsError : null)}
+          message={signedIn ? (healthError ?? walletStatsError) : null}
           onRetry={() => {
-            reloadHealth();
-            if (signedIn) reloadWalletStats();
+            if (signedIn) {
+              reloadHealth();
+              reloadWalletStats();
+            }
           }}
         />
 
@@ -328,14 +329,6 @@ export default function OverviewPage() {
         </Grid>
       </StatsSection>
 
-      <Section style={{ paddingTop: 0 }}>
-        <FleetHealthPanel fleet={fleet} loading={fleetLoading} compact />
-      </Section>
-
-      <Section style={{ paddingTop: 0 }}>
-        <SomniaPanel report={somnia} loading={somniaLoading} compact />
-      </Section>
-
       <ProtocolBand>
         <ProtocolGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
@@ -350,7 +343,7 @@ export default function OverviewPage() {
                 </ProtocolCardMotion>
               ))}
             </Grid>
-            {health && (
+            {signedIn && health && (
               <StatusRow variants={healthSequence} initial="hidden" animate="show">
                 {healthBadges.map((badge) => (
                   <BadgeMotion key={badge.key} variants={healthBadge} status={badge.status}>

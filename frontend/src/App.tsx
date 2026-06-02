@@ -11,7 +11,6 @@ import TasksPage from "./pages/Tasks";
 import CoalitionDetailPage from "./pages/CoalitionDetail";
 import LeaderboardPage from "./pages/Leaderboard";
 import GovernancePage from "./pages/Governance";
-import SomniaPage from "./pages/Somnia";
 import { api } from "./api/client";
 import { styled } from "./stitches.config";
 
@@ -48,7 +47,6 @@ function AnimatedRoutes() {
           <Route path="/agents/:addr" element={<AgentDetailPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/coalitions/:addr" element={<CoalitionDetailPage />} />
-          <Route path="/somnia" element={<SomniaPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/governance" element={<GovernancePage />} />
         </Routes>

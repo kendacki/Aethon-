@@ -87,8 +87,6 @@ export default function TasksPage() {
       const outcome = await connect();
       if (!outcome.ok) {
         setToast(outcome.error);
-      } else {
-        setToast("Switched to Somnia testnet.");
       }
       return;
     }
@@ -128,7 +126,7 @@ export default function TasksPage() {
         <Badge accent>Task Market</Badge>
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Task market</Heading>
         <p style={{ marginTop: "0.5rem", opacity: 0.82 }}>
-          Live tasks on Somnia. {connected ? "Connected" : "Reconnecting"}
+          Live tasks. {connected ? "Connected" : "Reconnecting"}
         </p>
       </PageHero>
 
