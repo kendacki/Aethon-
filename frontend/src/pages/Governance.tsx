@@ -8,14 +8,27 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { Notification } from "../components/Layout";
 import { spring } from "../stitches.config";
 import { useState, useEffect } from "react";
+import { useWallet } from "../wallet/WalletContext";
+import { useAuthSession } from "../auth/useAuthSession";
 
 export default function GovernancePage() {
-  const { data: cb, loading, error, reload } = useFetch(() => api.circuitBreaker(), []);
-  const { data: health } = useFetch(() => api.health(), []);
+  const { address, isConnected } = useWallet();
+  const { isSignedIn } = useAuthSession();
+  const signedIn = isConnected && Boolean(address) && isSignedIn;
+
+  const { data: cb, loading, error, reload } = useFetch(() => {
+    if (!signedIn) return Promise.resolve(null);
+    return api.circuitBreaker();
+  }, [signedIn]);
+  const { data: health } = useFetch(() => {
+    if (!signedIn) return Promise.resolve(null);
+    return api.health();
+  }, [signedIn]);
   const { lastEvent } = useWebSocket(["circuit_breaker"]);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
+    if (!signedIn) return;
     if (lastEvent?.type === "CIRCUIT_BREAK") {
       setToast("Circuit breaker on. All work paused.");
       reload();
@@ -24,7 +37,7 @@ export default function GovernancePage() {
       setToast("Circuit reset. System running again.");
       reload();
     }
-  }, [lastEvent, reload]);
+  }, [lastEvent, reload, signedIn]);
 
   return (
     <PageWrap>
@@ -40,11 +53,17 @@ export default function GovernancePage() {
       </PageHero>
 
       <Section style={{ paddingTop: "2.5rem" }}>
-        <ErrorBanner message={error} onRetry={reload} />
+        <ErrorBanner message={signedIn ? error : null} onRetry={signedIn ? reload : undefined} />
 
-        {loading && <p style={{ marginTop: "2rem" }}>Loading</p>}
+        {!signedIn && (
+          <p style={{ marginTop: "2rem", opacity: 0.75, maxWidth: 620, lineHeight: 1.65 }}>
+            Connect your wallet and sign in to view governance and safety status.
+          </p>
+        )}
 
-        {cb && (
+        {signedIn && loading && <p style={{ marginTop: "2rem" }}>Loading</p>}
+
+        {signedIn && cb && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
             <Card style={{ marginTop: "2rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : undefined }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
