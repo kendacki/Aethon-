@@ -1,108 +1,12 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { shortAddr } from "../../api/client";
 import { useSignedIn, type SessionPhase } from "../../auth/useSignedIn";
-import { env } from "../../config/env";
 import { spring } from "../../stitches.config";
 import { styled } from "../../stitches.config";
-import { Badge, Button, Card, Grid, Muted } from "../ui";
+import { Button, Card, Grid, Muted } from "../ui";
 import { GlassCard, GlassContent, GlassPanel } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask } from "../icons";
-
-/* ── Session status bar (authenticated only) ── */
-
-const SessionStrip = styled("div", {
-  position: "sticky",
-  top: "4.5rem",
-  zIndex: 90,
-  width: "100%",
-  borderBottom: "1px solid rgba(13, 188, 130, 0.25)",
-  background: "linear-gradient(90deg, rgba(13, 188, 130, 0.12) 0%, rgba(0, 0, 0, 0.92) 48%, rgba(0, 0, 0, 0.96) 100%)",
-  backdropFilter: "blur(12px)",
-});
-
-const SessionInner = styled("div", {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "$3 $6",
-  display: "none",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "$4",
-  flexWrap: "wrap",
-  "@lg": {
-    display: "flex",
-  },
-});
-
-const SessionInnerCompact = styled("div", {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "$2 $4",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "$3",
-  minHeight: "2.5rem",
-  "@lg": {
-    display: "none",
-  },
-});
-
-const SessionMeta = styled("div", {
-  display: "flex",
-  alignItems: "center",
-  gap: "$3",
-  flexWrap: "wrap",
-});
-
-const LiveDot = styled("span", {
-  width: 8,
-  height: 8,
-  borderRadius: "50%",
-  background: "#0dbc82",
-  boxShadow: "0 0 12px rgba(13, 188, 130, 0.8)",
-  flexShrink: 0,
-});
-
-export function SessionStatusBar() {
-  const { signedIn, address, isCorrectChain, chainId } = useSignedIn();
-  if (!signedIn || !address) return null;
-
-  return (
-    <SessionStrip>
-      <SessionInnerCompact>
-        <SessionMeta>
-          <LiveDot aria-hidden />
-          <span style={{ fontWeight: 700, fontSize: "0.75rem" }}>Operator</span>
-          <span style={{ fontFamily: "monospace", fontSize: "0.6875rem", opacity: 0.8 }}>{shortAddr(address)}</span>
-        </SessionMeta>
-        <Badge status={isCorrectChain ? "online" : undefined} accent={!isCorrectChain} style={{ fontSize: "0.625rem" }}>
-          {isCorrectChain ? "Live" : "Wrong net"}
-        </Badge>
-      </SessionInnerCompact>
-
-      <SessionInner>
-        <SessionMeta>
-          <LiveDot aria-hidden />
-          <span style={{ fontWeight: 700, fontSize: "0.8125rem" }}>Swarm operator</span>
-          <Badge status="online">Signed in</Badge>
-          <span style={{ fontFamily: "monospace", fontSize: "0.75rem", opacity: 0.85 }}>{shortAddr(address)}</span>
-          <Badge accent={!isCorrectChain}>{isCorrectChain ? `Chain ${chainId ?? env.somniaChainId}` : "Wrong network"}</Badge>
-        </SessionMeta>
-        <SessionMeta>
-          <Button variant="ghost" size="sm" as={Link} to="/tasks">
-            Submit task
-          </Button>
-          <Button variant="outline" size="sm" as={Link} to="/agents">
-            Fleet
-          </Button>
-        </SessionMeta>
-      </SessionInner>
-    </SessionStrip>
-  );
-}
 
 /* ── Signed-in page shell ── */
 

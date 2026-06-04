@@ -4,7 +4,6 @@ import { useSignedIn } from "../auth/useSignedIn";
 import { spring, styled } from "../stitches.config";
 import { Navbar, LoadingScreen } from "./Layout";
 import { SiteFooter } from "./Footer";
-import { SessionStatusBar } from "./session/SessionUI";
 import { OperatorMobileNav } from "./session/OperatorMobileNav";
 import OverviewPage from "../pages/Overview";
 import AgentsPage from "../pages/Agents";
@@ -90,7 +89,6 @@ export function AppShell({ loading }: AppShellProps) {
       {!loading && (
         <>
           <Navbar />
-          {signedIn && <SessionStatusBar />}
           <Main operatorMobile={signedIn}>
             <AnimatedRoutes />
           </Main>
