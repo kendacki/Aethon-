@@ -4,7 +4,7 @@ import { api, shortAddr, type WalletTaskStats } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { Badge, Button, Grid, Muted, Section } from "../components/ui";
-import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
+import { GlassBandPanel, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
 import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
@@ -69,13 +69,8 @@ const PageBand = styled("section", {
   zIndex: 10,
 });
 
-const BandGlass = styled(GlassPanel, {
-  maxWidth: "1200px",
-  margin: "0 auto",
+const BandGlass = styled(GlassBandPanel, {
   padding: "$10 $6",
-  width: "100%",
-  boxSizing: "border-box",
-  defaultVariants: { radius: "full" },
   "@md": {
     padding: "$12 $8",
   },
@@ -87,7 +82,7 @@ const StatCell = styled(motion.div, {
   height: "100%",
 });
 
-const StatGlassCard = styled(GlassCard, {
+const StatGlassCard = styled(GlassElevatedCard, {
   height: "100%",
   display: "flex",
   flexDirection: "column",
@@ -95,7 +90,6 @@ const StatGlassCard = styled(GlassCard, {
   "@md": {
     padding: "$8 $6",
   },
-  defaultVariants: { tone: "elevated" },
 });
 
 const StatFigure = styled("div", {
@@ -141,9 +135,9 @@ const CardBody = styled("p", {
   lineHeight: 1.65,
 });
 
-const ProtocolCardMotion = motion(GlassCard);
+const ProtocolCardMotion = motion(GlassElevatedCard);
 
-const QuickLinkCard = styled(GlassCard, {
+const QuickLinkCard = styled(GlassElevatedCard, {
   padding: "$5 $5",
   height: "100%",
   display: "flex",
@@ -151,7 +145,6 @@ const QuickLinkCard = styled(GlassCard, {
   gap: "$3",
   cursor: "pointer",
   transition: "border-color 150ms ease, transform 150ms ease",
-  defaultVariants: { tone: "elevated" },
   "&:hover": {
     borderColor: "$borderStrong",
     transform: "translateY(-2px)",
@@ -192,10 +185,9 @@ const StepNum = styled("div", {
   color: "#0dbc82",
 });
 
-const GuideCard = styled(GlassCard, {
+const GuideCard = styled(GlassElevatedCard, {
   padding: "$6",
   height: "100%",
-  defaultVariants: { tone: "elevated" },
 });
 
 const DEMO_OVERVIEW_STATS = {

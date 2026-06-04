@@ -85,7 +85,16 @@ export const GlassCard = styled("div", {
   defaultVariants: { tone: "flat" },
 });
 
-/** Operator sections (activity, fleet) share this shell. */
+/** Neutral full width band (overview sections, activity). */
+export const GlassBandPanel = styled(GlassPanel, {
+  maxWidth: "1200px",
+  margin: "0 auto",
+  width: "100%",
+  boxSizing: "border-box",
+  defaultVariants: { radius: "full", tone: "neutral" },
+});
+
+/** Operator pages (fleet) use accent shell. */
 export const GlassSectionPanel = styled(GlassPanel, {
   maxWidth: "1200px",
   margin: "0 auto",
@@ -96,26 +105,9 @@ export const GlassSectionPanel = styled(GlassPanel, {
   defaultVariants: { radius: "full", tone: "accent" },
 });
 
-/** Metric and summary tiles inside accent panels. */
-export const GlassMetricTile = styled("div", {
-  display: "flex",
-  flexDirection: "column",
-  gap: "$3",
-  padding: "$6",
-  borderRadius: "$lg",
-  background: GLASS.gradient.card,
-  border: `1px solid ${GLASS.border}`,
-  boxShadow: GLASS.shadow.metric,
-  transition: "border-color 150ms ease, transform 150ms ease",
-  minHeight: "9.5rem",
-  variants: {
-    accent: {
-      true: {
-        background: GLASS.gradient.cardAccent,
-        borderColor: GLASS.accentBorderCard,
-      },
-    },
-  },
+/** Elevated inner card (stats, metrics, quick links). */
+export const GlassElevatedCard = styled(GlassCard, {
+  defaultVariants: { tone: "elevated" },
 });
 
 /** Compact cells (summary stats, icon rings, fleet bar). */

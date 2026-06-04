@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { api, formatEth, type Task, type WalletTaskStats } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassSectionPanel, GlassMetricTile, GlassSurface, GLASS } from "../GlassPanel";
+import { GlassBandPanel, GlassElevatedCard, GlassContent, GlassSurface, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
 import { summarizeWalletStake } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
@@ -15,7 +15,10 @@ const pulse = keyframes({
   "50%": { opacity: 0.45, transform: "scale(0.92)" },
 });
 
-const Panel = GlassSectionPanel;
+const Panel = styled(GlassBandPanel, {
+  padding: "$6",
+  "@md": { padding: "$8" },
+});
 
 const Header = styled("div", {
   display: "flex",
@@ -53,8 +56,8 @@ const LivePill = styled("span", {
   textTransform: "uppercase",
   padding: "$1 $3",
   borderRadius: "$pill",
-  border: "1px solid rgba(13, 188, 130, 0.4)",
-  background: "rgba(13, 188, 130, 0.12)",
+  border: `1px solid ${GLASS.accentBorderStrong}`,
+  background: GLASS.accentFill,
   color: "#0dbc82",
 });
 
@@ -63,7 +66,7 @@ const LiveDot = styled("span", {
   height: 6,
   borderRadius: "50%",
   background: "#0dbc82",
-  boxShadow: "0 0 8px rgba(13, 188, 130, 0.8)",
+  boxShadow: `0 0 8px ${GLASS.accentBorderStrong}`,
   animation: `${pulse} 2s ease-in-out infinite`,
 });
 
@@ -76,7 +79,13 @@ const MetricGrid = styled("div", {
   },
 });
 
-const MetricCard = GlassMetricTile;
+const MetricCard = styled(GlassElevatedCard, {
+  display: "flex",
+  flexDirection: "column",
+  gap: "$3",
+  minHeight: "9.5rem",
+  transition: "border-color 150ms ease, transform 150ms ease",
+});
 
 const MetricTop = styled("div", {
   display: "flex",
@@ -274,6 +283,7 @@ export function OperatorActivitySection({
 
   return (
     <Panel as={motion.section} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+      <GlassContent>
       <Header>
         <TitleBlock>
           <Title>Your activity</Title>
@@ -328,7 +338,7 @@ export function OperatorActivitySection({
           )}
         </MetricCard>
 
-        <MetricCard accent={true}>
+        <MetricCard>
           {loading ? (
             <>
               <Skeleton css={{ height: 44, width: 44 }} />
@@ -420,6 +430,7 @@ export function OperatorActivitySection({
           )}
         </RecentBlock>
       )}
+      </GlassContent>
     </Panel>
   );
 }

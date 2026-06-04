@@ -6,7 +6,7 @@ import { useFetch } from "../../api/hooks";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassSectionPanel, GlassCard, GlassSurface, GlassFilterPill, GLASS } from "../GlassPanel";
+import { GlassSectionPanel, GlassElevatedCard, GlassSurface, GlassFilterPill, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconTask, ICON_MD } from "../icons";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
@@ -99,14 +99,13 @@ const AgentGrid = styled("div", {
   "@lg": { gridTemplateColumns: "repeat(3, 1fr)" },
 });
 
-const AgentCard = styled(motion(GlassCard), {
+const AgentCard = styled(motion(GlassElevatedCard), {
   display: "flex",
   flexDirection: "column",
   gap: "$4",
   padding: "$5",
   minHeight: "100%",
   transition: "border-color 150ms ease, transform 150ms ease",
-  defaultVariants: { tone: "elevated" },
   "&:hover": {
     borderColor: GLASS.accentBorderHover,
     transform: "translateY(-2px)",
