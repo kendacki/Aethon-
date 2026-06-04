@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { api, formatEth, shortAddr, type Task, type WalletTaskStats } from "../../api/client";
+import { api, formatEth, type Task, type WalletTaskStats } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
 import { GlassPanel } from "../GlassPanel";
@@ -42,14 +42,6 @@ const Title = styled("h2", {
   fontWeight: "$extrabold",
   letterSpacing: "-0.02em",
   margin: 0,
-});
-
-const Subtitle = styled("p", {
-  marginTop: "$2",
-  fontSize: "$sm",
-  opacity: 0.72,
-  lineHeight: 1.55,
-  maxWidth: "28rem",
 });
 
 const HeaderActions = styled("div", {
