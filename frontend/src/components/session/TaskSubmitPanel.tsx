@@ -59,9 +59,9 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState<TaskSubmitSuccess | null>(null);
   const [role, setRole] = useState<AgentType>("ORACLE");
-  const [complexity, setComplexity] = useState(1);
   const [rewardEth, setRewardEth] = useState("0.01");
   const [swarmMode, setSwarmMode] = useState(false);
+  const complexity = swarmMode ? 5 : 1;
 
   const canSubmit = signedIn && Boolean(address) && Boolean(signer) && isCorrectChain;
 
@@ -139,11 +139,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
             <GlassSelect
               value={swarmMode ? "swarm" : "single"}
               disabled={!signedIn}
-              onChange={(e) => {
-                const swarm = e.target.value === "swarm";
-                setSwarmMode(swarm);
-                if (swarm) setComplexity(5);
-              }}
+              onChange={(e) => setSwarmMode(e.target.value === "swarm")}
             >
               <option value="single">Single role</option>
               <option value="swarm">Full swarm</option>
@@ -162,17 +158,6 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
             </GlassField>
           )}
           <GlassField>
-            Complexity
-            <GlassInput
-              type="number"
-              min={1}
-              max={5}
-              value={complexity}
-              disabled={!signedIn || swarmMode}
-              onChange={(e) => setComplexity(Number(e.target.value))}
-            />
-          </GlassField>
-          <GlassField>
             Reward (STT)
             <GlassInput type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
           </GlassField>
@@ -188,7 +173,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
         <Hint>
           {swarmMode
             ? "Swarm mode uses all five agent types. Confirm the fleet is online before you submit complex jobs."
-            : "Single role tasks target one specialist. Raise complexity when a coalition may form."}
+            : "Single role tasks target one specialist on the swarm."}
         </Hint>
       </Panel>
 

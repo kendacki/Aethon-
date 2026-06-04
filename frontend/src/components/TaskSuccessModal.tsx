@@ -145,10 +145,6 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
                 <DetailLabel>Mode</DetailLabel>
                 <DetailValue>{data.mode === "swarm" ? "Full swarm" : "Single role"}</DetailValue>
               </DetailItem>
-              <DetailItem>
-                <DetailLabel>Complexity</DetailLabel>
-                <DetailValue>{data.complexity} / 5</DetailValue>
-              </DetailItem>
               {data.role && (
                 <DetailItem>
                   <DetailLabel>Role</DetailLabel>

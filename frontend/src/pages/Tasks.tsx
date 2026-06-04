@@ -148,7 +148,8 @@ export default function TasksPage() {
                           <div>
                             <div style={{ fontWeight: 700 }}>Task #{task.id}</div>
                             <div style={{ fontSize: "0.75rem", opacity: 0.72 }}>
-                              {shortAddr(task.submitter)}, level {task.complexity}
+                              {shortAddr(task.submitter)}
+                              {task.complexity >= 5 ? " · Swarm" : " · Single role"}
                             </div>
                           </div>
                         </div>

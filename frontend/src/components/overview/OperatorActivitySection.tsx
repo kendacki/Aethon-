@@ -416,7 +416,8 @@ export function OperatorActivitySection({
                 <TaskRow key={task.id} to="/tasks" state={{ scrollToTasks: true }}>
                   <span style={{ fontFamily: "monospace", fontSize: "0.75rem", opacity: 0.8 }}>#{task.id}</span>
                   <span style={{ fontSize: "0.8125rem", opacity: 0.85 }}>
-                    {formatEth(task.reward)}, complexity {task.complexity}
+                    {formatEth(task.reward)}
+                    {task.complexity >= 5 ? " · Swarm" : " · Single role"}
                   </span>
                   <Badge status={statusBadgeVariant(task.status)} style={{ textTransform: "capitalize", letterSpacing: 0 }}>
                     {task.status.toLowerCase()}
