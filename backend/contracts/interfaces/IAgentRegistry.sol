@@ -6,4 +6,5 @@ interface IAgentRegistry {
 
     function isAgentActive(address _agent) external view returns (bool);
     function getAgentStake(address _agent) external view returns (uint256);
+    function creditStake(address _agent) external payable;
 }

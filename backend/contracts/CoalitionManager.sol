@@ -87,8 +87,7 @@ contract CoalitionManager is ReentrancyGuard {
         for (uint256 i; i < n; i++) {
             repEngine.applyBonus(c.members[i], 2);
             uint256 amt = (i == n - 1) ? share + dust : share;
-            (bool ok,) = c.members[i].call{value: amt}("");
-            require(ok, "Payment failed");
+            registry.creditStake{value: amt}(c.members[i]);
         }
         emit RewardDistributed(_coalition, msg.value);
     }

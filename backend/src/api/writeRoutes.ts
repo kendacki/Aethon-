@@ -79,7 +79,15 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
     );
 
     if (hasRelayer && process.env.TASK_MARKET_ADDR) {
-      const { taskId, txHash } = await relayer.submitImmediate({ taskHash, complexity, rewardWei });
+      const outboxId = await repo.enqueueTaskOutbox({ submitter, taskHash, complexity, rewardWei, signature });
+      const { taskId, txHash } = await relayer.submitImmediate({
+        submitter,
+        taskHash,
+        complexity,
+        rewardWei,
+        signature,
+      });
+      await repo.markOutboxSubmitted(outboxId, taskId, txHash);
       res.status(201).json({ data: { taskId, taskHash, txHash, status: "SUBMITTED_ON_CHAIN" } });
       return;
     }

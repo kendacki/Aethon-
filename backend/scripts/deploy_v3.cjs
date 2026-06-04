@@ -90,6 +90,15 @@ async function main() {
   await (await repEngine.grantRole(CALLER_ROLE, marketAddr)).wait();
   await (await cb.grantRole(REPORTER_ROLE, marketAddr)).wait();
 
+  if (multisig.toLowerCase() === deployer.address.toLowerCase()) {
+    await (await registry.setCoalitionManager(coalMgrAddr)).wait();
+    console.log("AgentRegistry coalition manager set:", coalMgrAddr);
+  } else {
+    console.warn(
+      `Call AgentRegistry.setCoalitionManager(${coalMgrAddr}) from slash multisig ${multisig} before distributing rewards.`,
+    );
+  }
+
   const deployment = {
     network: hre.network.name,
     chainId: Number((await ethers.provider.getNetwork()).chainId),

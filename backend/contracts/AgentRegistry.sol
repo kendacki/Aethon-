@@ -26,6 +26,7 @@ contract AgentRegistry is ReentrancyGuard {
     IReputationEngine public repEngine;
     ICircuitBreaker public circuitBreaker;
     address public immutable slashMultisig;
+    address public coalitionManager;
 
     EnumerableSet.AddressSet private _activeAgents;
     mapping(address => Agent) public agents;
@@ -40,6 +41,8 @@ contract AgentRegistry is ReentrancyGuard {
     event AgentSlashed(address indexed wallet, uint256 amount, string reason);
     event DeregisterRequested(address indexed wallet, uint256 unlockAt);
     event DeregisterCompleted(address indexed wallet, uint256 stakeReturned);
+    event StakeCredited(address indexed wallet, uint256 amount);
+    event CoalitionManagerSet(address indexed manager);
 
     modifier onlySlashMultisig() {
         require(msg.sender == slashMultisig, "Only slash multisig");
@@ -55,6 +58,14 @@ contract AgentRegistry is ReentrancyGuard {
         repEngine = IReputationEngine(_repEngine);
         circuitBreaker = ICircuitBreaker(_cb);
         slashMultisig = _slashMultisig;
+    }
+
+    function setCoalitionManager(address _manager) external {
+        require(msg.sender == slashMultisig, "Only slash multisig");
+        require(_manager != address(0), "Zero address");
+        require(coalitionManager == address(0), "Already set");
+        coalitionManager = _manager;
+        emit CoalitionManagerSet(_manager);
     }
 
     function register(AgentType _type, string calldata _metaURI)
@@ -132,6 +143,16 @@ contract AgentRegistry is ReentrancyGuard {
 
     function getAgentStake(address _agent) external view returns (uint256) {
         return agents[_agent].stake;
+    }
+
+    /// @notice Credits native STT to an agent's on-chain stake (used for task reward distribution).
+    function creditStake(address _agent) external payable nonReentrant {
+        require(msg.sender == coalitionManager, "Only coalition manager");
+        require(msg.value > 0, "Zero amount");
+        Agent storage a = agents[_agent];
+        require(a.stake > 0, "Agent not registered");
+        a.stake += msg.value;
+        emit StakeCredited(_agent, msg.value);
     }
 
     function getActiveAgentsByType(AgentType _type, uint256 page, uint256 pageSize)

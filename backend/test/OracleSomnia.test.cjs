@@ -45,6 +45,7 @@ async function deployOracleStack() {
   await repEngine.grantRole(CALLER_ROLE, await coalMgr.getAddress());
   await repEngine.grantRole(CALLER_ROLE, await market.getAddress());
   await cb.grantRole(REPORTER_ROLE, await market.getAddress());
+  await registry.setCoalitionManager(await coalMgr.getAddress());
 
   await registry.connect(agent).register(1, "oracle-meta", { value: ethers.parseEther("0.5") });
 

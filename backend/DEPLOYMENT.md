@@ -60,6 +60,16 @@ VITE_SOMNIA_CHAIN_ID=50312
 
 Do **not** set `VITE_API_KEY` — nothing secret belongs in `VITE_*` vars.
 
+## Task rewards → agent stake & submitter refunds
+
+After redeploying contracts (`npm run deploy:testnet`):
+
+1. Run `node scripts/set-coalition-manager.cjs` from slash multisig if deploy script could not set it automatically.
+2. Update Railway `TASK_MARKET_ADDR`, `AGENT_REGISTRY_ADDR`, `COALITION_MANAGER_ADDR` from the new deployment JSON.
+3. Redeploy the API so the relayer uses `submitTaskFor` (refunds go to the wallet that signed the task).
+
+Swarm task payouts are split equally across coalition members and credited to each agent’s **registry stake** (visible in fleet total staked). Failed or stale tasks refund the signed submitter; the API also forwards legacy relayer refunds when needed.
+
 ## Verify
 
 - API: `GET https://<api-host>/v1/health` — DB connected, indexer lag reasonable

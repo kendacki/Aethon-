@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IAgentRegistry.sol";
 import "./interfaces/ICoalitionManager.sol";
 import "./interfaces/ICircuitBreaker.sol";
@@ -13,6 +14,8 @@ interface IOracleResolver {
 }
 
 contract TaskMarket is ReentrancyGuard {
+    using ECDSA for bytes32;
+
     enum TaskStatus { PENDING, ASSIGNED, COMPLETED, FAILED, EXPIRED }
 
     struct Task {
@@ -94,6 +97,41 @@ contract TaskMarket is ReentrancyGuard {
             platformFee: 0
         });
         emit TaskSubmitted(taskId, msg.sender, msg.value, _complexity);
+    }
+
+    /// @notice Relayer submits on behalf of `_submitter` who signed (submitter, hash, complexity, msg.value).
+    function submitTaskFor(
+        address _submitter,
+        bytes32 _hash,
+        uint256 _complexity,
+        bytes calldata _signature
+    )
+        external
+        payable
+        nonReentrant
+        systemNotPaused
+        returns (uint256 taskId)
+    {
+        require(_submitter != address(0), "Zero submitter");
+        require(msg.value > 0, "Reward required");
+        require(_complexity >= 1 && _complexity <= 5, "Bad complexity");
+        bytes32 digest = keccak256(abi.encodePacked(_submitter, _hash, _complexity, msg.value));
+        address signer = digest.toEthSignedMessageHash().recover(_signature);
+        require(signer == _submitter, "Invalid signature");
+        taskId = ++taskCounter;
+        tasks[taskId] = Task({
+            id: taskId,
+            submitter: _submitter,
+            taskHash: _hash,
+            reward: msg.value,
+            complexity: _complexity,
+            deadline: block.timestamp + TASK_TIMEOUT,
+            status: TaskStatus.PENDING,
+            coalitionAddr: address(0),
+            authorizedReporter: address(0),
+            platformFee: 0
+        });
+        emit TaskSubmitted(taskId, _submitter, msg.value, _complexity);
     }
 
     function submitOracleTask(
@@ -184,5 +222,17 @@ contract TaskMarket is ReentrancyGuard {
         (bool ok,) = t.submitter.call{value: t.reward}("");
         require(ok, "Refund failed");
         emit TaskExpired(_taskId);
+    }
+
+    /// @notice Refund submitter when an assigned task passes its deadline without completion.
+    function refundStaleAssigned(uint256 _taskId) external nonReentrant {
+        Task storage t = tasks[_taskId];
+        require(t.status == TaskStatus.ASSIGNED, "Not assigned");
+        require(block.timestamp > t.deadline, "Deadline not passed");
+        t.status = TaskStatus.FAILED;
+        circuitBreaker.reportFailure();
+        (bool ok,) = t.submitter.call{value: t.reward}("");
+        require(ok, "Refund failed");
+        emit TaskFailed(_taskId, "Assigned task deadline exceeded");
     }
 }

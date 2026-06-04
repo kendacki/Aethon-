@@ -21,6 +21,7 @@ const REGISTRY_ABI = [
   "event AgentRegistered(address indexed wallet, uint8 agentType)",
   "event AgentOffline(address indexed wallet, string reason)",
   "event AgentSlashed(address indexed wallet, uint256 amount, string reason)",
+  "event StakeCredited(address indexed wallet, uint256 amount)",
 ];
 
 const REP_ABI = [
@@ -183,6 +184,15 @@ export class ChainIndexer {
         };
         await repo.upsertAgent(record);
         eventBus.publish("agents", "AGENT_REGISTERED", { ...record });
+        break;
+      }
+      case "StakeCredited": {
+        const wallet = (args[0] as string).toLowerCase();
+        const full = await this.fetchAgent(wallet);
+        if (full) {
+          await repo.upsertAgent(full);
+          eventBus.publish("agents", "STAKE_CREDITED", { address: wallet, amount: args[1].toString() });
+        }
         break;
       }
       case "AgentOffline": {

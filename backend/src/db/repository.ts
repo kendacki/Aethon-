@@ -334,6 +334,16 @@ export const repo = {
     );
   },
 
+  async getTaskPayer(onChainTaskId: number): Promise<string | null> {
+    const r = await query<{ submitter: string }>(
+      `SELECT submitter FROM task_outbox
+       WHERE on_chain_task_id = $1 AND status = 'SUBMITTED'
+       ORDER BY id DESC LIMIT 1`,
+      [onChainTaskId]
+    );
+    return r.rows[0]?.submitter ?? null;
+  },
+
   async saveTaskPayload(taskHash: string, payload: unknown): Promise<void> {
     await query(
       `INSERT INTO task_payloads (task_hash, payload) VALUES ($1, $2)

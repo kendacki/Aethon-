@@ -4,6 +4,7 @@ import { eventBus } from "./eventBus.js";
 
 const TASK_MARKET_ABI = [
   "function submitTask(bytes32 hash, uint256 complexity) payable returns (uint256 taskId)",
+  "function submitTaskFor(address submitter, bytes32 hash, uint256 complexity, bytes signature) payable returns (uint256 taskId)",
   "function taskCounter() view returns (uint256)",
 ];
 
@@ -36,15 +37,33 @@ export class TaskRelayer {
   }
 
   async submitImmediate(params: {
+    submitter: string;
     taskHash: string;
     complexity: number;
     rewardWei: string;
+    signature: string;
   }): Promise<{ taskId: number; txHash: string }> {
     if (!this.market || !this.wallet) throw new Error("Relayer not configured");
-    const tx = await this.market.submitTask(params.taskHash, params.complexity, {
-      value: BigInt(params.rewardWei),
-      gasLimit: BigInt(process.env.MAX_GAS_PER_TX ?? "5000000"),
-    });
+    const gas = { gasLimit: BigInt(process.env.MAX_GAS_PER_TX ?? "5000000") };
+    const value = BigInt(params.rewardWei);
+    let tx;
+    try {
+      tx = await this.market.submitTaskFor(
+        params.submitter,
+        params.taskHash,
+        params.complexity,
+        params.signature,
+        { value, ...gas },
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("submitTaskFor") || msg.includes("missing revert data")) {
+        console.warn("[Relayer] submitTaskFor unavailable — falling back to submitTask (refunds via TaskLifecycle)");
+        tx = await this.market.submitTask(params.taskHash, params.complexity, { value, ...gas });
+      } else {
+        throw err;
+      }
+    }
     const receipt = await tx.wait();
     const taskId = Number(await this.market.taskCounter());
     return { taskId, txHash: receipt!.hash };
@@ -55,9 +74,11 @@ export class TaskRelayer {
     for (const row of await repo.getPendingOutbox(5)) {
       try {
         const { taskId, txHash } = await this.submitImmediate({
+          submitter: row.submitter,
           taskHash: row.taskHash,
           complexity: row.complexity,
           rewardWei: row.rewardWei,
+          signature: row.signature,
         });
         await repo.markOutboxSubmitted(row.id, taskId, txHash);
         eventBus.publish("tasks", "TASK_RELAYED", { outboxId: row.id, taskId, txHash });
