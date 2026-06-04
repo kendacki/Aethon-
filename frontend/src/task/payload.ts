@@ -82,7 +82,7 @@ export function swarmPayload(complexity = 5): TaskPayload {
     action: "swarm_execute",
     params: { pipeline: "full_swarm_cycle" },
     requiredRoles: ALL_AGENT_TYPES.slice(0, complexity),
-    label: `Swarm task (${complexity} agents)`,
+    label: "Swarm task",
   };
 }
 

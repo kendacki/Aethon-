@@ -146,7 +146,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
               }}
             >
               <option value="single">Single role</option>
-              <option value="swarm">Full swarm (5 agents)</option>
+              <option value="swarm">Full swarm</option>
             </GlassSelect>
           </GlassField>
           {!swarmMode && (
