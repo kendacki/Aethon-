@@ -2,7 +2,7 @@ import { ALL_AGENT_TYPES, type AgentType } from "../shared/taskPayload.js";
 import { DEFAULT_FLEET_HEALTH_URLS } from "../config/fleetDefaults.js";
 import { readJsonFile } from "../config/resolveDataPath.js";
 import { repo } from "../db/repository.js";
-import { syncFleetFromChain } from "./fleetSync.js";
+import { computeFleetTotalStakedWei, syncFleetFromChain } from "./fleetSync.js";
 
 export type FleetHealthStatus = "HEALTHY" | "DEGRADED" | "HALTED" | "PARTIAL" | "UNKNOWN";
 
@@ -45,6 +45,8 @@ export interface FleetHealthSummary {
   unknownCount: number;
   totalRoles: number;
   configuredWorkers: number;
+  /** Registry stake + vault reserves for all swarm and individual fleet wallets. */
+  totalStakedWei: string;
   agents: FleetAgentHealth[];
   updatedAt: string;
 }
@@ -169,6 +171,16 @@ export async function getFleetHealth(): Promise<FleetHealthSummary> {
   const haltedCount = agents.filter((a) => a.status === "HALTED").length;
   const unknownCount = agents.filter((a) => a.status === "UNKNOWN" || a.status === "STARTING").length;
 
+  let totalStakedWei = "0";
+  try {
+    totalStakedWei = await computeFleetTotalStakedWei();
+  } catch (err) {
+    console.warn("[fleetHealth] total stake failed:", err instanceof Error ? err.message : err);
+    totalStakedWei = dbAgents.data
+      .reduce((sum, a) => sum + BigInt(a.stake || "0"), 0n)
+      .toString();
+  }
+
   return {
     status: aggregateFleetStatus(agents),
     healthyCount,
@@ -177,6 +189,7 @@ export async function getFleetHealth(): Promise<FleetHealthSummary> {
     unknownCount,
     totalRoles: ROLE_ORDER.length,
     configuredWorkers: Object.keys(urlMap).length,
+    totalStakedWei,
     agents,
     updatedAt: new Date().toISOString(),
   };

@@ -98,6 +98,7 @@ export interface FleetHealth {
   unknownCount: number;
   totalRoles: number;
   configuredWorkers: number;
+  totalStakedWei: string;
   agents: AgentFleetHealth[];
   updatedAt: string;
 }

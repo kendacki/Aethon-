@@ -208,16 +208,6 @@ function workerBadgeStatus(
   return undefined;
 }
 
-function sumStakeWei(agents: Agent[]): bigint {
-  return agents.reduce((sum, a) => {
-    try {
-      return sum + BigInt(a.stake || "0");
-    } catch {
-      return sum;
-    }
-  }, 0n);
-}
-
 export function OperatorFleetView() {
   const [typeFilter, setTypeFilter] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
@@ -247,7 +237,11 @@ export function OperatorFleetView() {
     return agents.filter((a) => isAgentOperational(a, healthMap.get(a.agentType))).length;
   }, [data?.data, healthMap]);
   const totalAgents = data?.pagination.total ?? data?.data.length ?? 0;
-  const totalStake = useMemo(() => formatEth(String(sumStakeWei(data?.data ?? []))), [data?.data]);
+  const totalStake = useMemo(() => {
+    if (fleetHealth?.totalStakedWei) return formatEth(fleetHealth.totalStakedWei);
+    if (stats?.tvl) return formatEth(stats.tvl);
+    return "0 STT";
+  }, [fleetHealth?.totalStakedWei, stats?.tvl]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -288,7 +282,7 @@ export function OperatorFleetView() {
         </SummaryCell>
         <SummaryCell>
           <SummaryValue>{totalStake}</SummaryValue>
-          <SummaryLabel>Total stake</SummaryLabel>
+          <SummaryLabel>Total STT staked</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
           <SummaryValue>{stats?.completedTasks?.toLocaleString() ?? "N/A"}</SummaryValue>
