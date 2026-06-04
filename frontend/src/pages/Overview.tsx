@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
-import { Badge, Button, Grid, Section } from "../components/ui";
+import { Button, Grid, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { useAuthSession } from "../auth/useAuthSession";
@@ -11,8 +11,6 @@ import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG
 import { Notification } from "../components/Layout";
 import { HomePageHero } from "../components/HomePageHero";
 import {
-  healthBadge,
-  healthSequence,
   heroButton,
   heroItem,
   heroSequence,
@@ -28,7 +26,6 @@ import {
 } from "../motion/overview";
 import { useState, useEffect } from "react";
 import { styled } from "../stitches.config";
-import { env } from "../config/env";
 
 const Home = styled("main", {
   paddingTop: "5rem",
@@ -185,16 +182,6 @@ const CardBody = styled("p", {
 
 const ProtocolCardMotion = motion(GlassCard);
 
-const StatusRow = styled(motion.div, {
-  marginTop: "$8",
-  display: "flex",
-  gap: "$4",
-  flexWrap: "wrap",
-  alignItems: "center",
-});
-
-const BadgeMotion = motion(Badge);
-
 const PROTOCOL_FEATURES = [
   {
     title: "Fast task execution",
@@ -216,7 +203,7 @@ export default function OverviewPage() {
   const signedIn = isConnected && Boolean(address) && isSignedIn;
   const walletAddress = address?.toLowerCase() ?? null;
 
-  const { data: health, error: healthError, reload: reloadHealth } = useFetch(() => {
+  const { error: healthError, reload: reloadHealth } = useFetch(() => {
     if (!signedIn) return Promise.resolve(null);
     return api.health();
   }, [signedIn]);
@@ -264,19 +251,6 @@ export default function OverviewPage() {
     }
     return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
   });
-
-  const healthBadges = signedIn && health
-    ? [
-        { key: "sync", status: health.synced ? ("online" as const) : ("offline" as const), label: health.synced ? "Indexer synced" : "Syncing" },
-        { key: "block", label: `Block ${health.blockNumber.toLocaleString()}` },
-        {
-          key: "circuit",
-          status: health.circuitBreakerPaused ? ("offline" as const) : ("online" as const),
-          label: `Circuit ${health.circuitBreakerPaused ? "HALTED" : "OK"}`,
-        },
-        { key: "chain", label: `Chain ${health.chainId ?? env.somniaChainId}` },
-      ]
-    : [];
 
   return (
     <Home>
@@ -343,15 +317,6 @@ export default function OverviewPage() {
                 </ProtocolCardMotion>
               ))}
             </Grid>
-            {signedIn && health && (
-              <StatusRow variants={healthSequence} initial="hidden" animate="show">
-                {healthBadges.map((badge) => (
-                  <BadgeMotion key={badge.key} variants={healthBadge} status={badge.status}>
-                    {badge.label}
-                  </BadgeMotion>
-                ))}
-              </StatusRow>
-            )}
           </GlassContent>
         </ProtocolGlassMotion>
       </ProtocolBand>
