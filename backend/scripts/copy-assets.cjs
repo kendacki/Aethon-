@@ -20,3 +20,13 @@ copyFile(
   path.join(root, "dist", "railway-start.cjs"),
   "railway-start.cjs to dist/",
 );
+
+const envDir = path.join(root, "env");
+const distEnvDir = path.join(root, "dist", "env");
+if (fs.existsSync(envDir)) {
+  fs.mkdirSync(distEnvDir, { recursive: true });
+  for (const name of fs.readdirSync(envDir)) {
+    if (!name.endsWith(".json")) continue;
+    copyFile(path.join(envDir, name), path.join(distEnvDir, name), `env/${name} to dist/env/`);
+  }
+}

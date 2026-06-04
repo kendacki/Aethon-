@@ -1,13 +1,11 @@
-import fs from "fs";
-import path from "path";
 import { ethers } from "ethers";
-import { fileURLToPath } from "url";
 import type { AgentType } from "../shared/taskPayload.js";
 import { ALL_AGENT_TYPES } from "../shared/taskPayload.js";
+import { DEFAULT_FLEET_AGENTS } from "../config/fleetDefaults.js";
+import { readJsonFile } from "../config/resolveDataPath.js";
 import { repo } from "../db/repository.js";
 import type { AgentRecord } from "./types.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AGENT_TYPES = ["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
 
 const REGISTRY_ABI = [
@@ -18,22 +16,31 @@ const REGISTRY_ABI = [
 const REP_ABI = ["function getScore(address) view returns (uint256)"];
 
 export function loadFleetAddressMap(): Partial<Record<AgentType, string>> {
-  const filePath =
-    process.env.FLEET_ADDRESSES_FILE ??
-    path.join(__dirname, "..", "..", "env", "fleet.addresses.json");
-  try {
-    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as {
-      agents?: Record<string, string>;
-    };
+  const fromEnv = process.env.FLEET_AGENTS_JSON?.trim();
+  if (fromEnv) {
+    try {
+      const parsed = JSON.parse(fromEnv) as Record<string, string>;
+      const map: Partial<Record<AgentType, string>> = {};
+      for (const role of ALL_AGENT_TYPES) {
+        if (parsed[role]) map[role] = parsed[role];
+      }
+      if (Object.keys(map).length > 0) return map;
+    } catch {
+      console.warn("[fleetSync] FLEET_AGENTS_JSON is not valid JSON");
+    }
+  }
+
+  const fileData = readJsonFile<{ agents?: Record<string, string> }>("fleet.addresses.json");
+  if (fileData?.agents) {
     const map: Partial<Record<AgentType, string>> = {};
     for (const role of ALL_AGENT_TYPES) {
-      const addr = parsed.agents?.[role];
+      const addr = fileData.agents[role];
       if (addr) map[role] = addr;
     }
-    return map;
-  } catch {
-    return {};
+    if (Object.keys(map).length > 0) return map;
   }
+
+  return { ...DEFAULT_FLEET_AGENTS };
 }
 
 async function fetchAgentFromChain(
@@ -73,10 +80,21 @@ export async function syncFleetFromChain(): Promise<AgentRecord[]> {
   for (const role of ALL_AGENT_TYPES) {
     const address = fleet[role];
     if (!address) continue;
-    const record = await fetchAgentFromChain(provider, address);
-    if (!record) continue;
-    await repo.upsertAgent(record);
-    updated.push(record);
+    try {
+      const record = await fetchAgentFromChain(provider, address);
+      if (!record) continue;
+      await repo.upsertAgent(record);
+      updated.push(record);
+    } catch (err) {
+      console.warn(
+        `[fleetSync] ${role} sync failed:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  if (updated.length === 0) {
+    console.warn("[fleetSync] No agents synced — check AGENT_REGISTRY_ADDR and fleet addresses");
   }
 
   return updated;

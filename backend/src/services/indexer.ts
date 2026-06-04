@@ -122,6 +122,12 @@ export class ChainIndexer {
     }
   }
 
+  /** Refresh tasks and fleet rows from chain (no log backfill). */
+  async syncLiveState(): Promise<void> {
+    await this.syncTaskState();
+    await syncFleetFromChain();
+  }
+
   async getSyncStatus(): Promise<{ lastIndexedBlock: number; headBlock: number; synced: boolean }> {
     try {
       const [lastIndexedBlock, headBlock] = await Promise.all([
@@ -280,6 +286,12 @@ export class ChainIndexer {
     try {
       const market = new ethers.Contract(CONTRACTS.taskMarket, TASK_ABI, this.provider);
       const t = await market.tasks(id);
+      let status = TASK_STATUS[Number(t.status)] ?? "PENDING";
+      if (status === "PENDING") {
+        const now = Math.floor(Date.now() / 1000);
+        if (now > Number(t.deadline)) status = "EXPIRED";
+      }
+
       const task: TaskRecord = {
         id: Number(t.id),
         submitter: t.submitter,
@@ -287,7 +299,7 @@ export class ChainIndexer {
         reward: t.reward.toString(),
         complexity: Number(t.complexity),
         deadline: new Date(Number(t.deadline) * 1000).toISOString(),
-        status: TASK_STATUS[Number(t.status)] ?? "PENDING",
+        status,
         coalitionAddr: t.coalitionAddr !== ethers.ZeroAddress ? t.coalitionAddr : undefined,
         authorizedReporter: t.authorizedReporter !== ethers.ZeroAddress ? t.authorizedReporter : undefined,
         platformFee: t.platformFee?.toString(),

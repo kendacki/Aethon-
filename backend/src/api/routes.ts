@@ -240,6 +240,9 @@ tasksRouter.post("/:id/skill-result", async (req, res, next) => {
 
 tasksRouter.get("/", async (req, res, next) => {
   try {
+    await indexer.syncLiveState().catch((err) => {
+      console.warn("[tasks] live sync failed:", err instanceof Error ? err.message : err);
+    });
     const { page, pageSize } = parsePagination(req);
     const result = await repo.listTasks({
       page,

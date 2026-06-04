@@ -113,6 +113,12 @@ async function bootstrap(): Promise<void> {
     });
   });
   if (process.env.AGENT_REGISTRY_ADDR) {
+    try {
+      await indexer.syncLiveState();
+      console.log("[AETHON API] Live chain sync complete (fleet + tasks)");
+    } catch (err) {
+      console.warn("[AETHON API] Live chain sync on boot failed:", err instanceof Error ? err.message : err);
+    }
     void indexer.start();
     relayer.start();
   } else {

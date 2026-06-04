@@ -173,9 +173,14 @@ export class AgentCore {
     if (this.taskIntakePaused || !this.health.canAcceptTasks()) return;
     try {
       const counter = Number(await this.taskMarket.taskCounter());
+      const now = Math.floor(Date.now() / 1000);
       for (let id = 1; id <= counter; id++) {
         const task = await this.taskMarket.tasks(id);
         if (Number(task.status) !== 0) continue;
+        if (now > Number(task.deadline)) {
+          console.warn(`[AgentCore] Task #${id} past deadline — submit a new task`);
+          continue;
+        }
         const taskHash = task.taskHash as string;
         const complexity = task.complexity as bigint;
         await this.taskExecutor.handleTaskSubmitted(BigInt(id), taskHash, complexity);

@@ -183,12 +183,18 @@ function healthByRoleMap(fleet: FleetHealth | null): Map<string, AgentFleetHealt
   return map;
 }
 
+function workerVaultOnlyDegraded(worker: AgentFleetHealth | undefined): boolean {
+  const checks = worker?.snapshot?.checks ?? [];
+  if (!checks.length) return false;
+  const failed = checks.filter((c) => !c.ok);
+  return failed.length > 0 && failed.every((c) => c.name === "vault_reserve");
+}
+
 function isAgentOperational(agent: Agent, worker: AgentFleetHealth | undefined): boolean {
   if (agent.online) return true;
   if (worker?.online) return true;
-  if (worker?.status === "HEALTHY" || worker?.status === "DEGRADED" || worker?.status === "STARTING") {
-    return true;
-  }
+  if (worker?.status === "HEALTHY" || worker?.status === "STARTING") return true;
+  if (worker?.status === "DEGRADED" && workerVaultOnlyDegraded(worker)) return true;
   return false;
 }
 

@@ -1,11 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { ALL_AGENT_TYPES, type AgentType } from "../shared/taskPayload.js";
+import { DEFAULT_FLEET_HEALTH_URLS } from "../config/fleetDefaults.js";
+import { readJsonFile } from "../config/resolveDataPath.js";
 import { repo } from "../db/repository.js";
 import { syncFleetFromChain } from "./fleetSync.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export type FleetHealthStatus = "HEALTHY" | "DEGRADED" | "HALTED" | "PARTIAL" | "UNKNOWN";
 
@@ -69,23 +66,18 @@ function loadHealthUrlMap(): Partial<Record<AgentType, string>> {
     }
   }
 
-  const filePath =
-    process.env.FLEET_HEALTH_URLS_FILE ??
-    path.join(__dirname, "..", "..", "env", "fleet.health-urls.json");
-  try {
-    if (fs.existsSync(filePath)) {
-      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as Record<string, string>;
-      const map: Partial<Record<AgentType, string>> = {};
-      for (const role of ROLE_ORDER) {
-        if (parsed[role]) map[role] = parsed[role].trim();
-      }
-      return map;
+  const parsed =
+    readJsonFile<Record<string, string>>("fleet.health-urls.production.json") ??
+    readJsonFile<Record<string, string>>("fleet.health-urls.json");
+  if (parsed) {
+    const map: Partial<Record<AgentType, string>> = {};
+    for (const role of ROLE_ORDER) {
+      if (parsed[role]) map[role] = parsed[role].trim();
     }
-  } catch {
-    /* optional file */
+    if (Object.keys(map).length > 0) return map;
   }
 
-  return {};
+  return { ...DEFAULT_FLEET_HEALTH_URLS };
 }
 
 async function fetchWorkerHealth(url: string): Promise<WorkerHealthSnapshot> {
@@ -107,16 +99,20 @@ function normalizeStatus(snapshot: WorkerHealthSnapshot | null, reachable: boole
   return "UNKNOWN";
 }
 
+/** Workers with only vault_reserve warnings still count as operational for the dashboard. */
+function isWorkerOperational(status: FleetAgentHealth["status"], snapshot: WorkerHealthSnapshot | null): boolean {
+  if (status === "HEALTHY" || status === "STARTING") return true;
+  if (status !== "DEGRADED" || !snapshot?.checks?.length) return false;
+  const failed = snapshot.checks.filter((c) => !c.ok);
+  return failed.length > 0 && failed.every((c) => c.name === "vault_reserve");
+}
+
 function aggregateFleetStatus(agents: FleetAgentHealth[]): FleetHealthStatus {
   if (agents.every((a) => a.status === "HEALTHY")) return "HEALTHY";
   if (agents.some((a) => a.status === "HALTED")) return "HALTED";
   if (agents.some((a) => a.status === "DEGRADED")) return "DEGRADED";
   if (agents.some((a) => a.status === "HEALTHY")) return "PARTIAL";
   return "UNKNOWN";
-}
-
-function isWorkerOperational(status: FleetAgentHealth["status"]): boolean {
-  return status === "HEALTHY" || status === "DEGRADED" || status === "STARTING";
 }
 
 export async function getFleetHealth(): Promise<FleetHealthSummary> {
@@ -152,13 +148,14 @@ export async function getFleetHealth(): Promise<FleetHealthSummary> {
 
       const status = normalizeStatus(snapshot, reachable);
       const chainOnline = dbAgent?.online ?? false;
-      const workerUp = isWorkerOperational(status);
+      const workerUp = isWorkerOperational(status, snapshot);
+      const displayStatus = workerUp && status === "DEGRADED" ? "HEALTHY" : status;
 
       return {
         role,
         address: dbAgent?.address ?? snapshot?.address ?? null,
         online: chainOnline || workerUp,
-        status,
+        status: displayStatus,
         reachable,
         healthUrl,
         snapshot,

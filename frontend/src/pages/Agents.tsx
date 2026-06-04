@@ -17,6 +17,7 @@ function GuestFleetGrid() {
   const [page, setPage] = useState(0);
   const [type, setType] = useState("");
   const { data, loading, error, reload } = useFetch(() => api.agents(page, 20, type || undefined), [page, type]);
+  const { data: fleetHealth } = useFetch(() => api.fleetHealth(), []);
 
   return (
     <>
@@ -33,7 +34,14 @@ function GuestFleetGrid() {
       {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading fleet…</p>}
 
       <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          {data?.data.map((agent) => (
+          {(data?.data.length ? data.data : (fleetHealth?.agents ?? []).map((a) => ({
+            address: a.address ?? "",
+            agentType: a.role,
+            stake: "0",
+            reputation: 100,
+            online: a.online,
+            lastHeartbeat: new Date().toISOString(),
+          }))).filter((a) => a.address).map((agent) => (
             <StaggerItem key={agent.address} style={{ height: "100%" }}>
               <Link to={`/agents/${agent.address}`} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
                 <Card style={{ cursor: "pointer", height: "100%" }}>
