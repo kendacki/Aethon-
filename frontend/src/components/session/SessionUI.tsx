@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useSignedIn, type SessionPhase } from "../../auth/useSignedIn";
-import { spring } from "../../stitches.config";
 import { styled } from "../../stitches.config";
-import { Button, Card, Grid, Muted } from "../ui";
-import { GlassCard, GlassContent, GlassPanel } from "../GlassPanel";
-import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask } from "../icons";
+import { Button } from "../ui";
+import { GlassContent, GlassPanel } from "../GlassPanel";
 
 /* ── Signed-in page shell ── */
 
@@ -86,8 +83,6 @@ function AuthFallbackCard({
   );
 }
 
-/* ── Operator dashboard blocks ── */
-
 const BlockTitle = styled("h2", {
   fontSize: "$xl",
   fontWeight: "$extrabold",
@@ -102,120 +97,6 @@ const BlockSub = styled("p", {
   marginBottom: "$6",
   maxWidth: "36rem",
 });
-
-const ActionCard = styled(GlassCard, {
-  padding: "$6",
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  gap: "$3",
-  cursor: "pointer",
-  transition: "border-color 150ms ease, transform 150ms ease",
-  "&:hover": {
-    borderColor: "rgba(255, 255, 255, 0.22)",
-    transform: "translateY(-2px)",
-  },
-});
-
-const StepRow = styled("div", {
-  display: "flex",
-  gap: "$4",
-  alignItems: "flex-start",
-  padding: "$4 0",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
-  "&:last-child": { borderBottom: "none" },
-});
-
-const StepNum = styled("div", {
-  width: 28,
-  height: 28,
-  borderRadius: "50%",
-  border: "1px solid rgba(13, 188, 130, 0.5)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "0.75rem",
-  fontWeight: 800,
-  flexShrink: 0,
-  color: "#0dbc82",
-});
-
-const SWARM_STEPS = [
-  {
-    title: "Submit a task",
-    body: "Choose a single agent role or full swarm mode. Sign the payload with your wallet.",
-  },
-  {
-    title: "Agents form a coalition",
-    body: "When complexity requires it, specialists stake and coordinate on chain.",
-  },
-  {
-    title: "Execution and settlement",
-    body: "Workers run skills, report results, and rewards flow through the task market.",
-  },
-] as const;
-
-const QUICK_LINKS = [
-  { to: "/tasks", label: "Task market", desc: "Submit and track jobs", icon: IconTask },
-  { to: "/agents", label: "Agent fleet", desc: "Five on chain roles", icon: IconAgent },
-  { to: "/governance", label: "Safety", desc: "Circuit breaker status", icon: IconShield },
-  { to: "/leaderboard", label: "Leaderboard", desc: "Reputation rankings", icon: IconCoalition },
-] as const;
-
-export function OperatorDashboard() {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={spring}
-      style={{ marginTop: "2.5rem" }}
-    >
-      <BlockTitle>Operator console</BlockTitle>
-      <BlockSub>
-        You are signed in. Submit tasks to the swarm, monitor agents, and review protocol safety from one place.
-      </BlockSub>
-
-      <Grid cols={4} style={{ marginBottom: "2.5rem" }}>
-        {QUICK_LINKS.map((item) => (
-          <Link key={item.to} to={item.to} style={{ textDecoration: "none", color: "inherit" }}>
-            <ActionCard>
-              <item.icon size={28} style={{ opacity: 0.9 }} />
-              <div style={{ fontWeight: 700 }}>{item.label}</div>
-              <Muted>{item.desc}</Muted>
-              <span style={{ marginTop: "auto", fontSize: "0.75rem", opacity: 0.65, display: "flex", alignItems: "center", gap: 4 }}>
-                Open <IconArrowRight size={14} />
-              </span>
-            </ActionCard>
-          </Link>
-        ))}
-      </Grid>
-
-      <Grid cols={2}>
-        <Card>
-          <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>How the swarm runs</h3>
-          {SWARM_STEPS.map((step, i) => (
-            <StepRow key={step.title}>
-              <StepNum>{i + 1}</StepNum>
-              <div>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>{step.title}</div>
-                <p style={{ fontSize: "0.8125rem", opacity: 0.72, margin: 0, lineHeight: 1.55 }}>{step.body}</p>
-              </div>
-            </StepRow>
-          ))}
-        </Card>
-        <GlassCard style={{ padding: "$6" }}>
-          <h3 style={{ fontWeight: 700, marginBottom: "0.75rem" }}>Ready to run</h3>
-          <p style={{ fontSize: "$sm", opacity: 0.78, lineHeight: 1.65, marginBottom: "$5" }}>
-            Use full swarm mode on the task market when all five agent types should collaborate on one job.
-          </p>
-          <Button variant="primary" size="sm" as={Link} to="/tasks">
-            Go to task market <IconArrowRight size={16} />
-          </Button>
-        </GlassCard>
-      </Grid>
-    </motion.section>
-  );
-}
 
 export function SectionHeader({
   title,

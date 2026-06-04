@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
-import { Badge, Button, Grid, Section } from "../components/ui";
+import { Badge, Button, Grid, Muted, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
-import { OperatorDashboard, SectionHeader } from "../components/session/SessionUI";
+import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
+import { SectionHeader } from "../components/session/SessionUI";
 import { useToast } from "../components/ToastProvider";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import {
@@ -29,13 +30,7 @@ import { spring, styled } from "../stitches.config";
 
 const Home = styled("main", {
   width: "100%",
-  variants: {
-    mode: {
-      guest: { paddingTop: "5rem" },
-      operator: { paddingTop: 0 },
-    },
-  },
-  defaultVariants: { mode: "guest" },
+  paddingTop: "5rem",
 });
 
 const HeroContent = styled("div", {
@@ -63,13 +58,29 @@ const HeroSub = styled("p", {
 
 const StatsSection = styled(Section, {
   paddingTop: "$8",
-  paddingBottom: "$8",
+  paddingBottom: "$6",
 });
 
-const OperatorSection = styled(Section, {
-  paddingTop: "$6",
-  paddingBottom: "$10",
+const PageBand = styled("section", {
+  width: "100%",
+  padding: "$6 $6 $8",
+  position: "relative",
+  zIndex: 10,
 });
+
+const BandGlass = styled(GlassPanel, {
+  maxWidth: "1200px",
+  margin: "0 auto",
+  padding: "$10 $6",
+  width: "100%",
+  boxSizing: "border-box",
+  defaultVariants: { radius: "full" },
+  "@md": {
+    padding: "$12 $8",
+  },
+});
+
+const BandGlassMotion = motion(BandGlass);
 
 const StatCell = styled(motion.div, {
   height: "100%",
@@ -121,24 +132,6 @@ const ActionRow = styled(motion.div, {
   alignItems: "center",
 });
 
-const ProtocolBand = styled("section", {
-  width: "100%",
-  padding: "$8 $6 $10",
-  position: "relative",
-  zIndex: 10,
-});
-
-const ProtocolGlass = styled(GlassPanel, {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "$12 $8",
-  width: "100%",
-  boxSizing: "border-box",
-  defaultVariants: { radius: "full" },
-});
-
-const ProtocolGlassMotion = motion(ProtocolGlass);
-
 const SectionTitle = styled("h2", {
   fontSize: "$2xl",
   fontWeight: "$extrabold",
@@ -159,23 +152,69 @@ const CardBody = styled("p", {
 
 const ProtocolCardMotion = motion(GlassCard);
 
-const OperatorHeader = styled(motion.header, {
-  padding: "$8 $6 $4",
-  maxWidth: "1200px",
-  margin: "0 auto",
-  width: "100%",
-  boxSizing: "border-box",
+const QuickLinkCard = styled(GlassCard, {
+  padding: "$5 $5",
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "$3",
+  cursor: "pointer",
+  transition: "border-color 150ms ease, transform 150ms ease",
+  "&:hover": {
+    borderColor: "rgba(255, 255, 255, 0.22)",
+    transform: "translateY(-2px)",
+  },
 });
 
-const OperatorTitle = styled("h1", {
-  fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-  fontWeight: "$extrabold",
-  letterSpacing: "-0.03em",
+const WorkspaceGrid = styled("div", {
+  display: "grid",
+  gap: "$6",
+  marginTop: "$8",
+  gridTemplateColumns: "1fr",
+  "@lg": {
+    gridTemplateColumns: "1.15fr 0.85fr",
+    alignItems: "start",
+  },
+});
+
+const StepRow = styled("div", {
+  display: "flex",
+  gap: "$4",
+  alignItems: "flex-start",
+  padding: "$4 0",
+  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+  "&:last-child": { borderBottom: "none" },
+});
+
+const StepNum = styled("div", {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  border: "1px solid rgba(13, 188, 130, 0.5)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "0.75rem",
+  fontWeight: 800,
+  flexShrink: 0,
+  color: "#0dbc82",
+});
+
+const GuideCard = styled(GlassCard, {
+  padding: "$6",
+  height: "100%",
 });
 
 const ModeWrap = styled(motion.div, {
   width: "100%",
 });
+
+const pageTransition = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: spring,
+};
 
 const DEMO_OVERVIEW_STATS = {
   tasks: 10,
@@ -192,8 +231,8 @@ const OVERVIEW_STAT_DEFS = [
   },
   {
     key: "tasks",
-    label: "Tasks in Market",
-    description: "Open jobs agents bid on and execute on chain",
+    label: "Your Tasks",
+    description: "Jobs you submitted to the on chain task market",
     icon: IconTask,
   },
   {
@@ -205,8 +244,8 @@ const OVERVIEW_STAT_DEFS = [
   },
   {
     key: "stake",
-    label: "Fleet Stake",
-    description: "Total stake backing reputation and coalition bonds",
+    label: "Rewards Earned",
+    description: "Total settlement credited to your wallet",
     icon: IconShield,
   },
 ] as const;
@@ -226,12 +265,27 @@ const PROTOCOL_FEATURES = [
   },
 ] as const;
 
-const pageTransition = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: spring,
-};
+const OPERATOR_QUICK_LINKS = [
+  { to: "/tasks", label: "Task market", desc: "Submit and track jobs", icon: IconTask },
+  { to: "/agents", label: "Agent fleet", desc: "Five on chain roles", icon: IconAgent },
+  { to: "/governance", label: "Safety", desc: "Circuit breaker status", icon: IconShield },
+  { to: "/leaderboard", label: "Leaderboard", desc: "Reputation rankings", icon: IconCoalition },
+] as const;
+
+const SWARM_STEPS = [
+  {
+    title: "Submit a task",
+    body: "Choose a single agent role or full swarm mode. Sign the payload with your wallet.",
+  },
+  {
+    title: "Agents form a coalition",
+    body: "When complexity requires it, specialists stake and coordinate on chain.",
+  },
+  {
+    title: "Execution and settlement",
+    body: "Workers run skills, report results, and rewards flow through the task market.",
+  },
+] as const;
 
 function GuestOverview() {
   const statCards = OVERVIEW_STAT_DEFS.map((def) => ({
@@ -294,8 +348,8 @@ function GuestOverview() {
         </Grid>
       </StatsSection>
 
-      <ProtocolBand>
-        <ProtocolGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
+      <PageBand>
+        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
               <SectionTitle>How it works</SectionTitle>
@@ -309,8 +363,8 @@ function GuestOverview() {
               ))}
             </Grid>
           </GlassContent>
-        </ProtocolGlassMotion>
-      </ProtocolBand>
+        </BandGlassMotion>
+      </PageBand>
     </ModeWrap>
   );
 }
@@ -331,38 +385,42 @@ type OperatorOverviewProps = {
 
 function OperatorOverview({ address, statCards, healthError, walletStatsError, onRetry }: OperatorOverviewProps) {
   return (
-    <ModeWrap key="operator-dashboard" {...pageTransition}>
-      <OperatorHeader>
-        <Badge status="online" style={{ marginBottom: "0.75rem" }}>
-          Operator session
-        </Badge>
-        <OperatorTitle>Welcome back, {shortAddr(address)}</OperatorTitle>
-        <p style={{ marginTop: "0.75rem", opacity: 0.78, maxWidth: "36rem", lineHeight: 1.65, fontSize: "0.9375rem" }}>
-          Run the swarm from your dashboard. Submit tasks, monitor agents, and track wallet rewards.
-        </p>
-        <ActionRow style={{ marginTop: "1.25rem" }}>
-          <Button variant="primary" size="sm" as={Link} to="/tasks">
-            Submit task <IconArrowRight size={16} />
-          </Button>
-          <Button variant="outline" size="sm" as={Link} to="/agents">
-            View fleet
-          </Button>
-          <Button variant="ghost" size="sm" as={Link} to="/governance">
-            Safety
-          </Button>
-        </ActionRow>
-      </OperatorHeader>
+    <ModeWrap key="operator-overview" {...pageTransition}>
+      <HomePageHero>
+        <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
+          <motion.div variants={heroItem}>
+            <Badge status="online" style={{ marginBottom: "0.75rem" }}>
+              Operator session
+            </Badge>
+            <HeroHeading>Welcome back, {shortAddr(address)}</HeroHeading>
+          </motion.div>
+          <motion.div variants={heroItem}>
+            <HeroSub>
+              Your dashboard is live. Submit tasks, monitor the five agent roles, and track rewards tied to your wallet.
+            </HeroSub>
+          </motion.div>
+          <ActionRow variants={heroButton}>
+            <Button variant="primary" size="sm" as={Link} to="/tasks">
+              Submit task <IconArrowRight size={16} />
+            </Button>
+            <Button variant="outline" size="sm" as={Link} to="/agents">
+              View fleet
+            </Button>
+            <Button variant="ghost" size="sm" as={Link} to="/governance">
+              Safety
+            </Button>
+          </ActionRow>
+        </HeroContent>
+      </HomePageHero>
 
-      <OperatorSection>
+      <StatsSection>
         <SectionHeader
           title="Your activity"
           subtitle="Live stats from your wallet on the task market."
           badge={<Badge status="online">Live</Badge>}
         />
-
         <ErrorBanner message={healthError ?? walletStatsError} onRetry={onRetry} />
-
-        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" animate="show">
+        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
           {statCards.map((s) => (
             <StatCell key={s.key} variants={statCard}>
               <StatGlassCard>
@@ -376,9 +434,88 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
             </StatCell>
           ))}
         </Grid>
+      </StatsSection>
 
-        <OperatorDashboard />
-      </OperatorSection>
+      <PageBand>
+        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
+            <motion.div variants={protocolItem}>
+              <SectionHeader
+                title="Operator console"
+                subtitle="Shortcuts to the pages you use most. Submit work below without leaving home."
+              />
+            </motion.div>
+
+            <Grid cols={4} style={{ marginTop: "0.5rem" }} as={motion.div} variants={protocolCards}>
+              {OPERATOR_QUICK_LINKS.map((item) => (
+                <motion.div key={item.to} variants={protocolCard}>
+                  <Link to={item.to} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
+                    <QuickLinkCard>
+                      <item.icon size={28} style={{ opacity: 0.9 }} />
+                      <div style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{item.label}</div>
+                      <Muted>{item.desc}</Muted>
+                      <span
+                        style={{
+                          marginTop: "auto",
+                          fontSize: "0.75rem",
+                          opacity: 0.65,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        Open <IconArrowRight size={14} />
+                      </span>
+                    </QuickLinkCard>
+                  </Link>
+                </motion.div>
+              ))}
+            </Grid>
+
+            <WorkspaceGrid as={motion.div} variants={protocolItem} initial="hidden" whileInView="show" viewport={viewportOnce}>
+              <TaskSubmitPanel />
+              <GuideCard>
+                <CardTitle>How the swarm runs</CardTitle>
+                {SWARM_STEPS.map((step, i) => (
+                  <StepRow key={step.title}>
+                    <StepNum>{i + 1}</StepNum>
+                    <div>
+                      <div style={{ fontWeight: 600, marginBottom: 4, fontSize: "0.875rem" }}>{step.title}</div>
+                      <p style={{ fontSize: "0.8125rem", opacity: 0.72, margin: 0, lineHeight: 1.55 }}>{step.body}</p>
+                    </div>
+                  </StepRow>
+                ))}
+                <div style={{ marginTop: "$6" }}>
+                  <Button variant="outline" size="sm" as={Link} to="/tasks">
+                    Full task market <IconArrowRight size={16} />
+                  </Button>
+                </div>
+              </GuideCard>
+            </WorkspaceGrid>
+          </GlassContent>
+        </BandGlassMotion>
+      </PageBand>
+
+      <PageBand style={{ paddingBottom: "2.5rem" }}>
+        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
+            <motion.div variants={protocolItem}>
+              <SectionTitle>How it works</SectionTitle>
+              <p style={{ marginTop: "$3", fontSize: "$sm", opacity: 0.72, maxWidth: "36rem", lineHeight: 1.65 }}>
+                The same protocol flow powers every operator session — from single role jobs to full swarm dispatch.
+              </p>
+            </motion.div>
+            <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
+              {PROTOCOL_FEATURES.map((feature) => (
+                <ProtocolCardMotion key={feature.title} variants={protocolCard}>
+                  <CardTitle>{feature.title}</CardTitle>
+                  <CardBody>{feature.body}</CardBody>
+                </ProtocolCardMotion>
+              ))}
+            </Grid>
+          </GlassContent>
+        </BandGlassMotion>
+      </PageBand>
     </ModeWrap>
   );
 }
@@ -441,7 +578,7 @@ export default function OverviewPage() {
   };
 
   return (
-    <Home mode={signedIn ? "operator" : "guest"}>
+    <Home>
       <AnimatePresence mode="wait">
         {signedIn && address ? (
           <OperatorOverview
