@@ -48,6 +48,8 @@ const Actions = styled("div", {
   marginTop: "$2",
 });
 
+const TASK_REWARD_STT = { single: "0.1", swarm: "0.5" } as const;
+
 type TaskSubmitPanelProps = {
   onSubmitted?: () => void;
 };
@@ -59,9 +61,9 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState<TaskSubmitSuccess | null>(null);
   const [role, setRole] = useState<AgentType>("ORACLE");
-  const [rewardEth, setRewardEth] = useState("0.01");
   const [swarmMode, setSwarmMode] = useState(false);
   const complexity = swarmMode ? 5 : 1;
+  const rewardEth = swarmMode ? TASK_REWARD_STT.swarm : TASK_REWARD_STT.single;
 
   const canSubmit = signedIn && Boolean(address) && Boolean(signer) && isCorrectChain;
 
@@ -159,7 +161,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
           )}
           <GlassField>
             Reward (STT)
-            <GlassInput type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
+            <GlassInput type="text" value={rewardEth} disabled readOnly aria-readonly />
           </GlassField>
         </FieldGrid>
 
@@ -172,8 +174,8 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
 
         <Hint>
           {swarmMode
-            ? "Swarm mode uses all five agent types. Confirm the fleet is online before you submit complex jobs."
-            : "Single role tasks target one specialist on the swarm."}
+            ? `Full swarm tasks pay ${TASK_REWARD_STT.swarm} STT. Confirm the fleet is online before you submit.`
+            : `Single role tasks pay ${TASK_REWARD_STT.single} STT and target one specialist on the swarm.`}
         </Hint>
       </Panel>
 
