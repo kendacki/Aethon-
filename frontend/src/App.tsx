@@ -12,6 +12,7 @@ import CoalitionDetailPage from "./pages/CoalitionDetail";
 import LeaderboardPage from "./pages/Leaderboard";
 import GovernancePage from "./pages/Governance";
 import { api } from "./api/client";
+import { ToastProvider } from "./components/ToastProvider";
 import { styled } from "./stitches.config";
 
 const Shell = styled("div", {
@@ -78,18 +79,20 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Shell>
-        <AnimatePresence>{loading && <LoadingScreen key="loader" />}</AnimatePresence>
-        {!loading && (
-          <>
-            <Navbar />
-            <Main>
-              <AnimatedRoutes />
-            </Main>
-            <SiteFooter />
-          </>
-        )}
-      </Shell>
+      <ToastProvider>
+        <Shell>
+          <AnimatePresence>{loading && <LoadingScreen key="loader" />}</AnimatePresence>
+          {!loading && (
+            <>
+              <Navbar />
+              <Main>
+                <AnimatedRoutes />
+              </Main>
+              <SiteFooter />
+            </>
+          )}
+        </Shell>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

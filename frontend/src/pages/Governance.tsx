@@ -2,45 +2,46 @@ import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { PageHero } from "../components/PageHero";
-import { Badge, Card, Grid, PageWrap, Section, Heading, StatValue } from "../components/ui";
+import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
 import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { Notification } from "../components/Layout";
+import { SignedInShell, SessionStatusBar } from "../components/session/SessionUI";
+import { useSignedIn } from "../auth/useSignedIn";
+import { useToast } from "../components/ToastProvider";
 import { spring } from "../stitches.config";
-import { useState, useEffect } from "react";
-import { useWallet } from "../wallet/WalletContext";
-import { useAuthSession } from "../auth/useAuthSession";
+import { useEffect } from "react";
 
 export default function GovernancePage() {
-  const { address, isConnected } = useWallet();
-  const { isSignedIn } = useAuthSession();
-  const signedIn = isConnected && Boolean(address) && isSignedIn;
+  const { signedIn } = useSignedIn();
+  const toast = useToast();
 
   const { data: cb, loading, error, reload } = useFetch(() => {
     if (!signedIn) return Promise.resolve(null);
     return api.circuitBreaker();
   }, [signedIn]);
+
   const { data: health } = useFetch(() => {
     if (!signedIn) return Promise.resolve(null);
     return api.health();
   }, [signedIn]);
+
   const { lastEvent } = useWebSocket(["circuit_breaker"]);
-  const [toast, setToast] = useState("");
 
   useEffect(() => {
     if (!signedIn) return;
     if (lastEvent?.type === "CIRCUIT_BREAK") {
-      setToast("Circuit breaker on. All work paused.");
+      toast.error("Circuit breaker on. All work paused.");
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      setToast("Circuit reset. System running again.");
+      toast.success("Circuit reset. System running again.");
       reload();
     }
-  }, [lastEvent, reload, signedIn]);
+  }, [lastEvent, reload, signedIn, toast]);
 
   return (
-    <PageWrap>
+    <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
+      {signedIn && <SessionStatusBar />}
       <PageHero>
         <Badge accent>
           <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
@@ -48,24 +49,27 @@ export default function GovernancePage() {
         </Badge>
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
         <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
-          The guardian wallet can reset the circuit after a one hour wait. Three failed tasks in a row pause the system.
+          Circuit breaker, guardian reset, and protocol security. Sign in to view live operator data.
         </p>
       </PageHero>
 
-      <Section style={{ paddingTop: "2.5rem" }}>
-        <ErrorBanner message={signedIn ? error : null} onRetry={signedIn ? reload : undefined} />
+      <SignedInShell
+        title="Governance & safety"
+        description="Monitor circuit breaker state and indexed protocol health after you authenticate."
+      >
+        <ErrorBanner message={error} onRetry={reload} />
 
-        {!signedIn && (
-          <p style={{ marginTop: "2rem", opacity: 0.75, maxWidth: 620, lineHeight: 1.65 }}>
-            Connect your wallet and sign in to view governance and safety status.
-          </p>
+        {loading && <p style={{ marginTop: "1rem", opacity: 0.72 }}>Loading safety status…</p>}
+
+        {!loading && !cb && !error && (
+          <Card style={{ marginTop: "1.5rem" }}>
+            <p style={{ margin: 0, opacity: 0.75 }}>Safety data unavailable. Try again shortly.</p>
+          </Card>
         )}
 
-        {signedIn && loading && <p style={{ marginTop: "2rem" }}>Loading</p>}
-
-        {signedIn && cb && (
+        {cb && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <Card style={{ marginTop: "2rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : undefined }}>
+            <Card style={{ marginTop: "1.5rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : "rgba(13, 188, 130, 0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
                 <div>
@@ -74,12 +78,17 @@ export default function GovernancePage() {
                     {cb.paused ? "Waiting for guardian reset." : "All contracts are active"}
                   </div>
                 </div>
+                <Badge status={cb.paused ? "offline" : "online"} style={{ marginLeft: "auto" }}>
+                  {cb.paused ? "Halted" : "Active"}
+                </Badge>
               </div>
             </Card>
 
             <Grid cols={3} style={{ marginTop: "2rem" }}>
               <Card>
-                <StatValue style={{ fontSize: "2rem" }}>{cb.consecutiveFailures}/{cb.threshold}</StatValue>
+                <StatValue style={{ fontSize: "2rem" }}>
+                  {cb.consecutiveFailures}/{cb.threshold}
+                </StatValue>
                 <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Failed tasks</div>
               </Card>
               <Card>
@@ -105,7 +114,13 @@ export default function GovernancePage() {
                   "Only approved parties can dissolve coalitions",
                   "Platform fees go to treasury",
                 ].map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ ...spring, delay: i * 0.05 }} style={{ fontSize: "0.875rem", opacity: 0.82, display: "flex", gap: 8 }}>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...spring, delay: i * 0.05 }}
+                    style={{ fontSize: "0.875rem", opacity: 0.82, display: "flex", gap: 8 }}
+                  >
                     <span>✓</span> {item}
                   </motion.div>
                 ))}
@@ -120,8 +135,7 @@ export default function GovernancePage() {
             )}
           </motion.div>
         )}
-      </Section>
-      <Notification message={toast} onClose={() => setToast("")} />
+      </SignedInShell>
     </PageWrap>
   );
 }

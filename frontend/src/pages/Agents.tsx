@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
+import { useSignedIn } from "../auth/useSignedIn";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PageHero } from "../components/PageHero";
+import { SessionStatusBar } from "../components/session/SessionUI";
 import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -22,12 +24,14 @@ const filterBtn = (active: boolean) => ({
 });
 
 export default function AgentsPage() {
+  const { signedIn } = useSignedIn();
   const [page, setPage] = useState(0);
   const [type, setType] = useState("");
   const { data, loading, error, reload } = useFetch(() => api.agents(page, 20, type || undefined), [page, type]);
 
   return (
-    <PageWrap>
+    <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
+      {signedIn && <SessionStatusBar />}
       <PageHero>
         <Badge accent>Agent Fleet</Badge>
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>

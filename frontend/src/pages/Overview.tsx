@@ -1,15 +1,15 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { api, formatEth } from "../api/client";
+import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
-import { Button, Grid, Section } from "../components/ui";
+import { useSignedIn } from "../auth/useSignedIn";
+import { Badge, Button, Grid, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
-import { useAuthSession } from "../auth/useAuthSession";
-import { useWallet } from "../wallet/WalletContext";
-import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
-import { Notification } from "../components/Layout";
 import { HomePageHero } from "../components/HomePageHero";
+import { OperatorDashboard, SectionHeader, SessionStatusBar } from "../components/session/SessionUI";
+import { useToast } from "../components/ToastProvider";
+import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import {
   heroButton,
   heroItem,
@@ -24,7 +24,7 @@ import {
   statValue,
   viewportOnce,
 } from "../motion/overview";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { styled } from "../stitches.config";
 
 const Home = styled("main", {
@@ -198,10 +198,9 @@ const PROTOCOL_FEATURES = [
 ] as const;
 
 export default function OverviewPage() {
-  const { address, isConnected } = useWallet();
-  const { isSignedIn } = useAuthSession();
-  const signedIn = isConnected && Boolean(address) && isSignedIn;
+  const { signedIn, address } = useSignedIn();
   const walletAddress = address?.toLowerCase() ?? null;
+  const toast = useToast();
 
   const { error: healthError, reload: reloadHealth } = useFetch(() => {
     if (!signedIn) return Promise.resolve(null);
@@ -213,28 +212,27 @@ export default function OverviewPage() {
     reload: reloadWalletStats,
   } = useFetch(
     () => {
-      if (!signedIn || !walletAddress) {
-        return Promise.resolve(null);
-      }
+      if (!signedIn || !walletAddress) return Promise.resolve(null);
       return api.walletTaskStats(walletAddress);
     },
     [signedIn, walletAddress],
   );
   const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
-  const [toast, setToast] = useState("");
 
   useEffect(() => {
-    if (lastEvent?.type === "CIRCUIT_BREAK") setToast("Circuit breaker on. Work paused.");
-    if (lastEvent?.type === "CIRCUIT_RESET") setToast("Circuit reset. Work resumed.");
-  }, [lastEvent]);
+    if (!signedIn) return;
+    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker on. Work paused.");
+    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit reset. Work resumed.");
+  }, [lastEvent, signedIn, toast]);
 
   useEffect(() => {
     if (!signedIn || !walletAddress) return;
     if (!lastEvent || lastEvent.channel !== "tasks") return;
     if (["TASK_SUBMITTED", "TASK_QUEUED", "TASK_RELAYED", "TASK_COMPLETED", "TASK_FAILED"].includes(lastEvent.type)) {
       reloadWalletStats();
+      toast.info(`Task update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
     }
-  }, [lastEvent, signedIn, walletAddress, reloadWalletStats]);
+  }, [lastEvent, signedIn, walletAddress, reloadWalletStats, toast]);
 
   const statCards = OVERVIEW_STAT_DEFS.map((def) => {
     if (def.key === "agents" || def.key === "roles") {
@@ -244,39 +242,62 @@ export default function OverviewPage() {
       return {
         ...def,
         value: def.key === "tasks" ? String(DEMO_OVERVIEW_STATS.tasks) : DEMO_OVERVIEW_STATS.stakeLabel,
+        demo: true,
       };
     }
     if (def.key === "tasks") {
-      return { ...def, value: String(walletStats?.taskCount ?? 0) };
+      return { ...def, value: String(walletStats?.taskCount ?? 0), demo: false };
     }
-    return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
+    return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0"), demo: false };
   });
 
   return (
     <Home>
+      {signedIn && <SessionStatusBar />}
+
       <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
           <motion.div variants={heroItem}>
-            <HeroHeading>Autonomous agents on Somnia</HeroHeading>
+            {signedIn && address ? (
+              <>
+                <Badge status="online" style={{ marginBottom: "0.75rem" }}>
+                  Operator session
+                </Badge>
+                <HeroHeading>Welcome back, {shortAddr(address)}</HeroHeading>
+              </>
+            ) : (
+              <HeroHeading>Autonomous agents on Somnia</HeroHeading>
+            )}
           </motion.div>
           <motion.div variants={heroItem}>
             <HeroSub>
-              Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
-              tracking.
+              {signedIn
+                ? "Your dashboard is live. Submit tasks, monitor the five agent roles, and track rewards tied to your wallet."
+                : "Five agents register on chain, team up for complex jobs, and run tasks with live health and vault tracking."}
             </HeroSub>
           </motion.div>
           <ActionRow variants={heroButton}>
-            <Button variant="primary" size="sm" as={Link} to="/agents">
-              View fleet <IconArrowRight size={16} />
+            <Button variant="primary" size="sm" as={Link} to={signedIn ? "/tasks" : "/agents"}>
+              {signedIn ? "Submit task" : "View fleet"} <IconArrowRight size={16} />
             </Button>
-            <Button variant="outline" size="sm" as={Link} to="/tasks">
-              Submit task
+            <Button variant="outline" size="sm" as={Link} to={signedIn ? "/agents" : "/tasks"}>
+              {signedIn ? "View fleet" : "Explore tasks"}
             </Button>
           </ActionRow>
         </HeroContent>
       </HomePageHero>
 
       <StatsSection>
+        <SectionHeader
+          title={signedIn ? "Your activity" : "Network snapshot"}
+          subtitle={
+            signedIn
+              ? "Live stats from your wallet on the task market."
+              : "Preview values. Connect and sign in for personalized metrics."
+          }
+          badge={signedIn ? <Badge status="online">Live</Badge> : <Badge accent>Preview</Badge>}
+        />
+
         <ErrorBanner
           message={signedIn ? (healthError ?? walletStatsError) : null}
           onRetry={() => {
@@ -296,11 +317,16 @@ export default function OverviewPage() {
                   {s.value}
                 </StatFigure>
                 <StatTitle>{s.label}</StatTitle>
-                <StatDesc>{s.description}</StatDesc>
+                <StatDesc>
+                  {s.description}
+                  {"demo" in s && s.demo ? " · Demo until signed in" : ""}
+                </StatDesc>
               </StatGlassCard>
             </StatCell>
           ))}
         </Grid>
+
+        {signedIn && <OperatorDashboard />}
       </StatsSection>
 
       <ProtocolBand>
@@ -320,8 +346,6 @@ export default function OverviewPage() {
           </GlassContent>
         </ProtocolGlassMotion>
       </ProtocolBand>
-
-      <Notification message={toast} onClose={() => setToast("")} />
     </Home>
   );
 }
