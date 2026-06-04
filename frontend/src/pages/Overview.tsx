@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { api, shortAddr } from "../api/client";
+import { api, shortAddr, type WalletTaskStats } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { Badge, Button, Grid, Muted, Section } from "../components/ui";
@@ -224,8 +224,8 @@ const OVERVIEW_STAT_DEFS = [
   },
   {
     key: "stake",
-    label: "Rewards Earned",
-    description: "Total settlement credited to your wallet",
+    label: "STT staked",
+    description: "STT escrowed from your wallet on submitted tasks",
     icon: IconShield,
   },
 ] as const;
@@ -351,7 +351,7 @@ function GuestOverview() {
 
 type OperatorOverviewProps = {
   address: string;
-  walletStats: { taskCount: number; totalRewardWei: string } | null;
+  walletStats: WalletTaskStats | null;
   statsLoading: boolean;
   healthError: string | null;
   walletStatsError: string | null;

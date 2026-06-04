@@ -5,7 +5,8 @@ import { api, formatEth, type Task, type WalletTaskStats } from "../../api/clien
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
 import { GlassPanel } from "../GlassPanel";
-import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_MD } from "../icons";
+import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
+import { summarizeWalletStake } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
 
@@ -97,7 +98,7 @@ const MetricCard = styled(motion.div, {
   minHeight: "9.5rem",
   variants: {
     accent: {
-      rewards: {
+      stake: {
         borderColor: "rgba(13, 188, 130, 0.2)",
         background: "linear-gradient(165deg, rgba(13, 188, 130, 0.1) 0%, rgba(0, 0, 0, 0.55) 100%)",
       },
@@ -141,6 +142,24 @@ const MetricHint = styled("p", {
   fontSize: "$xs",
   opacity: 0.65,
   lineHeight: 1.5,
+});
+
+const StakeBreakdown = styled("ul", {
+  listStyle: "none",
+  margin: "$3 0 0",
+  padding: "$3 0 0",
+  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  display: "grid",
+  gap: "$2",
+});
+
+const StakeRow = styled("li", {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "$3",
+  fontSize: "0.6875rem",
+  lineHeight: 1.45,
+  opacity: 0.75,
 });
 
 const MetricFooter = styled(Link, {
@@ -271,11 +290,7 @@ export function OperatorActivitySection({
   const recentTasks = recentPage?.data ?? [];
 
   const taskCount = walletStats?.taskCount ?? 0;
-  const rewards = formatEth(walletStats?.totalRewardWei ?? "0");
-  const avgReward =
-    taskCount > 0 && walletStats?.totalRewardWei
-      ? formatEth(String(BigInt(walletStats.totalRewardWei) / BigInt(taskCount)))
-      : null;
+  const stakeSummary = summarizeWalletStake(walletStats, taskCount);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -293,7 +308,6 @@ export function OperatorActivitySection({
       <Header>
         <TitleBlock>
           <Title>Your activity</Title>
-          <Subtitle>Wallet metrics for {shortAddr(address)} on the Somnia task market.</Subtitle>
         </TitleBlock>
         <HeaderActions>
           <LivePill>
@@ -345,7 +359,7 @@ export function OperatorActivitySection({
           )}
         </MetricCard>
 
-        <MetricCard accent="rewards">
+        <MetricCard accent="stake">
           {loading ? (
             <>
               <Skeleton css={{ height: 44, width: 44 }} />
@@ -356,22 +370,24 @@ export function OperatorActivitySection({
             <>
               <MetricTop>
                 <div>
-                  <MetricValue>{rewards}</MetricValue>
-                  <MetricLabel>Rewards earned</MetricLabel>
+                  <MetricValue>{stakeSummary.headline}</MetricValue>
+                  <MetricLabel>STT staked on tasks</MetricLabel>
                 </div>
                 <IconRing>
-                  <IconShield size={ICON_MD} />
+                  <IconVault size={ICON_MD} />
                 </IconRing>
               </MetricTop>
-              <MetricHint>
-                {taskCount === 0
-                  ? "Rewards appear after agents complete your tasks."
-                  : avgReward
-                    ? `~${avgReward} STT average per completed job.`
-                    : "Settlement credited on chain to your wallet."}
-              </MetricHint>
-              <MetricFooter as={Link} to="/tasks">
-                Track on task market <IconArrowRight size={14} />
+              <MetricHint>{stakeSummary.detail}</MetricHint>
+              <StakeBreakdown>
+                {stakeSummary.breakdown.map((row) => (
+                  <StakeRow key={row.label}>
+                    <span>{row.label}</span>
+                    <span style={{ fontWeight: 600, opacity: 1 }}>{row.value}</span>
+                  </StakeRow>
+                ))}
+              </StakeBreakdown>
+              <MetricFooter as={Link} to="/tasks" style={{ marginTop: "0.75rem" }}>
+                How stake settles <IconArrowRight size={14} />
               </MetricFooter>
             </>
           )}

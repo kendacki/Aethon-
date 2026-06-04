@@ -129,15 +129,35 @@ export const repo = {
     return paginate(r.rows.map(rowToTask), page, pageSize, total);
   },
 
-  async getSubmitterStats(submitter: string): Promise<{ taskCount: number; totalRewardWei: string }> {
-    const r = await query<{ count: string; sum: string }>(
-      `SELECT COUNT(*)::text AS count, COALESCE(SUM(reward::numeric), 0)::text AS sum FROM tasks WHERE submitter = $1`,
+  async getSubmitterStats(submitter: string): Promise<{
+    taskCount: number;
+    totalStakedWei: string;
+    activeEscrowWei: string;
+    paidToAgentsWei: string;
+    refundedWei: string;
+  }> {
+    const r = await query<{
+      count: string;
+      total_staked: string;
+      active_escrow: string;
+      paid_to_agents: string;
+      refunded: string;
+    }>(
+      `SELECT COUNT(*)::text AS count,
+              COALESCE(SUM(reward::numeric), 0)::text AS total_staked,
+              COALESCE(SUM(reward::numeric) FILTER (WHERE status IN ('PENDING', 'ASSIGNED')), 0)::text AS active_escrow,
+              COALESCE(SUM(reward::numeric) FILTER (WHERE status = 'COMPLETED'), 0)::text AS paid_to_agents,
+              COALESCE(SUM(reward::numeric) FILTER (WHERE status IN ('FAILED', 'EXPIRED')), 0)::text AS refunded
+       FROM tasks WHERE submitter = $1`,
       [submitter.toLowerCase()]
     );
     const row = r.rows[0];
     return {
       taskCount: Number(row?.count ?? 0),
-      totalRewardWei: BigInt(row?.sum ?? 0).toString(),
+      totalStakedWei: BigInt(row?.total_staked ?? 0).toString(),
+      activeEscrowWei: BigInt(row?.active_escrow ?? 0).toString(),
+      paidToAgentsWei: BigInt(row?.paid_to_agents ?? 0).toString(),
+      refundedWei: BigInt(row?.refunded ?? 0).toString(),
     };
   },
 

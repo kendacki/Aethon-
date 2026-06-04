@@ -199,7 +199,14 @@ async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
 
 export interface WalletTaskStats {
   taskCount: number;
-  totalRewardWei: string;
+  /** Sum of STT reward attached on submit (escrow), all statuses. */
+  totalStakedWei: string;
+  /** Locked in TaskMarket while PENDING or ASSIGNED. */
+  activeEscrowWei: string;
+  /** Paid to agent coalitions on COMPLETED (not returned to submitter). */
+  paidToAgentsWei: string;
+  /** Returned to submitter wallet on FAILED or EXPIRED. */
+  refundedWei: string;
 }
 
 export const api = {
