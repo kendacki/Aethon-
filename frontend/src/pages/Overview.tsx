@@ -285,7 +285,6 @@ function GuestOverview() {
               <SectionHeader
                 title="Network snapshot"
                 subtitle="Connect your wallet and sign in to unlock your dashboard."
-                badge={<Badge accent>Preview</Badge>}
               />
             </motion.div>
             <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
@@ -297,10 +296,7 @@ function GuestOverview() {
                       {s.value}
                     </StatFigure>
                     <StatTitle>{s.label}</StatTitle>
-                    <StatDesc>
-                      {s.description}
-                      {". Preview until you sign in."}
-                    </StatDesc>
+                    <StatDesc>{s.description}</StatDesc>
                   </StatGlassCard>
                 </StatCell>
               ))}
