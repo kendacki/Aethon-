@@ -306,7 +306,7 @@ function GuestOverview() {
       <StatsSection>
         <SectionHeader
           title="Network snapshot"
-          subtitle="Preview values. Connect and sign in for your operator dashboard."
+          subtitle="Connect and sign in for your operator dashboard."
           badge={<Badge accent>Preview</Badge>}
         />
         <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
