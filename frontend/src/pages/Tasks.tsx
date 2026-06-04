@@ -52,7 +52,7 @@ export default function TasksPage() {
   const location = useLocation();
   const taskListRef = useRef<HTMLDivElement>(null);
   const { data, loading, error, reload } = useFetch(() => api.tasks(page, status || undefined), [page, status]);
-  const { lastEvent, connected } = useWebSocket(["tasks"]);
+  const { lastEvent } = useWebSocket(["tasks"]);
 
   useEffect(() => {
     if (data) setTasks(data.data);
@@ -102,10 +102,6 @@ export default function TasksPage() {
             ? "Submit work to the swarm and watch assignments update in real time."
             : "Browse open tasks. Sign in to submit jobs to autonomous agents."}
         </p>
-        <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <Badge status={connected ? "online" : undefined}>Feed {connected ? "live" : "connecting"}</Badge>
-          {signedIn && <Badge status="online">Submit enabled</Badge>}
-        </div>
       </PageHero>
 
       <Section style={{ paddingTop: "2.5rem" }}>
