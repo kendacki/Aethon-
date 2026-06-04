@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { styled } from "../../stitches.config";
-import { GLASS } from "../../theme/glass";
+import { GlassField, GlassInput, GlassSelect } from "../GlassFormField";
+import { FLEET_ROLE_META } from "../../config/fleetRoles";
 import { useSignedIn } from "../../auth/useSignedIn";
 import { useWallet } from "../../wallet/WalletContext";
 import { useToast } from "../ToastProvider";
@@ -30,39 +31,6 @@ const FieldGrid = styled("div", {
     gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
     alignItems: "end",
   },
-});
-
-const Field = styled("label", {
-  display: "flex",
-  flexDirection: "column",
-  gap: "$2",
-  fontSize: "$xs",
-  fontWeight: 600,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
-  opacity: 0.72,
-});
-
-const Input = styled("input", {
-  padding: "$3",
-  borderRadius: "$md",
-  background: GLASS.fillMuted,
-  color: "$text",
-  border: `1px solid ${GLASS.border}`,
-  fontSize: "$sm",
-  fontFamily: "$sans",
-  fontWeight: 500,
-  textTransform: "none",
-  letterSpacing: 0,
-});
-
-const Select = styled("select", {
-  padding: "$3",
-  borderRadius: "$md",
-  background: GLASS.fillMuted,
-  color: "$text",
-  border: `1px solid ${GLASS.border}`,
-  fontSize: "$sm",
 });
 
 const Hint = styled("p", {
@@ -166,9 +134,9 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
         </div>
 
         <FieldGrid>
-          <Field>
+          <GlassField>
             Mode
-            <Select
+            <GlassSelect
               value={swarmMode ? "swarm" : "single"}
               disabled={!signedIn}
               onChange={(e) => {
@@ -179,23 +147,23 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
             >
               <option value="single">Single role</option>
               <option value="swarm">Full swarm (5 agents)</option>
-            </Select>
-          </Field>
+            </GlassSelect>
+          </GlassField>
           {!swarmMode && (
-            <Field>
+            <GlassField>
               Agent role
-              <Select value={role} disabled={!signedIn} onChange={(e) => setRole(e.target.value as AgentType)}>
+              <GlassSelect value={role} disabled={!signedIn} onChange={(e) => setRole(e.target.value as AgentType)}>
                 {ALL_AGENT_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {t}
+                    {FLEET_ROLE_META[t].label}
                   </option>
                 ))}
-              </Select>
-            </Field>
+              </GlassSelect>
+            </GlassField>
           )}
-          <Field>
+          <GlassField>
             Complexity
-            <Input
+            <GlassInput
               type="number"
               min={1}
               max={5}
@@ -203,11 +171,11 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
               disabled={!signedIn || swarmMode}
               onChange={(e) => setComplexity(Number(e.target.value))}
             />
-          </Field>
-          <Field>
+          </GlassField>
+          <GlassField>
             Reward (STT)
-            <Input type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
-          </Field>
+            <GlassInput type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
+          </GlassField>
         </FieldGrid>
 
         <Actions>

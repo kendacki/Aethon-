@@ -18,5 +18,12 @@ export const globalStyles = globalCss({
   },
   a: { color: "inherit", textDecoration: "none" },
   button: { fontFamily: "inherit", cursor: "pointer", border: "none", background: "none", color: "$text" },
+  "select, option, optgroup": {
+    colorScheme: "dark",
+  },
+  option: {
+    backgroundColor: "#0a0a0a",
+    color: "#FFFFFF",
+  },
   "::selection": { background: "rgba(255,255,255,0.25)", color: "$text" },
 });
