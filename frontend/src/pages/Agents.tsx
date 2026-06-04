@@ -98,7 +98,7 @@ export default function AgentsPage() {
           <HeroItem>
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
               {signedIn
-                ? "Live roster of swarm specialists on Somnia — stake, reputation, and worker status in one place."
+                ? "View all five swarm agents on Somnia—who is online, how much is staked, and whether workers are ready before you submit a task."
                 : "Five agents register on chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
             </p>
           </HeroItem>

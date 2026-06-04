@@ -274,9 +274,7 @@ export function OperatorFleetView() {
       <Header>
         <div>
           <Title>Swarm fleet</Title>
-          <Subtitle>
-            Five on chain specialists. Inspect stake, reputation, and worker readiness before you dispatch tasks.
-          </Subtitle>
+          <Subtitle>Filter by role, refresh live data, and open agent details from the cards below.</Subtitle>
         </div>
         <HeaderActions>
           <Button variant="outline" size="sm" as={Link} to="/tasks" style={{ width: "auto" }}>
