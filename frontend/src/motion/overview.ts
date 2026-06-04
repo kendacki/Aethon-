@@ -1,6 +1,15 @@
 import type { Transition, Variants } from "framer-motion";
+import { spring } from "../stitches.config";
 
 export const easeOut = [0.22, 1, 0.36, 1] as const;
+
+/** Full-page enter/exit (route and signed-in mode switches). */
+export const pageTransition = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: spring,
+};
 
 export const heroBgTransition: Transition = {
   duration: 1.45,

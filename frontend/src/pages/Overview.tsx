@@ -12,8 +12,6 @@ import { SectionHeader } from "../components/session/SessionUI";
 import { useToast } from "../components/ToastProvider";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import {
-  heroButton,
-  heroItem,
   heroSequence,
   protocolCard,
   protocolCards,
@@ -26,7 +24,8 @@ import {
   viewportOnce,
 } from "../motion/overview";
 import { useEffect } from "react";
-import { spring, styled } from "../stitches.config";
+import { PageMotion, HeroActions, HeroItem } from "../components/motion/PageMotion";
+import { styled } from "../stitches.config";
 
 const Home = styled("main", {
   width: "100%",
@@ -124,14 +123,6 @@ const StatDesc = styled("p", {
   marginBottom: 0,
 });
 
-const ActionRow = styled(motion.div, {
-  display: "flex",
-  marginTop: "$5",
-  gap: "$3",
-  flexWrap: "wrap",
-  alignItems: "center",
-});
-
 const SectionTitle = styled("h2", {
   fontSize: "$2xl",
   fontWeight: "$extrabold",
@@ -204,17 +195,6 @@ const GuideCard = styled(GlassCard, {
   padding: "$6",
   height: "100%",
 });
-
-const ModeWrap = styled(motion.div, {
-  width: "100%",
-});
-
-const pageTransition = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: spring,
-};
 
 const DEMO_OVERVIEW_STATS = {
   tasks: 10,
@@ -300,26 +280,26 @@ function GuestOverview() {
   }));
 
   return (
-    <ModeWrap key="guest-overview" {...pageTransition}>
+    <PageMotion motionKey="guest-overview">
       <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
-          <motion.div variants={heroItem}>
+          <HeroItem>
             <HeroHeading>Autonomous agents on Somnia</HeroHeading>
-          </motion.div>
-          <motion.div variants={heroItem}>
+          </HeroItem>
+          <HeroItem>
             <HeroSub>
               Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
               tracking.
             </HeroSub>
-          </motion.div>
-          <ActionRow variants={heroButton}>
+          </HeroItem>
+          <HeroActions style={{ display: "flex", marginTop: "1.25rem", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
             <Button variant="primary" size="sm" as={Link} to="/agents">
               View fleet <IconArrowRight size={16} />
             </Button>
             <Button variant="outline" size="sm" as={Link} to="/tasks">
               Explore tasks
             </Button>
-          </ActionRow>
+          </HeroActions>
         </HeroContent>
       </HomePageHero>
 
@@ -365,7 +345,7 @@ function GuestOverview() {
           </GlassContent>
         </BandGlassMotion>
       </PageBand>
-    </ModeWrap>
+    </PageMotion>
   );
 }
 
@@ -389,20 +369,20 @@ function OperatorOverview({
   onRefreshStats,
 }: OperatorOverviewProps) {
   return (
-    <ModeWrap key="operator-overview" {...pageTransition}>
+    <PageMotion motionKey="operator-overview">
       <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
-          <motion.div variants={heroItem}>
+          <HeroItem>
             <HeroHeading>Welcome back, {shortAddr(address)}</HeroHeading>
-          </motion.div>
-          <ActionRow variants={heroButton}>
+          </HeroItem>
+          <HeroActions style={{ display: "flex", marginTop: "1.25rem", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
             <Button variant="primary" size="sm" as={Link} to="/tasks">
               Submit task <IconArrowRight size={16} />
             </Button>
             <Button variant="outline" size="sm" as={Link} to="/agents">
               View fleet
             </Button>
-          </ActionRow>
+          </HeroActions>
         </HeroContent>
       </HomePageHero>
 
@@ -476,7 +456,7 @@ function OperatorOverview({
           </GlassContent>
         </BandGlassMotion>
       </PageBand>
-    </ModeWrap>
+    </PageMotion>
   );
 }
 

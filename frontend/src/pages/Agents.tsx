@@ -1,16 +1,14 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { OperatorFleetView } from "../components/fleet/OperatorFleetView";
+import { motion } from "framer-motion";
+import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, statsSequence, viewportOnce } from "../components/motion/PageMotion";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PageHero } from "../components/PageHero";
-import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
+import { Badge, Card, Grid, PageWrap, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
-import { spring } from "../stitches.config";
-
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
 
 const filterBtn = (active: boolean) => ({
@@ -42,32 +40,27 @@ function GuestFleetGrid() {
 
       {loading && <p style={{ marginTop: "2rem", opacity: 0.72 }}>Loading fleet…</p>}
 
-      <Grid cols={3} style={{ marginTop: "2rem" }}>
-        {data?.data.map((agent, i) => (
-          <motion.div
-            key={agent.address}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: i * 0.04 }}
-          >
-            <Link to={`/agents/${agent.address}`} style={{ textDecoration: "none", color: "inherit" }}>
-              <Card style={{ cursor: "pointer", height: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                  <IconAgent size={ICON_LG} />
-                  <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
-                </div>
-                <div style={{ fontWeight: 700, marginTop: "1rem" }}>{agent.agentType}</div>
-                <div style={{ fontSize: "0.875rem", opacity: 0.72, fontFamily: "monospace" }}>{shortAddr(agent.address)}</div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem", fontSize: "0.875rem" }}>
-                  <span>
-                    Rep <strong>{agent.reputation}</strong>
-                  </span>
-                  <span>{formatEth(agent.stake)}</span>
-                </div>
-              </Card>
-            </Link>
-          </motion.div>
-        ))}
+      <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          {data?.data.map((agent) => (
+            <StaggerItem key={agent.address} style={{ height: "100%" }}>
+              <Link to={`/agents/${agent.address}`} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
+                <Card style={{ cursor: "pointer", height: "100%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                    <IconAgent size={ICON_LG} />
+                    <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+                  </div>
+                  <div style={{ fontWeight: 700, marginTop: "1rem" }}>{agent.agentType}</div>
+                  <div style={{ fontSize: "0.875rem", opacity: 0.72, fontFamily: "monospace" }}>{shortAddr(agent.address)}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem", fontSize: "0.875rem" }}>
+                    <span>
+                      Rep <strong>{agent.reputation}</strong>
+                    </span>
+                    <span>{formatEth(agent.stake)}</span>
+                  </div>
+                </Card>
+              </Link>
+            </StaggerItem>
+          ))}
       </Grid>
 
       {data && data.pagination.total > 20 && (
@@ -94,19 +87,27 @@ export default function AgentsPage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      <PageHero>
-        <Badge accent>Agent Fleet</Badge>
-        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
-          {signedIn
-            ? "Live roster of swarm specialists on Somnia — stake, reputation, and worker status in one place."
-            : "Five agents register on chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
-        </p>
-      </PageHero>
+      <PageMotion>
+        <AnimatedPageHero>
+          <HeroItem>
+            <Badge accent>Agent Fleet</Badge>
+          </HeroItem>
+          <HeroItem>
+            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>
+          </HeroItem>
+          <HeroItem>
+            <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
+              {signedIn
+                ? "Live roster of swarm specialists on Somnia — stake, reputation, and worker status in one place."
+                : "Five agents register on chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
+            </p>
+          </HeroItem>
+        </AnimatedPageHero>
 
-      <Section style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem", paddingBottom: "3rem" }}>
-        {signedIn ? <OperatorFleetView /> : <GuestFleetGrid />}
-      </Section>
+        <AnimatedSection style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem", paddingBottom: "3rem" }}>
+          {signedIn ? <OperatorFleetView /> : <GuestFleetGrid />}
+        </AnimatedSection>
+      </PageMotion>
     </PageWrap>
   );
 }

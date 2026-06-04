@@ -2,10 +2,24 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { api, formatEth } from "../api/client";
 import { useFetch } from "../api/hooks";
-import { PageHero } from "../components/PageHero";
-import { Badge, Card, Grid, PageWrap, Section, StatValue } from "../components/ui";
+import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
+import { Badge, Card, Grid, PageWrap, StatValue } from "../components/ui";
 import { IconArrowLeft, IconTrend, ICON_LG, ICON_SM } from "../components/icons";
 import { spring } from "../stitches.config";
+
+function LoadingOrNotFound({ message }: { message: string }) {
+  return (
+    <PageWrap>
+      <PageMotion>
+        <AnimatedPageHero>
+          <HeroItem>
+            <p style={{ opacity: 0.72 }}>{message}</p>
+          </HeroItem>
+        </AnimatedPageHero>
+      </PageMotion>
+    </PageWrap>
+  );
+}
 
 export default function AgentDetailPage() {
   const { addr } = useParams<{ addr: string }>();
@@ -13,88 +27,99 @@ export default function AgentDetailPage() {
   const { data: rep } = useFetch(() => api.reputation(addr!), [addr]);
   const { data: health } = useFetch(() => api.agentHealth(addr!), [addr]);
 
-  if (loading) {
-    return (
-      <PageWrap>
-        <PageHero>
-          <p style={{ opacity: 0.72 }}>Loading agent</p>
-        </PageHero>
-      </PageWrap>
-    );
-  }
-  if (!agent) {
-    return (
-      <PageWrap>
-        <PageHero>
-          <p style={{ opacity: 0.72 }}>Agent not found</p>
-        </PageHero>
-      </PageWrap>
-    );
-  }
+  if (loading) return <LoadingOrNotFound message="Loading agent…" />;
+  if (!agent) return <LoadingOrNotFound message="Agent not found" />;
 
   return (
     <PageWrap>
-      <PageHero>
-        <Link to="/agents" style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.25rem" }}>
-          <IconArrowLeft size={ICON_SM} /> Back to fleet
-        </Link>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-          <Badge accent>{agent.agentType}</Badge>
-          <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
-          {health && health.status !== "UNKNOWN" && (
-            <Badge
-              status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}
-              accent={health.status === "DEGRADED"}
+      <PageMotion>
+        <AnimatedPageHero>
+          <HeroItem>
+            <Link
+              to="/agents"
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.72, fontSize: "0.875rem", marginBottom: "1.25rem" }}
             >
-              Worker {health.status.toLowerCase()}
-            </Badge>
-          )}
-        </div>
-        <h1 style={{ fontSize: "clamp(1.125rem, 3vw, 2rem)", fontWeight: 800, marginTop: "1rem", fontFamily: "monospace", wordBreak: "break-all" }}>
-          {agent.address}
-        </h1>
-      </PageHero>
-
-      <Section style={{ paddingTop: "2.5rem" }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-          <Grid cols={3} style={{ marginTop: "2rem" }}>
-            <Card>
-              <StatValue>{rep?.score ?? agent.reputation}</StatValue>
-              <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Reputation</div>
-            </Card>
-            <Card>
-              <StatValue style={{ fontSize: "1.75rem" }}>{formatEth(agent.stake)}</StatValue>
-              <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Staked</div>
-            </Card>
-            <Card>
-              <div style={{ fontSize: "0.875rem", opacity: 0.72 }}>Last heartbeat</div>
-              <div style={{ fontWeight: 600, marginTop: 8 }}>{new Date(agent.lastHeartbeat).toLocaleString()}</div>
-            </Card>
-          </Grid>
-
-          {rep && rep.history.length > 0 && (
-            <Card style={{ marginTop: "2rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
-                <IconTrend size={ICON_LG} />
-                <h2 style={{ fontWeight: 700 }}>Reputation history</h2>
-              </div>
-              {rep.history.map((h, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ ...spring, delay: i * 0.03 }}
-                  style={{ display: "flex", justifyContent: "space-between", padding: "0.75rem 0", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "0.875rem" }}
+              <IconArrowLeft size={ICON_SM} /> Back to fleet
+            </Link>
+          </HeroItem>
+          <HeroItem>
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+              <Badge accent>{agent.agentType}</Badge>
+              <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+              {health && health.status !== "UNKNOWN" && (
+                <Badge
+                  status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}
+                  accent={health.status === "DEGRADED"}
                 >
-                  <span>{h.reason}</span>
-                  <span>{h.oldScore} to <strong>{h.newScore}</strong></span>
-                  <span style={{ opacity: 0.6 }}>{new Date(h.createdAt).toLocaleDateString()}</span>
-                </motion.div>
-              ))}
-            </Card>
-          )}
-        </motion.div>
-      </Section>
+                  Worker {health.status.toLowerCase()}
+                </Badge>
+              )}
+            </div>
+          </HeroItem>
+          <HeroItem>
+            <h1
+              style={{
+                fontSize: "clamp(1.125rem, 3vw, 2rem)",
+                fontWeight: 800,
+                marginTop: "1rem",
+                fontFamily: "monospace",
+                wordBreak: "break-all",
+              }}
+            >
+              {agent.address}
+            </h1>
+          </HeroItem>
+        </AnimatedPageHero>
+
+        <AnimatedSection style={{ paddingTop: "2.5rem" }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+            <Grid cols={3} style={{ marginTop: "2rem" }}>
+              <Card>
+                <StatValue>{rep?.score ?? agent.reputation}</StatValue>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Reputation</div>
+              </Card>
+              <Card>
+                <StatValue style={{ fontSize: "1.75rem" }}>{formatEth(agent.stake)}</StatValue>
+                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Staked</div>
+              </Card>
+              <Card>
+                <div style={{ fontSize: "0.875rem", opacity: 0.72 }}>Last heartbeat</div>
+                <div style={{ fontWeight: 600, marginTop: 8 }}>{new Date(agent.lastHeartbeat).toLocaleString()}</div>
+              </Card>
+            </Grid>
+
+            {rep && rep.history.length > 0 && (
+              <Card style={{ marginTop: "2rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
+                  <IconTrend size={ICON_LG} />
+                  <h2 style={{ fontWeight: 700 }}>Reputation history</h2>
+                </div>
+                {rep.history.map((h, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...spring, delay: i * 0.03 }}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "0.75rem 0",
+                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    <span>{h.reason}</span>
+                    <span>
+                      {h.oldScore} to <strong>{h.newScore}</strong>
+                    </span>
+                    <span style={{ opacity: 0.6 }}>{new Date(h.createdAt).toLocaleDateString()}</span>
+                  </motion.div>
+                ))}
+              </Card>
+            )}
+          </motion.div>
+        </AnimatedSection>
+      </PageMotion>
     </PageWrap>
   );
 }

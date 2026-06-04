@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import Lottie from "lottie-react";
+import { motion } from "framer-motion";
+import { heroBgTransition, heroScrimTransition } from "../motion/overview";
 import { styled } from "../stitches.config";
 import { PageHeroShell } from "./PageHero";
 import homeHeroAnimation from "../assets/home-hero-bg.json";
@@ -73,10 +75,19 @@ type HomePageHeroProps = {
 };
 
 /** Overview / home hero with Lottie background (signed-in and signed-out). */
+const MotionLottieLayer = motion.create(HeroLottieLayer);
+const MotionVignette = motion.create(HomeHeroVignette);
+const MotionHomeScrim = motion.create(HomeHeroScrim);
+
 export function HomePageHero({ children }: HomePageHeroProps) {
   return (
     <PageHeroShell size="tall">
-      <HeroLottieLayer aria-hidden>
+      <MotionLottieLayer
+        aria-hidden
+        initial={{ opacity: 0, scale: 1.03 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={heroBgTransition}
+      >
         <HeroLottieFrame>
           <Lottie
             animationData={homeHeroAnimation}
@@ -86,9 +97,9 @@ export function HomePageHero({ children }: HomePageHeroProps) {
             style={{ width: "100%", height: "100%" }}
           />
         </HeroLottieFrame>
-      </HeroLottieLayer>
-      <HomeHeroVignette aria-hidden />
-      <HomeHeroScrim aria-hidden />
+      </MotionLottieLayer>
+      <MotionVignette aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={heroScrimTransition} />
+      <MotionHomeScrim aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={heroScrimTransition} />
       <HomeHeroInner>{children}</HomeHeroInner>
     </PageHeroShell>
   );

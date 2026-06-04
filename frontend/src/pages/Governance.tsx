@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
-import { PageHero } from "../components/PageHero";
+import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
 import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
 import {
   IconAlert,
@@ -100,17 +100,25 @@ export default function GovernancePage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      <PageHero>
-        <Badge accent>
-          <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
-          Governance
-        </Badge>
-        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
-        <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
-          Circuit breaker, guardian reset, and protocol security. Sign in to view live operator data.
-        </p>
-      </PageHero>
+      <PageMotion>
+        <AnimatedPageHero>
+          <HeroItem>
+            <Badge accent>
+              <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
+              Governance
+            </Badge>
+          </HeroItem>
+          <HeroItem>
+            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
+          </HeroItem>
+          <HeroItem>
+            <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
+              Circuit breaker, guardian reset, and protocol security. Sign in to view live operator data.
+            </p>
+          </HeroItem>
+        </AnimatedPageHero>
 
+        <AnimatedSection style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem" }}>
       <SignedInShell
         title="Governance & safety"
         description="Monitor circuit breaker state and indexed protocol health after you authenticate."
@@ -184,6 +192,8 @@ export default function GovernancePage() {
           </motion.div>
         )}
       </SignedInShell>
+        </AnimatedSection>
+      </PageMotion>
     </PageWrap>
   );
 }

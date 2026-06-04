@@ -5,8 +5,8 @@ import { useLocation } from "react-router-dom";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
-import { PageHero } from "../components/PageHero";
-import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
+import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
+import { Badge, Card, PageWrap, Heading } from "../components/ui";
 import { IconTask, ICON_MD } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
@@ -94,17 +94,24 @@ export default function TasksPage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      <PageHero>
-        <Badge accent>Task Market</Badge>
-        <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Task market</Heading>
-        <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
-          {signedIn
-            ? "Submit work to the swarm and watch assignments update in real time."
-            : "Browse open tasks. Sign in to submit jobs to autonomous agents."}
-        </p>
-      </PageHero>
+      <PageMotion>
+        <AnimatedPageHero>
+          <HeroItem>
+            <Badge accent>Task Market</Badge>
+          </HeroItem>
+          <HeroItem>
+            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Task market</Heading>
+          </HeroItem>
+          <HeroItem>
+            <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
+              {signedIn
+                ? "Submit work to the swarm and watch assignments update in real time."
+                : "Browse open tasks. Sign in to submit jobs to autonomous agents."}
+            </p>
+          </HeroItem>
+        </AnimatedPageHero>
 
-      <Section style={{ paddingTop: "2.5rem" }}>
+        <AnimatedSection style={{ paddingTop: "2.5rem" }}>
         <ErrorBanner message={error} onRetry={reload} />
 
         <LayoutGrid>
@@ -189,7 +196,8 @@ export default function TasksPage() {
             )}
           </div>
         </LayoutGrid>
-      </Section>
+        </AnimatedSection>
+      </PageMotion>
     </PageWrap>
   );
 }

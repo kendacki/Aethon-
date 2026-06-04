@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useSignedIn } from "../auth/useSignedIn";
-import { spring, styled } from "../stitches.config";
+import { pageTransition } from "../motion/overview";
+import { styled } from "../stitches.config";
 import { Navbar, LoadingScreen } from "./Layout";
 import { SiteFooter } from "./Footer";
 import { OperatorMobileNav } from "./session/OperatorMobileNav";
@@ -54,14 +55,7 @@ function AnimatedRoutes() {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={spring}
-        style={{ flex: 1 }}
-      >
+      <motion.div key={location.pathname} style={{ flex: 1 }} {...pageTransition}>
         <Routes location={location}>
           <Route path="/" element={<OverviewPage />} />
           <Route path="/agents" element={<AgentsPage />} />

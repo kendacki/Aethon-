@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { motion } from "framer-motion";
+import { heroBgTransition, heroScrimTransition } from "../motion/overview";
 import { styled } from "../stitches.config";
 
 /** 3840px wide hero background (public/bg-hero-4k.png). */
@@ -72,11 +74,24 @@ type PageHeroProps = {
   tall?: boolean;
 };
 
+const MotionHeroBg = motion.create(PageHeroBg);
+const MotionHeroScrim = motion.create(PageHeroScrim);
+
 export function PageHero({ children, tall }: PageHeroProps) {
   return (
     <PageHeroShell size={tall ? "tall" : "default"}>
-      <PageHeroBg aria-hidden />
-      <PageHeroScrim aria-hidden />
+      <MotionHeroBg
+        aria-hidden
+        initial={{ opacity: 0, scale: 1.04 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={heroBgTransition}
+      />
+      <MotionHeroScrim
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={heroScrimTransition}
+      />
       <PageHeroInner>{children}</PageHeroInner>
     </PageHeroShell>
   );
