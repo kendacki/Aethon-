@@ -10,6 +10,12 @@ export const ALL_AGENT_TYPES: AgentType[] = [
   "RISK_MGMT",
 ];
 
+export interface SuccessCriterion {
+  id: string;
+  label: string;
+  description: string;
+}
+
 export interface TaskPayload {
   version: 1;
   primaryRole: AgentType;
@@ -17,6 +23,9 @@ export interface TaskPayload {
   params: Record<string, unknown>;
   requiredRoles?: AgentType[];
   label?: string;
+  userQuery?: string;
+  intent?: string;
+  successCriteria?: SuccessCriterion[];
 }
 
 export function canonicalizePayload(payload: TaskPayload): TaskPayload {
@@ -27,6 +36,9 @@ export function canonicalizePayload(payload: TaskPayload): TaskPayload {
     params: payload.params,
     ...(payload.requiredRoles ? { requiredRoles: [...payload.requiredRoles] } : {}),
     ...(payload.label ? { label: payload.label } : {}),
+    ...(payload.userQuery ? { userQuery: payload.userQuery } : {}),
+    ...(payload.intent ? { intent: payload.intent } : {}),
+    ...(payload.successCriteria ? { successCriteria: [...payload.successCriteria] } : {}),
   };
 }
 

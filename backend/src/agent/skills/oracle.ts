@@ -1,5 +1,6 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
 import { fetchSpotQuote, type SpotQuote } from "./http.js";
+import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 const SANITY_BOUNDS: Record<string, { min: number; max: number }> = {
@@ -65,20 +66,30 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
             ? 0.6
             : 0.75;
 
-    return skillOk("ORACLE", payload.action, {
-      ...attestation,
-      attestation: digest,
-      signature,
-      stale,
-      confidence: Number(confidence.toFixed(2)),
-      quality: stale
-        ? "DEGRADED"
-        : quote.source === "somnia_json_api"
-          ? "SOMNIA_CONSENSUS"
-          : quote.source === "coingecko"
-            ? "PRIMARY"
-            : "FALLBACK",
-    });
+    const criteriaMet = !stale && confidence >= 0.7;
+    const summary = stale
+      ? `${asset.toUpperCase()} price $${quote.price} (${quote.source}) — stale (${ageSec}s)`
+      : `${asset.toUpperCase()} spot $${quote.price} USD via ${quote.source} (confidence ${(confidence * 100).toFixed(0)}%)`;
+
+    return skillOk(
+      "ORACLE",
+      payload.action,
+      enrichSkillData("ORACLE", payload, {
+        ...attestation,
+        attestation: digest,
+        signature,
+        stale,
+        confidence: Number(confidence.toFixed(2)),
+        quality: stale
+          ? "DEGRADED"
+          : quote.source === "somnia_json_api"
+            ? "SOMNIA_CONSENSUS"
+            : quote.source === "coingecko"
+              ? "PRIMARY"
+              : "FALLBACK",
+        summary,
+      }, criteriaMet),
+    );
   } catch (err) {
     return skillFail("ORACLE", payload.action, err instanceof Error ? err.message : "Oracle fetch failed");
   }

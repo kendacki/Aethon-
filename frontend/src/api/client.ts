@@ -250,6 +250,28 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  taskDetail: (id: number) => fetchApi<{ data: TaskDetailResponse }>(`/tasks/${id}/detail`).then((r) => r.data),
+  taskPayload: (hash: string) =>
+    fetchApi<{ data: { taskHash: string; payload: Record<string, unknown> } }>(`/tasks/payload/${hash}`).then(
+      (r) => r.data.payload,
+    ),
+};
+
+export type TaskDetailResponse = {
+  task: Task;
+  payload: Record<string, unknown> | null;
+  skillResults: Array<{
+    agentType: string;
+    agentAddress: string;
+    result: { success?: boolean; data?: Record<string, unknown>; error?: string };
+  }>;
+  evaluation: {
+    overallSuccess: boolean;
+    summary: string;
+    criteria: Array<{ id: string; label: string; met: boolean; detail?: string }>;
+    roleSummaries: Array<{ role: string; success: boolean; summary: string }>;
+  };
+  catalog: { agentWork?: string; sources?: string[] } | null;
 };
 
 export function formatEth(wei: string): string {

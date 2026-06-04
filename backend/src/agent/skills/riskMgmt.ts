@@ -1,5 +1,6 @@
 import { Contract, JsonRpcProvider } from "ethers";
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 const CB_ABI = [
@@ -85,17 +86,29 @@ export const executeRiskMgmt: SkillExecutor = async (payload, ctx) => {
       recommendation = "CAUTION — elevated protocol stress detected";
     }
 
-    return skillOk("RISK_MGMT", payload.action, {
-      circuitPaused,
-      consecutiveFailures,
-      activeAgents,
-      minHealthyAgents: minHealthy,
-      compositeScore,
-      riskFactors: factors,
-      riskLevel,
-      recommendation,
-      confidence: Number((compositeScore / 100).toFixed(2)),
-    });
+    const criteriaMet = !circuitPaused && compositeScore >= 70 && activeAgents >= minHealthy;
+
+    return skillOk(
+      "RISK_MGMT",
+      payload.action,
+      enrichSkillData(
+        "RISK_MGMT",
+        payload,
+        {
+          circuitPaused,
+          consecutiveFailures,
+          activeAgents,
+          minHealthyAgents: minHealthy,
+          compositeScore,
+          riskFactors: factors,
+          riskLevel,
+          recommendation,
+          confidence: Number((compositeScore / 100).toFixed(2)),
+          summary: `Fleet risk ${riskLevel} (score ${compositeScore}/100) — ${recommendation}`,
+        },
+        criteriaMet,
+      ),
+    );
   } catch (err) {
     return skillFail("RISK_MGMT", payload.action, err instanceof Error ? err.message : "Risk assessment failed");
   }

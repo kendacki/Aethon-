@@ -43,6 +43,10 @@ export function validateSkillParams(role: AgentType, payload: TaskPayload): Vali
   const manifest = SKILL_MANIFESTS[role];
   const params = { ...payload.params };
 
+  if (typeof params.userQuery === "string" && params.userQuery.length > 500) {
+    params.userQuery = params.userQuery.slice(0, 500);
+  }
+
   if (payload.action === "swarm_execute") {
     return { ok: true, errors: [], sanitized: params };
   }

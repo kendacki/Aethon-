@@ -9,10 +9,13 @@ import { IconArrowRight } from "./icons";
 
 export type TaskSubmitSuccess = {
   label: string;
+  userQuery?: string;
+  intent?: string;
   mode: "single" | "swarm";
   role?: string;
   complexity: number;
   rewardDisplay: string;
+  taskId?: number;
 };
 
 const Backdrop = styled(motion.div, {
@@ -109,7 +112,9 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
 
   const handleViewTasks = () => {
     onClose();
-    navigate("/tasks", { state: { scrollToTasks: true } });
+    navigate("/tasks", {
+      state: { scrollToTasks: true, openTaskId: data?.taskId },
+    });
   };
 
   return (
@@ -137,13 +142,25 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
             <Badge status="online">Submitted</Badge>
             <Title id="task-success-title">Task dispatched</Title>
             <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", opacity: 0.78, lineHeight: 1.55, fontFamily: "$secondary" }}>
-              Your signed request was accepted. Agents can now pick up <strong>{data.label}</strong> on-chain.
+              Your signed request was accepted. Agents will fetch live data and report against success criteria before
+              on-chain completion.
             </p>
+            {data.userQuery && (
+              <p style={{ marginTop: "0.75rem", fontSize: "0.8125rem", opacity: 0.85, lineHeight: 1.5, fontStyle: "italic" }}>
+                “{data.userQuery}”
+              </p>
+            )}
 
             <DetailGrid>
+              {data.intent && (
+                <DetailItem>
+                  <DetailLabel>Request type</DetailLabel>
+                  <DetailValue>{data.intent}</DetailValue>
+                </DetailItem>
+              )}
               <DetailItem>
-                <DetailLabel>Mode</DetailLabel>
-                <DetailValue>{data.mode === "swarm" ? "Full swarm" : "Single role"}</DetailValue>
+                <DetailLabel>Routing</DetailLabel>
+                <DetailValue>{data.mode === "swarm" ? "Full swarm" : "Single specialist"}</DetailValue>
               </DetailItem>
               {data.role && (
                 <DetailItem>

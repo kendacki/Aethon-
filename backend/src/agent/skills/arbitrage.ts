@@ -1,5 +1,6 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
 import { fetchSpotQuote } from "./http.js";
+import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 const VENUE_SEEDS = [7, 19, 31, 43];
@@ -49,24 +50,36 @@ export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
     const bestBuy = venues.find((v) => v.priceUsd === minPrice)!;
     const bestSell = venues.find((v) => v.priceUsd === maxPrice)!;
 
-    return skillOk("ARBITRAGE", payload.action, {
-      asset,
-      referenceUsd: quote.price,
-      priceSource: quote.source,
-      venues,
-      bestBuyVenue: bestBuy.id,
-      bestSellVenue: bestSell.id,
-      spreadBps,
-      minSpreadBps,
-      slippageBps,
-      notionalEth,
-      profitable,
-      confidence: Number(confidence.toFixed(2)),
-      estimatedProfitWei: netWei.toString(),
-      recommendation: profitable
-        ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after gas)`
-        : `Hold — spread ${spreadBps} bps below threshold or gas-adjusted PnL negative`,
-    });
+    const recommendation = profitable
+      ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after gas)`
+      : `Hold — spread ${spreadBps} bps below threshold or gas-adjusted PnL negative`;
+
+    return skillOk(
+      "ARBITRAGE",
+      payload.action,
+      enrichSkillData(
+        "ARBITRAGE",
+        payload,
+        {
+          asset,
+          referenceUsd: quote.price,
+          priceSource: quote.source,
+          venues,
+          bestBuyVenue: bestBuy.id,
+          bestSellVenue: bestSell.id,
+          spreadBps,
+          minSpreadBps,
+          slippageBps,
+          notionalEth,
+          profitable,
+          confidence: Number(confidence.toFixed(2)),
+          estimatedProfitWei: netWei.toString(),
+          recommendation,
+          summary: `${asset} spread ${spreadBps} bps — ${profitable ? "opportunity" : "no trade"}.`,
+        },
+        true,
+      ),
+    );
   } catch (err) {
     return skillFail("ARBITRAGE", payload.action, err instanceof Error ? err.message : "Spread check failed");
   }

@@ -13,6 +13,7 @@ import {
 } from "../services/coalitionVerify.js";
 import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
 import { syncFleetFromChain } from "../services/fleetSync.js";
+import { validateTaskPayload } from "../shared/taskPayload.js";
 import { getSomniaCompatibilityReport } from "../services/somniaCompat.js";
 
 export const healthRouter = Router();
@@ -144,6 +145,11 @@ reputationRouter.get("/:address", async (req, res, next) => {
 
 export const tasksRouter = Router();
 
+tasksRouter.get("/intents/catalog", async (_req, res) => {
+  const { INTENT_CATALOG } = await import("../shared/taskIntents.js");
+  res.json({ data: Object.values(INTENT_CATALOG) });
+});
+
 tasksRouter.get("/payload/:hash", async (req, res, next) => {
   try {
     const hash = req.params.hash.toLowerCase();
@@ -209,6 +215,51 @@ tasksRouter.post("/:id/coalition-intent", async (req, res, next) => {
       signature: signature ?? null,
     });
     res.status(201).json({ data: { taskId, address, agentType, signed: Boolean(signature) } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tasksRouter.get("/:id/detail", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const task = await repo.getTask(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+    const rawPayload = await repo.getTaskPayload(task.taskHash);
+    const payload =
+      rawPayload && typeof rawPayload === "object" && validateTaskPayload(rawPayload)
+        ? rawPayload
+        : null;
+    const skillResults = await repo.getSkillResults(taskId);
+    const { evaluateTaskOutcome } = await import("../shared/taskEvaluation.js");
+    const { INTENT_CATALOG } = await import("../shared/taskIntents.js");
+    const evaluation = evaluateTaskOutcome(
+      payload,
+      skillResults.map((r) => ({
+        agentType: r.agentType,
+        result: r.result as { success?: boolean; data?: Record<string, unknown>; error?: string },
+      })),
+    );
+    const catalog =
+      payload?.intent && payload.intent in INTENT_CATALOG
+        ? INTENT_CATALOG[payload.intent as keyof typeof INTENT_CATALOG]
+        : null;
+    res.json({
+      data: {
+        task,
+        payload,
+        skillResults,
+        evaluation,
+        catalog: catalog
+          ? {
+              agentWork: catalog.agentWork,
+              sources: catalog.sources,
+              successCriteria: catalog.successCriteria,
+            }
+          : null,
+      },
+    });
   } catch (err) {
     next(err);
   }

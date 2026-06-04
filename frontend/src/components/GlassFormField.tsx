@@ -59,6 +59,13 @@ export const GlassInput = styled("input", {
   ...controlBase,
 });
 
+export const GlassTextarea = styled("textarea", {
+  ...controlBase,
+  minHeight: "6.5rem",
+  resize: "vertical",
+  lineHeight: 1.5,
+});
+
 export const GlassSelect = styled("select", {
   ...controlBase,
   paddingRight: "2.25rem",

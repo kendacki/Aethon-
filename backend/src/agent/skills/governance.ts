@@ -1,4 +1,5 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 export const executeGovernance: SkillExecutor = async (payload, ctx) => {
@@ -68,19 +69,30 @@ export const executeGovernance: SkillExecutor = async (payload, ctx) => {
     }
   }
 
-  return skillOk("GOVERNANCE", payload.action, {
-    proposalId,
-    supportStakeEth: support,
-    againstStakeEth: against,
-    quorumEth: quorum,
-    passThreshold,
-    quorumReached,
-    participationPct,
-    supportRatio: Number(supportRatio.toFixed(4)),
-    recommendedVote,
-    confidence: Number(confidence.toFixed(2)),
-    flags,
-    summary,
-    ...(llmSummary ? { llmSummary, llmSource } : {}),
-  });
+  const criteriaMet = quorumReached && recommendedVote !== "ABSTAIN";
+
+  return skillOk(
+    "GOVERNANCE",
+    payload.action,
+    enrichSkillData(
+      "GOVERNANCE",
+      payload,
+      {
+        proposalId,
+        supportStakeEth: support,
+        againstStakeEth: against,
+        quorumEth: quorum,
+        passThreshold,
+        quorumReached,
+        participationPct,
+        supportRatio: Number(supportRatio.toFixed(4)),
+        recommendedVote,
+        confidence: Number(confidence.toFixed(2)),
+        flags,
+        summary: llmSummary ?? summary,
+        ...(llmSummary ? { llmSummary, llmSource } : {}),
+      },
+      criteriaMet,
+    ),
+  );
 };

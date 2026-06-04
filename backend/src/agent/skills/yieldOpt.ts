@@ -1,4 +1,5 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
 const VAULTS = [
@@ -48,21 +49,33 @@ export const executeYieldOpt: SkillExecutor = async (payload, _ctx) => {
   );
   const expectedYieldEth = (amountEth * blendedApyBps) / 10_000 / 365;
 
-  return skillOk("YIELD_OPT", payload.action, {
-    amountEth,
-    riskTolerance: tolerance,
-    recommendedVault: primary.id,
-    expectedApyBps: blendedApyBps,
-    allocation,
-    expectedDailyYieldEth: Number(expectedYieldEth.toFixed(6)),
-    confidence: Number(Math.min(0.92, 0.6 + eligible.length * 0.08).toFixed(2)),
-    alternatives: eligible.map((v) => ({
-      id: v.id,
-      apyBps: v.apyBps,
-      risk: v.risk,
-      score: Number(v.score.toFixed(1)),
-      tvlEth: v.tvlEth,
-    })),
-    recommendation: `Route ${amountEth} STT → ${allocation.map((a) => `${a.pct}% ${a.vaultId}`).join(", ")}`,
-  });
+  const recommendation = `Route ${amountEth} STT → ${allocation.map((a) => `${a.pct}% ${a.vaultId}`).join(", ")}`;
+
+  return skillOk(
+    "YIELD_OPT",
+    payload.action,
+    enrichSkillData(
+      "YIELD_OPT",
+      payload,
+      {
+        amountEth,
+        riskTolerance: tolerance,
+        recommendedVault: primary.id,
+        expectedApyBps: blendedApyBps,
+        allocation,
+        expectedDailyYieldEth: Number(expectedYieldEth.toFixed(6)),
+        confidence: Number(Math.min(0.92, 0.6 + eligible.length * 0.08).toFixed(2)),
+        alternatives: eligible.map((v) => ({
+          id: v.id,
+          apyBps: v.apyBps,
+          risk: v.risk,
+          score: Number(v.score.toFixed(1)),
+          tvlEth: v.tvlEth,
+        })),
+        recommendation,
+        summary: `Blended APY ${(blendedApyBps / 100).toFixed(2)}% on ${amountEth} ETH (${tolerance} risk).`,
+      },
+      true,
+    ),
+  );
 };

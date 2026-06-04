@@ -10,6 +10,12 @@ export const ALL_AGENT_TYPES: AgentType[] = [
   "RISK_MGMT",
 ];
 
+export interface SuccessCriterion {
+  id: string;
+  label: string;
+  description: string;
+}
+
 export interface TaskPayload {
   version: 1;
   primaryRole: AgentType;
@@ -17,6 +23,10 @@ export interface TaskPayload {
   params: Record<string, unknown>;
   requiredRoles?: AgentType[];
   label?: string;
+  /** Natural-language request from the operator. */
+  userQuery?: string;
+  intent?: string;
+  successCriteria?: SuccessCriterion[];
 }
 
 export function isAgentType(value: string): value is AgentType {
@@ -31,6 +41,9 @@ export function canonicalizePayload(payload: TaskPayload): TaskPayload {
     params: payload.params,
     ...(payload.requiredRoles ? { requiredRoles: [...payload.requiredRoles] } : {}),
     ...(payload.label ? { label: payload.label } : {}),
+    ...(payload.userQuery ? { userQuery: payload.userQuery } : {}),
+    ...(payload.intent ? { intent: payload.intent } : {}),
+    ...(payload.successCriteria ? { successCriteria: [...payload.successCriteria] } : {}),
   };
 }
 
@@ -60,6 +73,11 @@ export function validateTaskPayload(payload: unknown): payload is TaskPayload {
   if (p.requiredRoles !== undefined) {
     if (!Array.isArray(p.requiredRoles)) return false;
     if (!p.requiredRoles.every((r) => isAgentType(String(r)))) return false;
+  }
+  if (p.userQuery !== undefined && typeof p.userQuery !== "string") return false;
+  if (p.intent !== undefined && typeof p.intent !== "string") return false;
+  if (p.successCriteria !== undefined) {
+    if (!Array.isArray(p.successCriteria)) return false;
   }
   return true;
 }

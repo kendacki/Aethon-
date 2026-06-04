@@ -7,6 +7,7 @@ import { CoalitionEngine } from "./CoalitionEngine.js";
 import { NonceMgr } from "./NonceMgr.js";
 import { executeSkill } from "./skills/index.js";
 import type { SkillContext, SkillResult } from "./skills/types.js";
+import { evaluateTaskOutcome } from "../shared/taskEvaluation.js";
 import { skillResultDigest } from "../services/coalitionVerify.js";
 import type { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
 import { SomniaAgentsClient } from "../somnia/SomniaAgentsClient.js";
@@ -247,10 +248,21 @@ export class TaskExecutor {
         continue;
       }
 
-      const allOk = results.every((r) => (r.result as SkillResult).success !== false);
+      const evaluation = evaluateTaskOutcome(
+        payload as TaskPayload,
+        results.map((r) => ({
+          agentType: r.agentType,
+          result: r.result as SkillResult,
+        })),
+      );
+      const allOk = evaluation.overallSuccess;
       const summary = JSON.stringify({
         taskId,
         label: payload.label,
+        userQuery: payload.userQuery,
+        intent: payload.intent,
+        evaluation: evaluation.summary,
+        criteria: evaluation.criteria,
         results: results.map((r) => r.result),
       });
 
