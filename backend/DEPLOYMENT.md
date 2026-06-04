@@ -39,7 +39,7 @@ Copy [`env/railway-api.env.example`](env/railway-api.env.example) and set in the
 - `CORS_ORIGIN=https://aethon-lemon.vercel.app,http://localhost:5173`
 - `SOMNIA_RPC_URL=https://dream-rpc.somnia.network`
 - `SOMNIA_WS_URL=wss://dream-rpc.somnia.network/ws`
-- `INDEXER_START_BLOCK=390023867` (TaskMarket deploy block; avoids genesis scan)
+- `INDEXER_START_BLOCK=400735331` (latest TaskMarket deploy block — see `deployments/somniaTestnet-50312.json`)
 - Somnia platform / vault addresses (see example file)
 
 **Auth:** Protected write routes (`POST /v1/tasks/submit`, `POST /v1/agents/register`) require **SIWE + JWT** (`Authorization: Bearer`). Do not set `API_KEY=dev-api-key` in production.

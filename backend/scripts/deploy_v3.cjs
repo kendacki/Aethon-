@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
 
-function updateEnv(addresses, deployerAddress) {
+function updateEnv(addresses, deployerAddress, deploymentBlock) {
   const envPath = path.join(__dirname, "..", ".env");
   if (!fs.existsSync(envPath)) return;
 
@@ -19,6 +19,14 @@ function updateEnv(addresses, deployerAddress) {
   set("COALITION_MANAGER_ADDR", addresses.CoalitionManager);
   set("TASK_MARKET_ADDR", addresses.TaskMarket);
   set("DEPLOYER_ADDR", deployerAddress);
+  if (addresses.AethonFleetVault) {
+    set("AETHON_FLEET_VAULT_ADDR", addresses.AethonFleetVault);
+    set("SWARM_EXECUTION_ROUTER_ADDR", addresses.AethonFleetVault);
+    set("SOMNIA_VAULT_ENABLED", "true");
+  }
+  if (deploymentBlock != null) {
+    set("INDEXER_START_BLOCK", String(deploymentBlock));
+  }
 
   fs.writeFileSync(envPath, content);
   console.log("\nUpdated backend/.env with deployed contract addresses.");
@@ -99,11 +107,31 @@ async function main() {
     );
   }
 
+  const Vault = await ethers.getContractFactory("AethonFleetVault");
+  const vault = await Vault.deploy();
+  await vault.waitForDeployment();
+  const vaultAddr = await vault.getAddress();
+  console.log("AethonFleetVault.sol:", vaultAddr);
+
+  await (await vault.setTaskMarket(marketAddr)).wait();
+  await (await vault.setFleetOperator(deployer.address)).wait();
+  await (await market.setFleetVault(vaultAddr)).wait();
+  console.log("Vault ↔ TaskMarket wired");
+
+  let deploymentBlock = null;
+  try {
+    const deployTx = market.deploymentTransaction();
+    if (deployTx?.blockNumber != null) deploymentBlock = deployTx.blockNumber;
+  } catch {
+    deploymentBlock = await ethers.provider.getBlockNumber();
+  }
+
   const deployment = {
     network: hre.network.name,
     chainId: Number((await ethers.provider.getNetwork()).chainId),
     deployedAt: new Date().toISOString(),
     deployer: deployer.address,
+    deploymentBlock,
     roles: { guardian, treasury, slashMultisig: multisig },
     addresses: {
       ReputationEngine: repEngineAddr,
@@ -111,6 +139,7 @@ async function main() {
       AgentRegistry: registryAddr,
       CoalitionManager: coalMgrAddr,
       TaskMarket: marketAddr,
+      AethonFleetVault: vaultAddr,
     },
   };
 
@@ -119,7 +148,7 @@ async function main() {
   const outFile = path.join(outDir, `${hre.network.name}-${deployment.chainId}.json`);
   fs.writeFileSync(outFile, JSON.stringify(deployment, null, 2));
   if (hre.network.name !== "hardhat") {
-    updateEnv(deployment.addresses, deployer.address);
+    updateEnv(deployment.addresses, deployer.address, deploymentBlock);
   }
 
   console.log("\nAETHON v3.0 deployment complete.");

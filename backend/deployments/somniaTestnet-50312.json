@@ -1,22 +1,23 @@
 {
   "network": "somniaTestnet",
   "chainId": 50312,
-  "deployedAt": "2026-05-23T11:59:04.380Z",
+  "deployedAt": "2026-06-04T23:29:40.414Z",
   "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
+  "deploymentBlock": 400735331,
   "roles": {
     "guardian": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
     "treasury": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
     "slashMultisig": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6"
   },
   "addresses": {
-    "ReputationEngine": "0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab",
-    "CircuitBreaker": "0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0",
-    "AgentRegistry": "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",
-    "CoalitionManager": "0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B",
-    "TaskMarket": "0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8",
-    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353",
+    "ReputationEngine": "0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91",
+    "CircuitBreaker": "0x4Eed8B20f302b8A28f375F5b7FE33E2296803893",
+    "AgentRegistry": "0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F",
+    "CoalitionManager": "0x55B189B30980c95Bfb2936de0ed11e54fC590648",
+    "TaskMarket": "0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc",
+    "AethonFleetVault": "0x71bb54c9507387B716199D72858a1F4DEB8FfE1b",
     "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
-    "AethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3"
+    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353"
   },
   "somniaConsumer": {
     "network": "somniaTestnet",
@@ -24,14 +25,20 @@
     "platform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
     "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353",
     "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
-    "deployedAt": "2026-05-29T02:14:35.049Z"
+    "note": "Unchanged — not redeployed with v3 stack"
   },
   "aethonVault": {
     "network": "somniaTestnet",
     "chainId": 50312,
-    "AethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3",
+    "AethonFleetVault": "0x71bb54c9507387B716199D72858a1F4DEB8FfE1b",
     "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
-    "deployedAt": "2026-05-29T02:35:30.722Z",
-    "note": "Kit-compatible vault owned by AETHON deployer (shared Kit vault is third-party admin-only)."
+    "deployedAt": "2026-06-04T23:29:40.414Z",
+    "wiredToTaskMarket": true
+  },
+  "previous": {
+    "TaskMarket": "0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8",
+    "AgentRegistry": "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",
+    "AethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3",
+    "retiredAt": "2026-06-04T23:29:40.414Z"
   }
 }
