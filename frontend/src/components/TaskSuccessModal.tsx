@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { styled } from "../stitches.config";
 import { spring } from "../stitches.config";
+import { GLASS } from "../theme/glass";
 import { Button, Badge } from "./ui";
 import { IconArrowRight } from "./icons";
 
@@ -30,8 +31,10 @@ const Dialog = styled(motion.div, {
   width: "100%",
   maxWidth: "420px",
   borderRadius: "$xl",
-  border: "1px solid rgba(13, 188, 130, 0.35)",
-  background: "linear-gradient(165deg, rgba(13, 188, 130, 0.14) 0%, rgba(0, 0, 0, 0.96) 45%)",
+  border: `1px solid ${GLASS.accentBorderHover}`,
+  background: GLASS.gradient.modalAccent,
+  backdropFilter: GLASS.blur.card,
+  WebkitBackdropFilter: GLASS.blur.card,
   boxShadow: "0 24px 64px rgba(0, 0, 0, 0.65)",
   padding: "$8 $6",
   outline: "none",

@@ -92,14 +92,10 @@ const StatGlassCard = styled(GlassCard, {
   display: "flex",
   flexDirection: "column",
   padding: "$6 $5",
-  background: "linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.72) 42%, rgba(0, 0, 0, 0.88) 100%)",
-  backdropFilter: "blur(22px) saturate(160%)",
-  WebkitBackdropFilter: "blur(22px) saturate(160%)",
-  border: "1px solid rgba(255, 255, 255, 0.11)",
-  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08)",
   "@md": {
     padding: "$8 $6",
   },
+  defaultVariants: { tone: "elevated" },
 });
 
 const StatFigure = styled("div", {
@@ -155,8 +151,9 @@ const QuickLinkCard = styled(GlassCard, {
   gap: "$3",
   cursor: "pointer",
   transition: "border-color 150ms ease, transform 150ms ease",
+  defaultVariants: { tone: "elevated" },
   "&:hover": {
-    borderColor: "rgba(255, 255, 255, 0.22)",
+    borderColor: "$borderStrong",
     transform: "translateY(-2px)",
   },
 });
@@ -177,7 +174,7 @@ const StepRow = styled("div", {
   gap: "$4",
   alignItems: "flex-start",
   padding: "$4 0",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+  borderBottom: "1px solid $glassDivider",
   "&:last-child": { borderBottom: "none" },
 });
 
@@ -198,6 +195,7 @@ const StepNum = styled("div", {
 const GuideCard = styled(GlassCard, {
   padding: "$6",
   height: "100%",
+  defaultVariants: { tone: "elevated" },
 });
 
 const DEMO_OVERVIEW_STATS = {

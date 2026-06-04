@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { styled } from "../../stitches.config";
+import { GLASS } from "../../theme/glass";
 import { useSignedIn } from "../../auth/useSignedIn";
 import { useWallet } from "../../wallet/WalletContext";
 import { useToast } from "../ToastProvider";
 import { TaskSuccessModal, type TaskSubmitSuccess } from "../TaskSuccessModal";
 import { api, formatEth } from "../../api/client";
-import { Button, Card, Badge } from "../ui";
+import { Button, Badge } from "../ui";
+import { GlassCard } from "../GlassPanel";
 import {
   ALL_AGENT_TYPES,
   defaultPayloadForRole,
@@ -16,9 +18,8 @@ import {
   type AgentType,
 } from "../../task/payload";
 
-const Panel = styled(Card, {
-  borderColor: "rgba(13, 188, 130, 0.2)",
-  background: "linear-gradient(165deg, rgba(13, 188, 130, 0.06) 0%, rgba(0, 0, 0, 0.5) 100%)",
+const Panel = styled(GlassCard, {
+  defaultVariants: { tone: "accent" },
 });
 
 const FieldGrid = styled("div", {
@@ -45,9 +46,9 @@ const Field = styled("label", {
 const Input = styled("input", {
   padding: "$3",
   borderRadius: "$md",
-  background: "rgba(255, 255, 255, 0.06)",
+  background: GLASS.fillMuted,
   color: "$text",
-  border: "1px solid rgba(255, 255, 255, 0.15)",
+  border: `1px solid ${GLASS.border}`,
   fontSize: "$sm",
   fontFamily: "$sans",
   fontWeight: 500,
@@ -58,9 +59,9 @@ const Input = styled("input", {
 const Select = styled("select", {
   padding: "$3",
   borderRadius: "$md",
-  background: "rgba(255, 255, 255, 0.06)",
+  background: GLASS.fillMuted,
   color: "$text",
-  border: "1px solid rgba(255, 255, 255, 0.15)",
+  border: `1px solid ${GLASS.border}`,
   fontSize: "$sm",
 });
 

@@ -6,7 +6,7 @@ import { useFetch } from "../../api/hooks";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassPanel } from "../GlassPanel";
+import { GlassSectionPanel, GlassCard, GlassSurface, GlassFilterPill, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconTask, ICON_MD } from "../icons";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
@@ -16,17 +16,7 @@ const pulse = keyframes({
   "50%": { opacity: 0.45 },
 });
 
-const Panel = styled(GlassPanel, {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "$6",
-  borderColor: "rgba(13, 188, 130, 0.22)",
-  background: "linear-gradient(165deg, rgba(13, 188, 130, 0.06) 0%, rgba(0, 0, 0, 0.55) 55%, rgba(0, 0, 0, 0.88) 100%)",
-  "@md": { padding: "$8" },
-  defaultVariants: { radius: "full" },
-});
+const Panel = GlassSectionPanel;
 
 const Header = styled("div", {
   display: "flex",
@@ -71,11 +61,8 @@ const SummaryGrid = styled("div", {
   marginBottom: "$6",
 });
 
-const SummaryCell = styled("div", {
+const SummaryCell = styled(GlassSurface, {
   padding: "$4 $5",
-  borderRadius: "$md",
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
 });
 
 const SummaryValue = styled("div", {
@@ -102,25 +89,7 @@ const Toolbar = styled("div", {
   marginBottom: "$5",
 });
 
-const FilterPill = styled("button", {
-  padding: "$2 $4",
-  borderRadius: "$pill",
-  fontSize: "0.75rem",
-  fontWeight: 600,
-  cursor: "pointer",
-  border: "1px solid rgba(255, 255, 255, 0.12)",
-  background: "rgba(255, 255, 255, 0.04)",
-  color: "$text",
-  transition: "all 150ms ease",
-  variants: {
-    active: {
-      true: {
-        background: "rgba(13, 188, 130, 0.14)",
-        borderColor: "rgba(13, 188, 130, 0.45)",
-      },
-    },
-  },
-});
+const FilterPill = GlassFilterPill;
 
 const AgentGrid = styled("div", {
   display: "grid",
@@ -130,18 +99,16 @@ const AgentGrid = styled("div", {
   "@lg": { gridTemplateColumns: "repeat(3, 1fr)" },
 });
 
-const AgentCard = styled(motion.article, {
+const AgentCard = styled(motion(GlassCard), {
   display: "flex",
   flexDirection: "column",
   gap: "$4",
   padding: "$5",
-  borderRadius: "$lg",
-  background: "linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.45) 100%)",
-  border: "1px solid rgba(255, 255, 255, 0.12)",
   minHeight: "100%",
   transition: "border-color 150ms ease, transform 150ms ease",
+  defaultVariants: { tone: "elevated" },
   "&:hover": {
-    borderColor: "rgba(13, 188, 130, 0.35)",
+    borderColor: GLASS.accentBorderHover,
     transform: "translateY(-2px)",
   },
 });
@@ -172,7 +139,7 @@ const StatRow = styled("div", {
   gridTemplateColumns: "1fr 1fr",
   gap: "$3",
   paddingTop: "$3",
-  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  borderTop: `1px solid ${GLASS.divider}`,
 });
 
 const StatBlock = styled("div", {});

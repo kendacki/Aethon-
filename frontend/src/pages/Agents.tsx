@@ -9,17 +9,9 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, s
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, Grid, PageWrap, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
-const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
+import { GlassFilterPill } from "../components/GlassPanel";
 
-const filterBtn = (active: boolean) => ({
-  padding: "0.5rem 1rem",
-  borderRadius: 999,
-  fontSize: "0.75rem",
-  fontWeight: 600,
-  background: active ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.04)",
-  color: "#FFFFFF",
-  border: `1px solid ${active ? "rgba(255, 255, 255, 0.28)" : "rgba(255, 255, 255, 0.12)"}`,
-});
+const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
 
 function GuestFleetGrid() {
   const [page, setPage] = useState(0);
@@ -32,9 +24,9 @@ function GuestFleetGrid() {
 
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
         {TYPES.map((t) => (
-          <button key={t || "all"} onClick={() => { setType(t); setPage(0); }} style={filterBtn(type === t)}>
+          <GlassFilterPill key={t || "all"} type="button" active={type === t} onClick={() => { setType(t); setPage(0); }}>
             {t || "All types"}
-          </button>
+          </GlassFilterPill>
         ))}
       </div>
 

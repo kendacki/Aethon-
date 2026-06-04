@@ -1,13 +1,13 @@
 import { styled } from "../stitches.config";
+import { GLASS } from "../theme/glass";
 
 const glassBase = {
   position: "relative" as const,
   overflow: "hidden" as const,
   isolation: "isolate" as const,
-  background: "linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.62) 38%, rgba(0, 0, 0, 0.82) 100%)",
-  backdropFilter: "blur(24px) saturate(180%)",
-  WebkitBackdropFilter: "blur(24px) saturate(180%)",
-  border: "1px solid rgba(255, 255, 255, 0.12)",
+  backdropFilter: GLASS.blur.panel,
+  WebkitBackdropFilter: GLASS.blur.panel,
+  border: `1px solid ${GLASS.border}`,
   "&::before": {
     content: '""',
     position: "absolute",
@@ -15,14 +15,14 @@ const glassBase = {
     left: "10%",
     right: "10%",
     height: "1px",
-    background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent)",
+    background: `linear-gradient(90deg, transparent, ${GLASS.highlight}, transparent)`,
     pointerEvents: "none",
   },
   "&::after": {
     content: '""',
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 42%)",
+    background: `linear-gradient(180deg, ${GLASS.sheen} 0%, transparent 42%)`,
     pointerEvents: "none",
   },
 };
@@ -34,15 +34,24 @@ export const GlassPanel = styled("div", {
       top: {
         borderRadius: "$xl $xl 0 0",
         borderBottom: "none",
-        boxShadow: "0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+        boxShadow: GLASS.shadow.panelTop,
       },
       full: {
         borderRadius: "$xl",
-        boxShadow: "0 16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+        boxShadow: GLASS.shadow.panel,
+      },
+    },
+    tone: {
+      neutral: {
+        background: GLASS.gradient.panel,
+      },
+      accent: {
+        background: GLASS.gradient.panelAccent,
+        borderColor: GLASS.accentBorder,
       },
     },
   },
-  defaultVariants: { radius: "full" },
+  defaultVariants: { radius: "full", tone: "neutral" },
 });
 
 export const GlassCard = styled("div", {
@@ -50,14 +59,112 @@ export const GlassCard = styled("div", {
   zIndex: 1,
   borderRadius: "$lg",
   padding: "$6",
-  background: "rgba(255, 255, 255, 0.04)",
-  backdropFilter: "blur(12px) saturate(160%)",
-  WebkitBackdropFilter: "blur(12px) saturate(160%)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+  backdropFilter: GLASS.blur.sm,
+  WebkitBackdropFilter: GLASS.blur.sm,
+  border: `1px solid ${GLASS.borderSoft}`,
+  boxShadow: GLASS.shadow.cardInset,
+  variants: {
+    tone: {
+      flat: {
+        background: GLASS.fill,
+        borderColor: GLASS.borderSoft,
+      },
+      elevated: {
+        background: GLASS.gradient.card,
+        borderColor: GLASS.border,
+        backdropFilter: GLASS.blur.card,
+        WebkitBackdropFilter: GLASS.blur.card,
+        boxShadow: GLASS.shadow.card,
+      },
+      accent: {
+        background: GLASS.gradient.cardAccent,
+        borderColor: GLASS.accentBorderCard,
+      },
+    },
+  },
+  defaultVariants: { tone: "flat" },
+});
+
+/** Operator sections (activity, fleet) share this shell. */
+export const GlassSectionPanel = styled(GlassPanel, {
+  maxWidth: "1200px",
+  margin: "0 auto",
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "$6",
+  "@md": { padding: "$8" },
+  defaultVariants: { radius: "full", tone: "accent" },
+});
+
+/** Metric and summary tiles inside accent panels. */
+export const GlassMetricTile = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+  gap: "$3",
+  padding: "$6",
+  borderRadius: "$lg",
+  background: GLASS.gradient.card,
+  border: `1px solid ${GLASS.border}`,
+  boxShadow: GLASS.shadow.metric,
+  transition: "border-color 150ms ease, transform 150ms ease",
+  minHeight: "9.5rem",
+  variants: {
+    accent: {
+      true: {
+        background: GLASS.gradient.cardAccent,
+        borderColor: GLASS.accentBorderCard,
+      },
+    },
+  },
+});
+
+/** Compact cells (summary stats, icon rings, fleet bar). */
+export const GlassSurface = styled("div", {
+  background: GLASS.fill,
+  border: `1px solid ${GLASS.borderSoft}`,
+  borderRadius: "$md",
+  variants: {
+    interactive: {
+      true: {
+        transition: "border-color 150ms ease",
+        "&:hover": { borderColor: GLASS.borderHover },
+      },
+    },
+    padding: {
+      sm: { padding: "$3 $4" },
+      md: { padding: "$4 $5" },
+      lg: { padding: "$5 $6" },
+    },
+  },
+});
+
+export const GlassFilterPill = styled("button", {
+  padding: "$2 $4",
+  borderRadius: "$pill",
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  cursor: "pointer",
+  border: `1px solid ${GLASS.border}`,
+  background: GLASS.fill,
+  color: "$text",
+  transition: "all 150ms ease",
+  variants: {
+    active: {
+      true: {
+        background: GLASS.accentFill,
+        borderColor: GLASS.accentBorderStrong,
+      },
+      false: {
+        background: GLASS.fill,
+        borderColor: GLASS.border,
+      },
+    },
+  },
 });
 
 export const GlassContent = styled("div", {
   position: "relative",
   zIndex: 1,
 });
+
+export { GLASS };

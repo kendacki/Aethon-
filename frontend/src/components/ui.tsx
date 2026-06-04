@@ -51,6 +51,8 @@ export const Card = styled("div", {
   padding: "$6",
   background: "$bgCard",
   border: "1px solid $border",
+  backdropFilter: "blur(12px) saturate(160%)",
+  WebkitBackdropFilter: "blur(12px) saturate(160%)",
   transition: "border-color $fast",
   "&:hover": { borderColor: "$borderStrong" },
 });

@@ -4,8 +4,8 @@ const Banner = styled("div", {
   marginTop: "$4",
   padding: "$4 $5",
   borderRadius: "$lg",
-  border: "1px solid rgba(255,255,255,0.2)",
-  background: "rgba(255,255,255,0.06)",
+  border: "1px solid $borderStrong",
+  background: "$bgGlass",
   fontSize: "$sm",
   color: "$text",
   display: "flex",
@@ -24,7 +24,7 @@ const RetryBtn = styled("button", {
   background: "transparent",
   color: "$text",
   cursor: "pointer",
-  "&:hover": { background: "rgba(255,255,255,0.08)" },
+  "&:hover": { background: "$bgCard" },
 });
 
 export function ErrorBanner({

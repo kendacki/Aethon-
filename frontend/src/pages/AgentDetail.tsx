@@ -104,7 +104,7 @@ export default function AgentDetailPage() {
                       display: "flex",
                       justifyContent: "space-between",
                       padding: "0.75rem 0",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      borderBottom: "1px solid $glassDivider",
                       fontSize: "0.875rem",
                     }}
                   >

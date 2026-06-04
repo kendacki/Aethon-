@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { api, formatEth, type Task, type WalletTaskStats } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassPanel } from "../GlassPanel";
+import { GlassSectionPanel, GlassMetricTile, GlassSurface, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
 import { summarizeWalletStake } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
@@ -15,17 +15,7 @@ const pulse = keyframes({
   "50%": { opacity: 0.45, transform: "scale(0.92)" },
 });
 
-const Panel = styled(GlassPanel, {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "$6",
-  width: "100%",
-  boxSizing: "border-box",
-  borderColor: "rgba(13, 188, 130, 0.22)",
-  background: "linear-gradient(165deg, rgba(13, 188, 130, 0.06) 0%, rgba(0, 0, 0, 0.55) 55%, rgba(0, 0, 0, 0.85) 100%)",
-  "@md": { padding: "$8" },
-  defaultVariants: { radius: "full" },
-});
+const Panel = GlassSectionPanel;
 
 const Header = styled("div", {
   display: "flex",
@@ -86,26 +76,7 @@ const MetricGrid = styled("div", {
   },
 });
 
-const MetricCard = styled(motion.div, {
-  display: "flex",
-  flexDirection: "column",
-  gap: "$3",
-  padding: "$6",
-  borderRadius: "$lg",
-  background: "linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.5) 100%)",
-  border: "1px solid rgba(255, 255, 255, 0.12)",
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.35)",
-  transition: "border-color 150ms ease, transform 150ms ease",
-  minHeight: "9.5rem",
-  variants: {
-    accent: {
-      stake: {
-        borderColor: "rgba(13, 188, 130, 0.2)",
-        background: "linear-gradient(165deg, rgba(13, 188, 130, 0.1) 0%, rgba(0, 0, 0, 0.55) 100%)",
-      },
-    },
-  },
-});
+const MetricCard = GlassMetricTile;
 
 const MetricTop = styled("div", {
   display: "flex",
@@ -114,15 +85,12 @@ const MetricTop = styled("div", {
   gap: "$3",
 });
 
-const IconRing = styled("div", {
+const IconRing = styled(GlassSurface, {
   width: 44,
   height: 44,
-  borderRadius: "$md",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(255, 255, 255, 0.06)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
   flexShrink: 0,
 });
 
@@ -149,7 +117,7 @@ const StakeBreakdown = styled("ul", {
   listStyle: "none",
   margin: "$3 0 0",
   padding: "$3 0 0",
-  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  borderTop: `1px solid ${GLASS.divider}`,
   display: "grid",
   gap: "$2",
 });
@@ -188,11 +156,11 @@ const FleetBar = styled(Link, {
   borderRadius: "$lg",
   textDecoration: "none",
   color: "inherit",
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  background: GLASS.fill,
+  border: `1px solid ${GLASS.borderSoft}`,
   transition: "border-color 150ms ease",
   "&:hover": {
-    borderColor: "rgba(255, 255, 255, 0.22)",
+    borderColor: GLASS.borderHover,
   },
 });
 
@@ -218,7 +186,7 @@ const FleetLabel = styled("span", {
 const RecentBlock = styled("div", {
   marginTop: "$6",
   paddingTop: "$6",
-  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  borderTop: `1px solid ${GLASS.divider}`,
 });
 
 const RecentTitle = styled("div", {
@@ -240,8 +208,8 @@ const TaskRow = styled(Link, {
   color: "inherit",
   border: "1px solid transparent",
   "&:hover": {
-    background: "rgba(255, 255, 255, 0.04)",
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    background: GLASS.fill,
+    borderColor: GLASS.divider,
   },
 });
 
@@ -252,7 +220,7 @@ const shimmer = keyframes({
 
 const Skeleton = styled("div", {
   borderRadius: "$md",
-  background: "linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 100%)",
+  background: GLASS.gradient.shimmer,
   backgroundSize: "200% 100%",
   animation: `${shimmer} 1.2s ease-in-out infinite`,
 });
@@ -360,7 +328,7 @@ export function OperatorActivitySection({
           )}
         </MetricCard>
 
-        <MetricCard accent="stake">
+        <MetricCard accent={true}>
           {loading ? (
             <>
               <Skeleton css={{ height: 44, width: 44 }} />

@@ -12,18 +12,9 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
 import { useToast } from "../components/ToastProvider";
 import { spring, styled } from "../stitches.config";
+import { GlassFilterPill } from "../components/GlassPanel";
 
 const STATUSES = ["", "PENDING", "ASSIGNED", "COMPLETED", "FAILED", "EXPIRED"];
-
-const filterBtn = (active: boolean) => ({
-  padding: "0.5rem 1rem",
-  borderRadius: 999,
-  fontSize: "0.75rem",
-  fontWeight: 600,
-  background: active ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.04)",
-  color: "#FFFFFF",
-  border: `1px solid ${active ? "rgba(255, 255, 255, 0.28)" : "rgba(255, 255, 255, 0.12)"}`,
-});
 
 const LayoutGrid = styled("div", {
   display: "grid",
@@ -131,9 +122,9 @@ export default function TasksPage() {
 
             <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
               {STATUSES.map((s) => (
-                <button key={s || "all"} onClick={() => { setStatus(s); setPage(0); }} style={filterBtn(status === s)}>
+                <GlassFilterPill key={s || "all"} type="button" active={status === s} onClick={() => { setStatus(s); setPage(0); }}>
                   {s || "All"}
-                </button>
+                </GlassFilterPill>
               ))}
             </div>
 

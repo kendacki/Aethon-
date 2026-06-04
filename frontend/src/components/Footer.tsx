@@ -60,7 +60,7 @@ const FooterLink = styled(RouterLink, {
 const Copyright = styled("div", {
   marginTop: "$8",
   paddingTop: "$6",
-  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  borderTop: "1px solid $glassDivider",
   fontSize: "$xs",
   opacity: 0.5,
 });

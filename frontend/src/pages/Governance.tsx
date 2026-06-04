@@ -22,6 +22,7 @@ import { SignedInShell } from "../components/session/SessionUI";
 import { useSignedIn } from "../auth/useSignedIn";
 import { useToast } from "../components/ToastProvider";
 import { spring, styled } from "../stitches.config";
+import { GlassSurface, GLASS } from "../components/GlassPanel";
 import { useEffect } from "react";
 
 const SECURITY_ITEMS = [
@@ -40,14 +41,11 @@ const SecurityGrid = styled("div", {
   },
 });
 
-const SecurityItem = styled(motion.div, {
+const SecurityItem = styled(motion(GlassSurface), {
   display: "flex",
   alignItems: "center",
   gap: "$4",
   padding: "$4 $5",
-  borderRadius: "$md",
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
   minHeight: "4.5rem",
 });
 
@@ -135,7 +133,7 @@ export default function GovernancePage() {
 
         {cb && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <Card style={{ marginTop: "1.5rem", borderColor: cb.paused ? "rgba(255,255,255,0.4)" : "rgba(13, 188, 130, 0.25)" }}>
+            <Card style={{ marginTop: "1.5rem", borderColor: cb.paused ? GLASS.borderHover : GLASS.accentBorderCard }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
                 <div>
