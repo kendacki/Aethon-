@@ -269,14 +269,16 @@ export function IconLock({ size = ICON_MD, ...props }: IconProps) {
       <path
         d="M16 22 V15 C16 10.03 19.58 6 24 6 C28.42 6 32 10.03 32 15 V22"
         stroke={F.left}
-        strokeWidth="3"
+        strokeWidth="3.5"
         fill="none"
+        strokeLinecap="round"
       />
       <path
-        d="M16 22 V15 C16 10.03 19.58 6 24 6 C28.42 6 32 10.03 32 15 V22"
+        d="M24 6 C28.42 6 32 10.03 32 15 V22 H24"
         stroke={F.right}
-        strokeWidth="2"
+        strokeWidth="2.5"
         fill="none"
+        strokeLinecap="round"
       />
       <IsoBox
         t="M18 22 H30 V24 H18 Z"
