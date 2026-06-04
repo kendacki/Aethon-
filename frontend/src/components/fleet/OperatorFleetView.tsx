@@ -52,6 +52,14 @@ const Subtitle = styled("p", {
   maxWidth: "32rem",
 });
 
+const HeaderActions = styled("div", {
+  display: "flex",
+  gap: "$2",
+  flexWrap: "wrap",
+  alignItems: "center",
+  flexShrink: 0,
+});
+
 const SummaryGrid = styled("div", {
   display: "grid",
   gap: "$3",
@@ -270,14 +278,14 @@ export function OperatorFleetView() {
             Five on chain specialists. Inspect stake, reputation, and worker readiness before you dispatch tasks.
           </Subtitle>
         </div>
-        <div style={{ display: "flex", gap: "$3", flexWrap: "wrap", alignItems: "center" }}>
-          <Button variant="primary" size="sm" as={Link} to="/tasks">
-            Dispatch task <IconArrowRight size={16} />
+        <HeaderActions>
+          <Button variant="outline" size="sm" as={Link} to="/tasks" style={{ width: "auto" }}>
+            Dispatch <IconArrowRight size={14} />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={busy}>
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={busy} style={{ width: "auto" }}>
             {busy ? "Updating…" : "Refresh"}
           </Button>
-        </div>
+        </HeaderActions>
       </Header>
 
       <ErrorBanner message={error} onRetry={reload} />
