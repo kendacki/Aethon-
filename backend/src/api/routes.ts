@@ -4,6 +4,7 @@ import { getManifest } from "../agent/manifests/data.js";
 import { checkDb } from "../db/client.js";
 import { repo } from "../db/repository.js";
 import { indexer } from "../services/indexer.js";
+import { taskPromoter } from "../services/taskPromoter.js";
 import { parseBool, parsePagination } from "./middleware.js";
 import type { TaskStatus } from "../services/types.js";
 import {
@@ -152,6 +153,19 @@ tasksRouter.get("/payload/:hash", async (req, res, next) => {
     const payload = await repo.getTaskPayload(hash);
     if (!payload) return res.status(404).json({ error: "Payload not found" });
     res.json({ data: { taskHash: hash, payload } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tasksRouter.post("/:id/promote", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    await taskPromoter.runOnce();
+    await indexer.syncLiveState();
+    const task = await repo.getTask(taskId);
+    res.json({ data: { taskId, status: task?.status ?? "UNKNOWN", note: "Promotion tick ran" } });
   } catch (err) {
     next(err);
   }

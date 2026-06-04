@@ -154,8 +154,8 @@ export class TaskExecutor {
 
       const signatures = members.map((m) => signedByAddr.get(m.toLowerCase())!.signature!);
 
-      const existing = await this.coalition.coalitions(coalitionAddr);
-      if (Number(existing.formed) === 0 && myAddr.toLowerCase() === members[0].toLowerCase()) {
+      let existing = await this.coalition.coalitions(coalitionAddr);
+      if (Number(existing.formed) === 0) {
         const nonce = await this.nonceMgr.acquireNonce();
         try {
           const tx = await this.coalition.formCoalition(members, taskIdBig, signatures, {
@@ -164,15 +164,20 @@ export class TaskExecutor {
           });
           await tx.wait();
           console.log(`[TaskExecutor] Coalition formed for task #${taskId}: ${coalitionAddr}`);
+          existing = await this.coalition.coalitions(coalitionAddr);
+        } catch (err) {
+          console.error(
+            `[TaskExecutor] formCoalition failed for #${taskId}:`,
+            err instanceof Error ? err.message : err,
+          );
         } finally {
           this.nonceMgr.release();
         }
       }
 
-      const task = await this.taskMarket.tasks(taskIdBig);
-      const status = Number(task.status);
+      let status = Number((await this.taskMarket.tasks(taskIdBig)).status);
 
-      if (status === TASK_STATUS_PENDING && myAddr.toLowerCase() === members[0].toLowerCase()) {
+      if (status === TASK_STATUS_PENDING && Number(existing.formed) > 0 && myAddr.toLowerCase() === members[0].toLowerCase()) {
         const nonce = await this.nonceMgr.acquireNonce();
         try {
           const tx = await this.taskMarket.assignToCoalition(taskIdBig, coalitionAddr, {
@@ -181,12 +186,18 @@ export class TaskExecutor {
           });
           await tx.wait();
           console.log(`[TaskExecutor] Task #${taskId} assigned to coalition`);
+          status = Number((await this.taskMarket.tasks(taskIdBig)).status);
+        } catch (err) {
+          console.error(
+            `[TaskExecutor] assignToCoalition failed for #${taskId}:`,
+            err instanceof Error ? err.message : err,
+          );
         } finally {
           this.nonceMgr.release();
         }
       }
 
-      if (status === TASK_STATUS_ASSIGNED || Number((await this.taskMarket.tasks(taskIdBig)).status) === TASK_STATUS_ASSIGNED) {
+      if (status === TASK_STATUS_ASSIGNED) {
         return members;
       }
 

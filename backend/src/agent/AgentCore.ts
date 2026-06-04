@@ -163,7 +163,7 @@ export class AgentCore {
   /** Catch tasks submitted before this worker subscribed (no Heartbeat event on chain). */
   private startPendingTaskScanner(): void {
     if (this.config.taskMarketAddr === ethers.ZeroAddress) return;
-    const intervalMs = Number(process.env.PENDING_TASK_SCAN_MS ?? 30_000);
+    const intervalMs = Number(process.env.PENDING_TASK_SCAN_MS ?? 15_000);
     const scan = () => void this.scanPendingTasks();
     void scan();
     this.pendingTaskTimer = setInterval(scan, intervalMs);

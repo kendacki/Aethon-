@@ -27,6 +27,7 @@ import { migrate } from "../db/migrate.js";
 import { pool } from "../db/client.js";
 import { indexer } from "../services/indexer.js";
 import { relayer } from "../services/relayer.js";
+import { taskPromoter } from "../services/taskPromoter.js";
 
 dotenv.config();
 
@@ -121,12 +122,14 @@ async function bootstrap(): Promise<void> {
     }
     void indexer.start();
     relayer.start();
+    taskPromoter.start();
   } else {
     console.warn("[AETHON API] No contract addresses — indexer/relayer disabled");
   }
 }
 
 function shutdown(): void {
+  taskPromoter.stop();
   relayer.stop();
   server.close(() => {
     pool.end().then(() => process.exit(0));
