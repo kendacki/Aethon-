@@ -1,12 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { api, formatEth, shortAddr } from "../api/client";
+import { api, shortAddr } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { Badge, Button, Grid, Muted, Section } from "../components/ui";
-import { ErrorBanner } from "../components/ErrorBanner";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
+import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
 import { SectionHeader } from "../components/session/SessionUI";
 import { useToast } from "../components/ToastProvider";
@@ -371,19 +371,23 @@ function GuestOverview() {
 
 type OperatorOverviewProps = {
   address: string;
-  statCards: Array<{
-    key: string;
-    label: string;
-    description: string;
-    icon: typeof IconAgent;
-    value: string;
-  }>;
+  walletStats: { taskCount: number; totalRewardWei: string } | null;
+  statsLoading: boolean;
   healthError: string | null;
   walletStatsError: string | null;
   onRetry: () => void;
+  onRefreshStats: () => void;
 };
 
-function OperatorOverview({ address, statCards, healthError, walletStatsError, onRetry }: OperatorOverviewProps) {
+function OperatorOverview({
+  address,
+  walletStats,
+  statsLoading,
+  healthError,
+  walletStatsError,
+  onRetry,
+  onRefreshStats,
+}: OperatorOverviewProps) {
   return (
     <ModeWrap key="operator-overview" {...pageTransition}>
       <HomePageHero>
@@ -402,27 +406,15 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
         </HeroContent>
       </HomePageHero>
 
-      <StatsSection>
-        <SectionHeader
-          title="Your activity"
-          subtitle="Live stats from your wallet on the task market."
-          badge={<Badge status="online">Live</Badge>}
+      <StatsSection css={{ paddingBottom: "$8" }}>
+        <OperatorActivitySection
+          address={address}
+          walletStats={walletStats}
+          statsLoading={statsLoading}
+          error={healthError ?? walletStatsError}
+          onRetry={onRetry}
+          onRefresh={onRefreshStats}
         />
-        <ErrorBanner message={healthError ?? walletStatsError} onRetry={onRetry} />
-        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          {statCards.map((s) => (
-            <StatCell key={s.key} variants={statCard}>
-              <StatGlassCard>
-                <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
-                <StatFigure as={motion.div} key={`${s.key}-${s.value}`} variants={statValue} initial="hidden" animate="show">
-                  {s.value}
-                </StatFigure>
-                <StatTitle>{s.label}</StatTitle>
-                <StatDesc>{s.description}</StatDesc>
-              </StatGlassCard>
-            </StatCell>
-          ))}
-        </Grid>
       </StatsSection>
 
       <PageBand style={{ paddingBottom: "2.5rem" }}>
@@ -462,7 +454,7 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
             </Grid>
 
             <WorkspaceGrid as={motion.div} variants={protocolItem} initial="hidden" whileInView="show" viewport={viewportOnce}>
-              <TaskSubmitPanel />
+              <TaskSubmitPanel onSubmitted={onRefreshStats} />
               <GuideCard>
                 <CardTitle>How the swarm runs</CardTitle>
                 {SWARM_STEPS.map((step, i) => (
@@ -500,6 +492,7 @@ export default function OverviewPage() {
 
   const {
     data: walletStats,
+    loading: walletStatsLoading,
     error: walletStatsError,
     reload: reloadWalletStats,
   } = useFetch(
@@ -527,20 +520,12 @@ export default function OverviewPage() {
     }
   }, [lastEvent, signedIn, walletAddress, reloadWalletStats, toast]);
 
-  const operatorStatCards =
-    signedIn && address
-      ? OVERVIEW_STAT_DEFS.map((def) => {
-          if (def.key === "agents" || def.key === "roles") {
-            return { ...def, value: def.fixedValue! };
-          }
-          if (def.key === "tasks") {
-            return { ...def, value: String(walletStats?.taskCount ?? 0) };
-          }
-          return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
-        })
-      : [];
-
   const handleRetry = () => {
+    reloadHealth();
+    reloadWalletStats();
+  };
+
+  const handleRefreshStats = () => {
     reloadHealth();
     reloadWalletStats();
   };
@@ -551,10 +536,12 @@ export default function OverviewPage() {
         {signedIn && address ? (
           <OperatorOverview
             address={address}
-            statCards={operatorStatCards}
+            walletStats={walletStats}
+            statsLoading={walletStatsLoading}
             healthError={healthError}
             walletStatsError={walletStatsError}
             onRetry={handleRetry}
+            onRefreshStats={handleRefreshStats}
           />
         ) : (
           <GuestOverview />
