@@ -295,7 +295,7 @@ export function OperatorFleetView() {
           <SummaryLabel>Tasks completed</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
-          <SummaryValue style={{ fontSize: "1.125rem", display: "flex", alignItems: "center", gap: 8 }}>
+          <SummaryValue style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {fleetHealth?.status ?? "N/A"}
             {fleetHealth?.status === "HEALTHY" && <LiveDot aria-hidden />}
           </SummaryValue>
