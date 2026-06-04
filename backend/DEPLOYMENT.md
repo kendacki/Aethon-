@@ -70,6 +70,16 @@ After redeploying contracts (`npm run deploy:testnet`):
 
 Swarm task payouts are split equally across coalition members and credited to each agent’s **registry stake** (visible in fleet total staked). Failed or stale tasks refund the signed submitter; the API also forwards legacy relayer refunds when needed.
 
+### Autonomous execution (additive)
+
+After redeploying contracts with `submitTaskResult` + vault `executeSwarmConsensus`:
+
+- Set `SWARM_EXECUTION_ROUTER_ADDR` or `AETHON_FLEET_VAULT_ADDR` for compiled swap calldata targets.
+- Optional: `SOMNIA_DEX_PAIR_ADDR` (UniswapV2-style `getReserves`), `SWARM_WETH_ADDR`, `SWARM_STABLE_ADDR`, `GOVERNANCE_PROPOSAL_URL`.
+- Enable Somnia agents: `SOMNIA_AGENTS_ENABLED=true`, consumer + platform addresses, `SOMNIA_PARSE_WEBSITE_AGENT_ID=12875401142070969085`.
+
+Completed tasks with swarm consensus show **Execute swarm calldata** in the task detail UI.
+
 ## Verify
 
 - API: `GET https://<api-host>/v1/health` — DB connected, indexer lag reasonable

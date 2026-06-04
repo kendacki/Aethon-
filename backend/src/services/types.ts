@@ -22,6 +22,8 @@ export interface TaskRecord {
   authorizedReporter?: string;
   platformFee?: string;
   txHash?: string;
+  executionTarget?: string;
+  executionPayload?: string;
 }
 
 export interface CoalitionRecord {

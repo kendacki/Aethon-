@@ -18,6 +18,7 @@ export interface SpotQuote {
   price: number;
   source: string;
   fetchedAt: number;
+  apiUrl?: string;
 }
 
 async function fetchCoinGeckoSpot(assetId: string): Promise<number> {

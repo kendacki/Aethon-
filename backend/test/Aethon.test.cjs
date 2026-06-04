@@ -64,6 +64,60 @@ describe("AETHON v3.0 contracts", () => {
     expect(await cb.consecutiveFailures()).to.equal(0);
   });
 
+  it("anchors execution payload via submitTaskResult", async () => {
+    const [admin, submitter, agent, treasury] = await ethers.getSigners();
+
+    const RepEngine = await ethers.getContractFactory("ReputationEngine");
+    const repEngine = await RepEngine.deploy(admin.address);
+    const CB = await ethers.getContractFactory("CircuitBreaker");
+    const cb = await CB.deploy(admin.address, admin.address, []);
+    const Registry = await ethers.getContractFactory("AgentRegistry");
+    const registry = await Registry.deploy(await repEngine.getAddress(), await cb.getAddress(), admin.address);
+    const CoalMgr = await ethers.getContractFactory("CoalitionManager");
+    const coalMgr = await CoalMgr.deploy(
+      await registry.getAddress(),
+      await repEngine.getAddress(),
+      await cb.getAddress(),
+    );
+    const Market = await ethers.getContractFactory("TaskMarket");
+    const market = await Market.deploy(
+      await registry.getAddress(),
+      await coalMgr.getAddress(),
+      await cb.getAddress(),
+      treasury.address,
+    );
+
+    const CALLER_ROLE = ethers.id("CALLER_ROLE");
+    const REPORTER_ROLE = ethers.id("REPORTER_ROLE");
+    await repEngine.grantRole(CALLER_ROLE, await registry.getAddress());
+    await repEngine.grantRole(CALLER_ROLE, await coalMgr.getAddress());
+    await repEngine.grantRole(CALLER_ROLE, await market.getAddress());
+    await cb.grantRole(REPORTER_ROLE, await market.getAddress());
+    await registry.setCoalitionManager(await coalMgr.getAddress());
+    await registry.connect(agent).register(0, "meta", { value: ethers.parseEther("0.5") });
+
+    await market.connect(submitter).submitTask(ethers.id("exec-task"), 1, { value: ethers.parseEther("0.1") });
+    const members = [agent.address];
+    const taskId = 1n;
+    const msgHash = ethers.solidityPackedKeccak256(["address[]", "uint256"], [members, taskId]);
+    const sig = await agent.signMessage(ethers.getBytes(msgHash));
+    const coalitionAddr = await coalMgr.formCoalition.staticCall(members, taskId, [sig]);
+    await coalMgr.connect(agent).formCoalition(members, taskId, [sig]);
+    await market.connect(agent).assignToCoalition(1, coalitionAddr);
+    await market.connect(agent).reportCompletion(1, true, "");
+
+    const executionPayload = "0x" + "ab".repeat(32);
+    const target = treasury.address;
+    await expect(market.connect(agent).submitTaskResult(1, target, executionPayload)).to.emit(
+      market,
+      "TaskCompletedWithPayload",
+    );
+
+    const stored = await market.taskExecutionResults(1);
+    expect(stored.submitted).to.equal(true);
+    expect(stored.targetContract).to.equal(target);
+  });
+
   it("refunds signed submitter on failure via submitTaskFor", async () => {
     const [admin, submitter, agent, treasury, relayer] = await ethers.getSigners();
 

@@ -258,8 +258,33 @@ tasksRouter.get("/:id/detail", async (req, res, next) => {
               successCriteria: catalog.successCriteria,
             }
           : null,
+        execution:
+          task.executionTarget && task.executionPayload
+            ? {
+                targetContract: task.executionTarget,
+                executionPayload: task.executionPayload,
+              }
+            : null,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const taskExecutionSchema = z.object({
+  targetContract: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  executionPayload: z.string().regex(/^0x[a-fA-F0-9]*$/),
+});
+
+tasksRouter.post("/:id/execution", async (req, res, next) => {
+  try {
+    const taskId = Number(req.params.id);
+    if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
+    const parsed = taskExecutionSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    await repo.saveTaskExecution(taskId, parsed.data.targetContract, parsed.data.executionPayload);
+    res.status(201).json({ data: { taskId, ...parsed.data } });
   } catch (err) {
     next(err);
   }

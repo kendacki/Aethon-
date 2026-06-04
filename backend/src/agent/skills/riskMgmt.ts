@@ -104,6 +104,7 @@ export const executeRiskMgmt: SkillExecutor = async (payload, ctx) => {
           riskLevel,
           recommendation,
           confidence: Number((compositeScore / 100).toFixed(2)),
+          proceed: criteriaMet,
           summary: `Fleet risk ${riskLevel} (score ${compositeScore}/100) — ${recommendation}`,
         },
         criteriaMet,

@@ -47,6 +47,10 @@ contract TaskMarket is ReentrancyGuard {
         oracleResolver = _resolver;
     }
 
+    function setFleetVault(address _vault) external {
+        fleetVault = _vault;
+    }
+
     uint256 public constant TASK_TIMEOUT = 1 hours;
     uint256 public constant EXPIRY_GRACE_BLOCKS = 750;
     uint256 public constant PLATFORM_FEE_BP = 200;
@@ -56,6 +60,23 @@ contract TaskMarket is ReentrancyGuard {
     event TaskCompleted(uint256 indexed id, uint256 payout, uint256 fee);
     event TaskFailed(uint256 indexed id, string reason);
     event TaskExpired(uint256 indexed id);
+    event TaskCompletedWithPayload(
+        uint256 indexed id,
+        address targetContract,
+        bytes executionPayload,
+        uint256 payout,
+        uint256 fee
+    );
+
+    struct TaskExecutionResult {
+        address targetContract;
+        bytes executionPayload;
+        bool submitted;
+    }
+
+    mapping(uint256 => TaskExecutionResult) public taskExecutionResults;
+
+    address public fleetVault;
 
     modifier onlyRegisteredAgent() {
         require(registry.isAgentActive(msg.sender), "Not active agent");
@@ -212,6 +233,26 @@ contract TaskMarket is ReentrancyGuard {
             require(refundOk, "Refund failed");
             emit TaskFailed(_taskId, _reason);
         }
+    }
+
+    /// @notice Stores verifiable execution calldata after successful task completion (additive).
+    function submitTaskResult(
+        uint256 _taskId,
+        address _targetContract,
+        bytes calldata _executionPayload
+    ) external nonReentrant {
+        Task storage t = tasks[_taskId];
+        require(t.status == TaskStatus.COMPLETED, "Not completed");
+        require(msg.sender == t.authorizedReporter, "Not authorized reporter");
+        require(_targetContract != address(0), "Zero target");
+        require(_executionPayload.length > 0, "Empty payload");
+        TaskExecutionResult storage r = taskExecutionResults[_taskId];
+        require(!r.submitted, "Already submitted");
+        r.targetContract = _targetContract;
+        r.executionPayload = _executionPayload;
+        r.submitted = true;
+        uint256 payout = t.reward - t.platformFee;
+        emit TaskCompletedWithPayload(_taskId, _targetContract, _executionPayload, payout, t.platformFee);
     }
 
     function expireTask(uint256 _taskId) external nonReentrant {

@@ -48,6 +48,24 @@ export const executeGovernance: SkillExecutor = async (payload, ctx) => {
 
   let llmSummary: string | undefined;
   let llmSource: string | undefined;
+  let liveSentiment: string | undefined;
+  const proposalUrl =
+    String(payload.params.proposalUrl ?? "") ||
+    process.env.GOVERNANCE_PROPOSAL_URL ||
+    "https://snapshot.org/#/aave.eth";
+
+  if (ctx.somnia) {
+    try {
+      liveSentiment = await ctx.somnia.parseWebsite(
+        proposalUrl,
+        `Summarize governance sentiment for ${proposalId}. Return JSON with fields sentiment (positive|negative|neutral) and oneLineSummary.`,
+      );
+      llmSource = "somnia_llm_parse_website";
+    } catch (err) {
+      console.warn("[GOVERNANCE] Somnia parseWebsite failed:", err);
+    }
+  }
+
   if (ctx.somnia && payload.params.llmSummary !== false) {
     try {
       const prompt = [
@@ -89,7 +107,9 @@ export const executeGovernance: SkillExecutor = async (payload, ctx) => {
         recommendedVote,
         confidence: Number(confidence.toFixed(2)),
         flags,
-        summary: llmSummary ?? summary,
+        proposalUrl,
+        liveSentiment,
+        summary: llmSummary ?? liveSentiment ?? summary,
         ...(llmSummary ? { llmSummary, llmSource } : {}),
       },
       criteriaMet,

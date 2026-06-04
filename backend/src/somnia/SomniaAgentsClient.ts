@@ -14,6 +14,7 @@ export interface SomniaConfig {
   consumerAddr: string;
   jsonApiAgentId: bigint;
   llmAgentId: bigint;
+  parseWebsiteAgentId: bigint;
   requestTimeoutMs: number;
 }
 
@@ -30,6 +31,9 @@ export function loadSomniaConfig(): SomniaConfig {
     consumerAddr,
     jsonApiAgentId: BigInt(process.env.SOMNIA_JSON_API_AGENT_ID ?? String(SOMNIA_BASE_AGENTS.JSON_API)),
     llmAgentId: BigInt(process.env.SOMNIA_LLM_AGENT_ID ?? String(SOMNIA_BASE_AGENTS.LLM_INFERENCE)),
+    parseWebsiteAgentId: BigInt(
+      process.env.SOMNIA_PARSE_WEBSITE_AGENT_ID ?? String(SOMNIA_BASE_AGENTS.LLM_PARSE_WEBSITE),
+    ),
     requestTimeoutMs: Number(process.env.SOMNIA_REQUEST_TIMEOUT_MS ?? 90_000),
   };
 }
@@ -57,6 +61,10 @@ const JSON_API_IFACE = new ethers.Interface([
 
 const LLM_IFACE = new ethers.Interface([
   "function inferString(string prompt, string system, bool chainOfThought, string[] allowedValues) returns (string)",
+]);
+
+const PARSE_WEBSITE_IFACE = new ethers.Interface([
+  "function parseWebsite(string url, string instruction) returns (string)",
 ]);
 
 function parseRequestIdFromReceipt(
@@ -151,6 +159,18 @@ export class SomniaAgentsClient {
     const receipt = await tx.wait();
     const requestId = parseRequestIdFromReceipt(this.consumer, receipt);
 
+    const { result } = await this.waitForResult(requestId);
+    const decoded = ethers.AbiCoder.defaultAbiCoder().decode(["string"], result);
+    return decoded[0] as string;
+  }
+
+  /** Somnia LLM Parse Website agent (12875401142070969085) — live page context for governance. */
+  async parseWebsite(url: string, instruction: string): Promise<string> {
+    const payload = PARSE_WEBSITE_IFACE.encodeFunctionData("parseWebsite", [url, instruction]);
+    const deposit = await this.depositFor("LLM_PARSE_WEBSITE");
+    const tx = await this.consumer.invokeAgent(this.cfg.parseWebsiteAgentId, payload, { value: deposit });
+    const receipt = await tx.wait();
+    const requestId = parseRequestIdFromReceipt(this.consumer, receipt);
     const { result } = await this.waitForResult(requestId);
     const decoded = ethers.AbiCoder.defaultAbiCoder().decode(["string"], result);
     return decoded[0] as string;

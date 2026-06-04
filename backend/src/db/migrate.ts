@@ -9,6 +9,8 @@ export async function migrate(): Promise<void> {
   const schemaPath = path.join(__dirname, "schema.sql");
   const sql = fs.readFileSync(schemaPath, "utf8");
   await query(sql);
+  await query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS execution_target TEXT`);
+  await query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS execution_payload TEXT`);
   await query(
     `INSERT INTO indexer_state (id, last_block) VALUES ('main', $1)
      ON CONFLICT (id) DO NOTHING`,

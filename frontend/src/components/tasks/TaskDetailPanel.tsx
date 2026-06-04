@@ -6,6 +6,7 @@ import { FLEET_ROLE_META } from "../../config/fleetRoles";
 import { Badge, Button } from "../ui";
 import { GlassCard } from "../GlassPanel";
 import type { AgentType } from "../../task/payload";
+import { SwarmExecutionButton } from "./SwarmExecutionButton";
 
 type SkillResultRow = {
   agentType: string;
@@ -34,6 +35,7 @@ type TaskDetail = {
     roleSummaries: Array<{ role: string; success: boolean; summary: string }>;
   };
   catalog: { agentWork?: string; sources?: string[]; successCriteria?: Array<{ label: string; description: string }> } | null;
+  execution: { targetContract: string; executionPayload: string } | null;
 };
 
 const Panel = styled(GlassCard, {
@@ -200,6 +202,22 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
               );
             })}
           </Section>
+
+          {detail.execution && detail.task.status === "COMPLETED" && (
+            <Section>
+              <h4>Executable consensus</h4>
+              <p style={{ margin: 0, fontSize: "0.8125rem", opacity: 0.85, lineHeight: 1.5 }}>
+                Swarm agents compiled verifiable calldata anchored on-chain. Your wallet sends the transaction to{" "}
+                <code style={{ fontSize: "0.75rem" }}>{shortAddr(detail.execution.targetContract)}</code>.
+              </p>
+              <div style={{ marginTop: "0.75rem" }}>
+                <SwarmExecutionButton
+                  targetContract={detail.execution.targetContract}
+                  executionPayload={detail.execution.executionPayload}
+                />
+              </div>
+            </Section>
+          )}
 
           {detail.task.coalitionAddr && (
             <div style={{ marginTop: "$5" }}>

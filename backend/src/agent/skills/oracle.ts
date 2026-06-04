@@ -12,6 +12,8 @@ const SANITY_BOUNDS: Record<string, { min: number; max: number }> = {
   tether: { min: 0.95, max: 1.05 },
 };
 
+const COINGECKO_SIMPLE_PRICE = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
+
 export const executeOracle: SkillExecutor = async (payload, ctx) => {
   if (payload.action !== "fetch_price" && payload.action !== "swarm_execute") {
     return skillFail("ORACLE", payload.action, `Unknown action: ${payload.action}`);
@@ -23,12 +25,15 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
     const maxStalenessSec = Number(payload.params.maxStalenessSec ?? 120);
 
     let quote: SpotQuote;
+    const coingeckoUrl =
+      asset === "ethereum"
+        ? COINGECKO_SIMPLE_PRICE
+        : `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset)}&vs_currencies=${encodeURIComponent(currency)}`;
     if (ctx.somnia) {
       try {
-        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset)}&vs_currencies=${encodeURIComponent(currency)}`;
         const selector = `${asset}.${currency}`;
-        const price = await ctx.somnia.fetchJsonUint(url, selector, 8);
-        quote = { price, source: "somnia_json_api", fetchedAt: Math.floor(Date.now() / 1000) };
+        const price = await ctx.somnia.fetchJsonUint(coingeckoUrl, selector, 8);
+        quote = { price, source: "somnia_json_api", fetchedAt: Math.floor(Date.now() / 1000), apiUrl: coingeckoUrl };
       } catch (err) {
         console.warn("[ORACLE] Somnia JSON API failed, falling back to HTTP:", err);
         quote = await fetchSpotQuote(asset);

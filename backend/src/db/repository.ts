@@ -416,6 +416,13 @@ export const repo = {
       result: row.result,
     }));
   },
+
+  async saveTaskExecution(taskId: number, targetContract: string, executionPayload: string): Promise<void> {
+    await query(
+      `UPDATE tasks SET execution_target = $2, execution_payload = $3, updated_at = NOW() WHERE id = $1`,
+      [taskId, targetContract.toLowerCase(), executionPayload],
+    );
+  },
 };
 
 function rowToAgent(row: Record<string, unknown>): AgentRecord {
@@ -443,6 +450,8 @@ function rowToTask(row: Record<string, unknown>): TaskRecord {
     authorizedReporter: (row.authorized_reporter as string) ?? undefined,
     platformFee: (row.platform_fee as string) ?? undefined,
     txHash: (row.tx_hash as string) ?? undefined,
+    executionTarget: (row.execution_target as string) ?? undefined,
+    executionPayload: (row.execution_payload as string) ?? undefined,
   };
 }
 

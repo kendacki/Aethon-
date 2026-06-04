@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
 import type { AgentConfig } from "./config.js";
 import { AgentApiClient } from "./apiClient.js";
+import { compileExecutionConsensus as compileExecutionConsensusFn } from "./executionConsensus.js";
+import type { SkillResult } from "./skills/types.js";
 
 export interface PeerCandidate {
   address: string;
@@ -79,5 +81,16 @@ export class CoalitionEngine {
   async signCoalitionIntent(members: string[], taskId: bigint, wallet: ethers.Wallet): Promise<string> {
     const msgHash = ethers.solidityPackedKeccak256(["address[]", "uint256"], [members, taskId]);
     return wallet.signMessage(ethers.getBytes(msgHash));
+  }
+
+  compileExecutionConsensus(
+    results: Array<{ agentType: string; result: { success?: boolean; data?: Record<string, unknown> } }>,
+  ) {
+    return compileExecutionConsensusFn(
+      results.map((r) => ({
+        agentType: r.agentType,
+        result: r.result as SkillResult,
+      })),
+    );
   }
 }

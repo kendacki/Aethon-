@@ -21,6 +21,8 @@ const COALITION_ABI = [
 const TASK_MARKET_ABI = [
   "function assignToCoalition(uint256 taskId, address coalition)",
   "function reportCompletion(uint256 taskId, bool success, string reason)",
+  "function submitTaskResult(uint256 taskId, address targetContract, bytes executionPayload)",
+  "function taskExecutionResults(uint256) view returns (address targetContract, bytes executionPayload, bool submitted)",
   "function tasks(uint256) view returns (uint256 id, address submitter, bytes32 taskHash, uint256 reward, uint256 complexity, uint256 deadline, uint8 status, address coalitionAddr, address authorizedReporter, uint256 platformFee)",
 ];
 
@@ -256,6 +258,9 @@ export class TaskExecutor {
         })),
       );
       const allOk = evaluation.overallSuccess;
+      const executionConsensus = this.coalitionEngine.compileExecutionConsensus(
+        results.map((r) => ({ agentType: r.agentType, result: r.result as SkillResult })),
+      );
       const summary = JSON.stringify({
         taskId,
         label: payload.label,
@@ -264,6 +269,15 @@ export class TaskExecutor {
         evaluation: evaluation.summary,
         criteria: evaluation.criteria,
         results: results.map((r) => r.result),
+        ...(executionConsensus
+          ? {
+              execution: {
+                targetContract: executionConsensus.targetContract,
+                executionPayload: executionConsensus.executionPayload,
+                summary: executionConsensus.summary,
+              },
+            }
+          : {}),
       });
 
       const nonce = await this.nonceMgr.acquireNonce();
@@ -274,6 +288,30 @@ export class TaskExecutor {
         });
         await tx.wait();
         console.log(`[TaskExecutor] Task #${taskId} reported ${allOk ? "COMPLETED" : "FAILED"}`);
+
+        if (allOk && executionConsensus) {
+          try {
+            await this.api.postTaskExecution(taskId, {
+              targetContract: executionConsensus.targetContract,
+              executionPayload: executionConsensus.executionPayload,
+            });
+          } catch (err) {
+            console.warn(`[TaskExecutor] API execution persist failed for #${taskId}:`, err);
+          }
+          const nonce2 = await this.nonceMgr.acquireNonce();
+          try {
+            const tx2 = await this.taskMarket.submitTaskResult(
+              taskId,
+              executionConsensus.targetContract,
+              executionConsensus.executionPayload,
+              { nonce: nonce2, gasLimit: this.config.maxGasPerTx },
+            );
+            await tx2.wait();
+            console.log(`[TaskExecutor] Task #${taskId} execution payload anchored on-chain`);
+          } finally {
+            this.nonceMgr.release();
+          }
+        }
       } finally {
         this.nonceMgr.release();
       }

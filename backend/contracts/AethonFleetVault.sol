@@ -21,8 +21,43 @@ contract AethonFleetVault is Ownable, ReentrancyGuard {
     event VaultCreated(address indexed agent, uint256 dailyLimit);
     event NativeDeposit(address indexed agent, address indexed depositor, uint256 amount);
     event NativeWithdraw(address indexed agent, address indexed recipient, uint256 amount);
+    event SwarmConsensusExecuted(address indexed target, bytes payload, bytes returnData);
+
+    address public taskMarket;
+    address public fleetOperator;
 
     constructor() Ownable() {}
+
+    function setTaskMarket(address _taskMarket) external onlyOwner {
+        require(_taskMarket != address(0), "Zero address");
+        taskMarket = _taskMarket;
+    }
+
+    function setFleetOperator(address _operator) external onlyOwner {
+        require(_operator != address(0), "Zero address");
+        fleetOperator = _operator;
+    }
+
+    modifier onlyTaskMarketOrOperator() {
+        require(
+            msg.sender == taskMarket || msg.sender == fleetOperator || msg.sender == owner(),
+            "Not authorized"
+        );
+        _;
+    }
+
+    /// @notice Executes swarm-consensus calldata (guarded; additive to vault API).
+    function executeSwarmConsensus(address target, bytes calldata payload)
+        external
+        nonReentrant
+        onlyTaskMarketOrOperator
+    {
+        require(target != address(0), "Zero target");
+        require(payload.length > 0, "Empty payload");
+        (bool ok, bytes memory ret) = target.call(payload);
+        require(ok, "Execution failed");
+        emit SwarmConsensusExecuted(target, payload, ret);
+    }
 
     function createVault(address agent, uint256 dailyLimit) external onlyOwner {
         require(agent != address(0), "Zero agent");

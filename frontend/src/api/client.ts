@@ -30,6 +30,8 @@ export interface Task {
   authorizedReporter?: string;
   platformFee?: string;
   txHash?: string;
+  executionTarget?: string;
+  executionPayload?: string;
 }
 
 export interface Coalition {
@@ -272,6 +274,7 @@ export type TaskDetailResponse = {
     roleSummaries: Array<{ role: string; success: boolean; summary: string }>;
   };
   catalog: { agentWork?: string; sources?: string[] } | null;
+  execution: { targetContract: string; executionPayload: string } | null;
 };
 
 export function formatEth(wei: string): string {

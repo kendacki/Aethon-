@@ -70,4 +70,16 @@ export class AgentApiClient {
     const body = (await res.json()) as { data: Array<{ address: string; agentType: string; reputation: number }> };
     return body.data;
   }
+
+  async postTaskExecution(
+    taskId: number,
+    body: { targetContract: string; executionPayload: string },
+  ): Promise<void> {
+    const res = await fetch(`${this.base()}/tasks/${taskId}/execution`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`Task execution persist failed: ${res.status}`);
+  }
 }

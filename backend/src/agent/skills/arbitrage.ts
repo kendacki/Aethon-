@@ -1,5 +1,7 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { JsonRpcProvider } from "ethers";
 import { fetchSpotQuote } from "./http.js";
+import { fetchDexReserves, impliedPriceUsdFromReserves, spreadBpsBetween } from "./dexPool.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
@@ -18,7 +20,7 @@ function confidenceFromSpread(spreadBps: number, minSpreadBps: number): number {
   return Math.min(0.98, 0.55 + margin / 100);
 }
 
-export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
+export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
   if (payload.action !== "check_spread" && payload.action !== "swarm_execute") {
     return skillFail("ARBITRAGE", payload.action, `Unknown action: ${payload.action}`);
   }
@@ -30,15 +32,31 @@ export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
     const notionalEth = Number(payload.params.notionalEth ?? 1);
 
     const quote = await fetchSpotQuote(asset);
+    const provider = new JsonRpcProvider(ctx.rpcUrl);
+    const onChainReserves = await fetchDexReserves(provider);
+    let dexImpliedUsd = 0;
+    let spreadBps = 0;
+    let dexSource = "simulated_venues";
+
+    if (onChainReserves) {
+      dexImpliedUsd = impliedPriceUsdFromReserves(onChainReserves);
+      spreadBps = spreadBpsBetween(quote.price, dexImpliedUsd);
+      dexSource = `uniswap_v2_pair:${onChainReserves.pairAddress}`;
+    }
+
     const venues = VENUE_SEEDS.map((seed, i) => ({
-      id: `venue_${String.fromCharCode(65 + i)}`,
-      priceUsd: simulatedDexPrice(quote.price, seed, slippageBps),
+      id: onChainReserves ? `pair_${onChainReserves.pairAddress.slice(0, 8)}` : `venue_${String.fromCharCode(65 + i)}`,
+      priceUsd: onChainReserves
+        ? dexImpliedUsd * (1 + ((seed % 2 === 0 ? 1 : -1) * (8 + (seed % 28))) / 10_000)
+        : simulatedDexPrice(quote.price, seed, slippageBps),
     }));
 
-    const prices = venues.map((v) => v.priceUsd);
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const spreadBps = Math.round(((maxPrice - minPrice) / quote.price) * 10_000);
+    if (!onChainReserves) {
+      const prices = venues.map((v) => v.priceUsd);
+      const maxPrice = Math.max(...prices);
+      const minPrice = Math.min(...prices);
+      spreadBps = Math.round(((maxPrice - minPrice) / quote.price) * 10_000);
+    }
 
     const gasWei = 380_000n * 22_000_000_000n;
     const notionalWei = BigInt(Math.floor(notionalEth * 1e18));
@@ -47,8 +65,9 @@ export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
     const profitable = spreadBps >= minSpreadBps && netWei > 0n;
     const confidence = confidenceFromSpread(spreadBps, minSpreadBps);
 
-    const bestBuy = venues.find((v) => v.priceUsd === minPrice)!;
-    const bestSell = venues.find((v) => v.priceUsd === maxPrice)!;
+    const bestBuy = venues.reduce((a, b) => (a.priceUsd < b.priceUsd ? a : b));
+    const bestSell = venues.reduce((a, b) => (a.priceUsd > b.priceUsd ? a : b));
+    const proceed = profitable;
 
     const recommendation = profitable
       ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after gas)`
@@ -64,6 +83,15 @@ export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
           asset,
           referenceUsd: quote.price,
           priceSource: quote.source,
+          dexSource,
+          onChainReserves: onChainReserves
+            ? {
+                pair: onChainReserves.pairAddress,
+                reserve0: onChainReserves.reserve0.toString(),
+                reserve1: onChainReserves.reserve1.toString(),
+                impliedUsd: dexImpliedUsd,
+              }
+            : undefined,
           venues,
           bestBuyVenue: bestBuy.id,
           bestSellVenue: bestSell.id,
@@ -72,6 +100,7 @@ export const executeArbitrage: SkillExecutor = async (payload, _ctx) => {
           slippageBps,
           notionalEth,
           profitable,
+          proceed,
           confidence: Number(confidence.toFixed(2)),
           estimatedProfitWei: netWei.toString(),
           recommendation,

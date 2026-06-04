@@ -44,6 +44,8 @@ const TASK_ABI = [
   "event TaskCompleted(uint256 indexed id, uint256 payout, uint256 fee)",
   "event TaskFailed(uint256 indexed id, string reason)",
   "event TaskExpired(uint256 indexed id)",
+  "event TaskCompletedWithPayload(uint256 indexed id, address targetContract, bytes executionPayload, uint256 payout, uint256 fee)",
+  "function taskExecutionResults(uint256) view returns (address targetContract, bytes executionPayload, bool submitted)",
 ];
 
 const COALITION_ABI = [
@@ -241,6 +243,15 @@ export class ChainIndexer {
         eventBus.publish("tasks", "TASK_EXPIRED", { taskId: id });
         break;
       }
+      case "TaskCompletedWithPayload": {
+        const id = Number(args[0]);
+        const target = args[1] as string;
+        const payload = args[2] as string;
+        await repo.saveTaskExecution(id, target, payload);
+        await this.syncTaskById(id, txHash);
+        eventBus.publish("tasks", "TASK_EXECUTION_READY", { taskId: id, targetContract: target });
+        break;
+      }
       case "CoalitionFormed": {
         const record: CoalitionRecord = {
           address: args[0] as string,
@@ -315,7 +326,19 @@ export class ChainIndexer {
         platformFee: t.platformFee?.toString(),
         txHash,
       };
+      try {
+        const exec = await market.taskExecutionResults(id);
+        if (exec.submitted) {
+          task.executionTarget = exec.targetContract;
+          task.executionPayload = exec.executionPayload;
+        }
+      } catch {
+        /* legacy TaskMarket without execution mapping */
+      }
       await repo.upsertTask(task);
+      if (task.executionTarget && task.executionPayload) {
+        await repo.saveTaskExecution(id, task.executionTarget, task.executionPayload);
+      }
     } catch (err) {
       this.logRpcError(`syncTaskById(${id})`, err);
     }
