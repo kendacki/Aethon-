@@ -16,6 +16,7 @@ const REGISTRY_ABI = [
 
 const TASK_MARKET_ABI = [
   "event TaskSubmitted(uint256 indexed id, address submitter, uint256 reward, uint256 complexity)",
+  "function taskCounter() view returns (uint256)",
   "function tasks(uint256) view returns (uint256 id, address submitter, bytes32 taskHash, uint256 reward, uint256 complexity, uint256 deadline, uint8 status, address coalitionAddr, address authorizedReporter, uint256 platformFee)",
 ];
 
@@ -29,6 +30,7 @@ export class AgentCore {
   private watchdog: Watchdog;
   private taskExecutor: TaskExecutor;
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private pendingTaskTimer: NodeJS.Timeout | null = null;
   private taskIntakePaused = false;
   private registrationPaused = false;
 
@@ -63,12 +65,14 @@ export class AgentCore {
     this.startHeartbeat();
     if (this.config.reactivityEnabled) {
       this.subscribeToTasks();
+      this.startPendingTaskScanner();
     }
     console.log(`[AgentCore] Agent ${this.wallet.address} online (${this.config.agentType})`);
   }
 
   async stop(): Promise<void> {
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    if (this.pendingTaskTimer) clearInterval(this.pendingTaskTimer);
     this.watchdog.stop();
   }
 
@@ -154,6 +158,31 @@ export class AgentCore {
         await this.nonceMgr.resync();
       }
     }, 60_000);
+  }
+
+  /** Catch tasks submitted before this worker subscribed (no Heartbeat event on chain). */
+  private startPendingTaskScanner(): void {
+    if (this.config.taskMarketAddr === ethers.ZeroAddress) return;
+    const intervalMs = Number(process.env.PENDING_TASK_SCAN_MS ?? 30_000);
+    const scan = () => void this.scanPendingTasks();
+    void scan();
+    this.pendingTaskTimer = setInterval(scan, intervalMs);
+  }
+
+  private async scanPendingTasks(): Promise<void> {
+    if (this.taskIntakePaused || !this.health.canAcceptTasks()) return;
+    try {
+      const counter = Number(await this.taskMarket.taskCounter());
+      for (let id = 1; id <= counter; id++) {
+        const task = await this.taskMarket.tasks(id);
+        if (Number(task.status) !== 0) continue;
+        const taskHash = task.taskHash as string;
+        const complexity = task.complexity as bigint;
+        await this.taskExecutor.handleTaskSubmitted(BigInt(id), taskHash, complexity);
+      }
+    } catch (err) {
+      console.error("[AgentCore] Pending task scan failed:", err);
+    }
   }
 
   private subscribeToTasks(): void {

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { repo } from "../db/repository.js";
+import { syncFleetFromChain } from "./fleetSync.js";
 import { eventBus } from "./eventBus.js";
 import type { AgentRecord, CoalitionRecord, TaskRecord, TaskStatus } from "./types.js";
 
@@ -97,6 +98,7 @@ export class ChainIndexer {
 
       if (from >= head) {
         await this.syncTaskState();
+        await syncFleetFromChain();
         return;
       }
 
@@ -104,6 +106,7 @@ export class ChainIndexer {
       await this.indexRange(from + 1, to);
       await repo.setIndexerBlock(to);
       await this.syncTaskState();
+      await syncFleetFromChain();
 
       const paused = await this.isCircuitPaused();
       if (paused && !this.lastCircuitPaused) {

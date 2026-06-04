@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { ALL_AGENT_TYPES, type AgentType } from "../shared/taskPayload.js";
 import { repo } from "../db/repository.js";
+import { syncFleetFromChain } from "./fleetSync.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -114,7 +115,15 @@ function aggregateFleetStatus(agents: FleetAgentHealth[]): FleetHealthStatus {
   return "UNKNOWN";
 }
 
+function isWorkerOperational(status: FleetAgentHealth["status"]): boolean {
+  return status === "HEALTHY" || status === "DEGRADED" || status === "STARTING";
+}
+
 export async function getFleetHealth(): Promise<FleetHealthSummary> {
+  await syncFleetFromChain().catch((err) => {
+    console.warn("[fleetHealth] chain sync failed:", err instanceof Error ? err.message : err);
+  });
+
   const urlMap = loadHealthUrlMap();
   const dbAgents = await repo.listAgents({ page: 0, pageSize: 50 });
   const byType = new Map<string, (typeof dbAgents.data)[0]>();
@@ -142,11 +151,13 @@ export async function getFleetHealth(): Promise<FleetHealthSummary> {
       }
 
       const status = normalizeStatus(snapshot, reachable);
+      const chainOnline = dbAgent?.online ?? false;
+      const workerUp = isWorkerOperational(status);
 
       return {
         role,
         address: dbAgent?.address ?? snapshot?.address ?? null,
-        online: dbAgent?.online ?? false,
+        online: chainOnline || workerUp,
         status,
         reachable,
         healthUrl,

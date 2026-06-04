@@ -11,6 +11,7 @@ import {
   verifySkillResultSignature,
 } from "../services/coalitionVerify.js";
 import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
+import { syncFleetFromChain } from "../services/fleetSync.js";
 import { getSomniaCompatibilityReport } from "../services/somniaCompat.js";
 
 export const healthRouter = Router();
@@ -78,8 +79,20 @@ agentsRouter.get("/fleet-health", async (_req, res, next) => {
   }
 });
 
+agentsRouter.post("/sync", async (_req, res, next) => {
+  try {
+    const data = await syncFleetFromChain();
+    res.json({ data, synced: data.length });
+  } catch (err) {
+    next(err);
+  }
+});
+
 agentsRouter.get("/", async (req, res, next) => {
   try {
+    await syncFleetFromChain().catch((err) => {
+      console.warn("[agents] chain sync failed:", err instanceof Error ? err.message : err);
+    });
     const { page, pageSize } = parsePagination(req);
     const result = await repo.listAgents({
       page,

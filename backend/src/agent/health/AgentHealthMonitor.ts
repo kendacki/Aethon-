@@ -126,8 +126,15 @@ export class AgentHealthMonitor extends EventEmitter {
 
     for (const check of checks) {
       if (!check.ok && check.severity === "critical") {
-        const reason = check.name.toUpperCase();
-        this.haltReasons.add(reason === "CIRCUIT_BREAKER" ? "CIRCUIT_BREAK" : reason);
+        const reason =
+          check.name === "circuit_breaker"
+            ? "CIRCUIT_BREAK"
+            : check.name === "wallet_balance"
+              ? "LOW_BALANCE"
+              : check.name === "on_chain_registration"
+                ? "NOT_REGISTERED"
+                : check.name.toUpperCase();
+        this.haltReasons.add(reason);
       }
       if (!check.ok && check.severity === "warning") {
         if (check.name === "gas_price") this.haltReasons.add("HIGH_GAS");

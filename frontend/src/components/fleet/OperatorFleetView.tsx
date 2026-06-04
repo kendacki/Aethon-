@@ -183,11 +183,20 @@ function healthByRoleMap(fleet: FleetHealth | null): Map<string, AgentFleetHealt
   return map;
 }
 
+function isAgentOperational(agent: Agent, worker: AgentFleetHealth | undefined): boolean {
+  if (agent.online) return true;
+  if (worker?.online) return true;
+  if (worker?.status === "HEALTHY" || worker?.status === "DEGRADED" || worker?.status === "STARTING") {
+    return true;
+  }
+  return false;
+}
+
 function workerBadgeStatus(
   agent: Agent,
   worker: AgentFleetHealth | undefined,
 ): "online" | "offline" | undefined {
-  if (!agent.online) return "offline";
+  if (!isAgentOperational(agent, worker)) return "offline";
   if (worker?.status === "HEALTHY") return "online";
   if (worker?.status === "HALTED") return "offline";
   return undefined;
@@ -221,11 +230,16 @@ export function OperatorFleetView() {
 
   const agents = useMemo(() => {
     let list = sortAgentsByRole(data?.data ?? []);
-    if (onlineOnly) list = list.filter((a) => a.online);
+    if (onlineOnly) {
+      list = list.filter((a) => isAgentOperational(a, healthMap.get(a.agentType)));
+    }
     return list;
-  }, [data?.data, onlineOnly]);
+  }, [data?.data, onlineOnly, healthMap]);
 
-  const onlineCount = useMemo(() => (data?.data ?? []).filter((a) => a.online).length, [data?.data]);
+  const onlineCount = useMemo(() => {
+    const agents = data?.data ?? [];
+    return agents.filter((a) => isAgentOperational(a, healthMap.get(a.agentType))).length;
+  }, [data?.data, healthMap]);
   const totalAgents = data?.pagination.total ?? data?.data.length ?? 0;
   const totalStake = useMemo(() => formatEth(String(sumStakeWei(data?.data ?? []))), [data?.data]);
 
@@ -332,8 +346,8 @@ export function OperatorFleetView() {
               </CardTop>
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "$2" }}>
-                <Badge status={agent.online ? "online" : "offline"}>
-                  {agent.online ? "On-chain" : "Offline"}
+                <Badge status={isAgentOperational(agent, worker) ? "online" : "offline"}>
+                  {isAgentOperational(agent, worker) ? "On-chain" : "Offline"}
                 </Badge>
                 {worker && worker.status !== "UNKNOWN" && (
                   <Badge

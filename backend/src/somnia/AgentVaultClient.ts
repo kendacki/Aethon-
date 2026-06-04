@@ -28,7 +28,7 @@ export function loadVaultConfig(): VaultConfig {
     enabled: process.env.SOMNIA_VAULT_ENABLED === "true",
     vaultAddr,
     dailyLimitWei: BigInt(process.env.SOMNIA_VAULT_DAILY_LIMIT_WEI ?? String(10n * 10n ** 18n)),
-    minVaultBalanceWei: BigInt(process.env.SOMNIA_VAULT_MIN_BALANCE_WEI ?? "100000000000000000"), // 0.1 STT
+    minVaultBalanceWei: BigInt(process.env.SOMNIA_VAULT_MIN_BALANCE_WEI ?? "50000000000000000"), // 0.05 STT (matches fleet vault setup)
   };
 }
 
