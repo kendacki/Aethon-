@@ -13,13 +13,13 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
     type: "ARBITRAGE",
     label: "Arbitrage",
     shortLabel: "ARB",
-    description: "Scans spreads and executes cross venue opportunities on chain.",
+    description: "Scans spreads and executes cross venue opportunities on-chain.",
   },
   ORACLE: {
     type: "ORACLE",
     label: "Oracle",
     shortLabel: "ORC",
-    description: "Attests prices and external data for on chain consumers.",
+    description: "Attests prices and external data for on-chain consumers.",
   },
   YIELD_OPT: {
     type: "YIELD_OPT",

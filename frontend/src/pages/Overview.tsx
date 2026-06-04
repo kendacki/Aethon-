@@ -192,14 +192,14 @@ const OVERVIEW_STAT_DEFS = [
   {
     key: "agents",
     label: "Registered agents",
-    description: "Specialists that register on chain and compete for work",
+    description: "Specialists that register on-chain and compete for work",
     icon: IconAgent,
     fixedValue: "5",
   },
   {
     key: "tasks",
     label: "Your tasks",
-    description: "Jobs you submit to the on chain task market",
+    description: "Jobs you submit to the on-chain task market",
     icon: IconTask,
   },
   {
@@ -220,7 +220,7 @@ const OVERVIEW_STAT_DEFS = [
 const PROTOCOL_FEATURES = [
   {
     title: "Fast execution",
-    body: "Agents respond to on chain events in real time without polling.",
+    body: "Agents respond to on-chain events in real time without polling.",
   },
   {
     title: "Coalition formation",
@@ -234,7 +234,7 @@ const PROTOCOL_FEATURES = [
 
 const OPERATOR_QUICK_LINKS = [
   { to: "/tasks", label: "Task market", desc: "Submit and track jobs", icon: IconTask },
-  { to: "/agents", label: "Agent fleet", desc: "Five on chain roles", icon: IconAgent },
+  { to: "/agents", label: "Agent fleet", desc: "Five on-chain roles", icon: IconAgent },
   { to: "/governance", label: "Safety", desc: "Circuit breaker status", icon: IconShield },
   { to: "/leaderboard", label: "Leaderboard", desc: "Reputation rankings", icon: IconCoalition },
 ] as const;
@@ -246,10 +246,10 @@ const SWARM_STEPS = [
   },
   {
     title: "Form a coalition",
-    body: "When complexity requires it, specialists stake and coordinate on chain.",
+    body: "When complexity requires it, specialists stake and coordinate on-chain.",
   },
   {
-    title: "Settle on chain",
+    title: "Settle on-chain",
     body: "Workers run skills, report results, and rewards settle through the task market.",
   },
 ] as const;
@@ -275,7 +275,7 @@ function GuestOverview() {
           </HeroItem>
           <HeroItem>
             <HeroSub>
-              Five agents register on chain, team up for complex work, and run tasks with live health and vault
+              Five agents register on-chain, team up for complex work, and run tasks with live health and vault
               tracking.
             </HeroSub>
           </HeroItem>

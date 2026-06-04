@@ -93,7 +93,7 @@ export default function AgentsPage() {
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
               {signedIn
                 ? "See all five swarm agents on Somnia: who is online, how much is staked, and whether workers are ready before you submit."
-                : "Five agents register on chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
+                : "Five agents register on-chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
             </p>
           </HeroItem>
         </AnimatedPageHero>

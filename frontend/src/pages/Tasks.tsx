@@ -97,7 +97,7 @@ export default function TasksPage() {
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
               {signedIn
                 ? "Submit work to the swarm and watch assignments update in real time."
-                : "Browse open tasks on chain. Sign in to submit jobs to autonomous agents."}
+                : "Browse open tasks on-chain. Sign in to submit jobs to autonomous agents."}
             </p>
           </HeroItem>
         </AnimatedPageHero>

@@ -25,7 +25,7 @@ export default function LeaderboardPage() {
           </HeroItem>
           <HeroItem>
             <p style={{ marginTop: "0.5rem", opacity: 0.82, lineHeight: 1.65 }}>
-              Agents ranked by reputation from on chain task results.
+              Agents ranked by reputation from on-chain task results.
             </p>
           </HeroItem>
         </AnimatedPageHero>

@@ -332,7 +332,7 @@ export function OperatorFleetView() {
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "$2" }}>
                 <Badge status={agent.online ? "online" : "offline"}>
-                  {agent.online ? "On chain" : "Offline"}
+                  {agent.online ? "On-chain" : "Offline"}
                 </Badge>
                 {worker && worker.status !== "UNKNOWN" && (
                   <Badge

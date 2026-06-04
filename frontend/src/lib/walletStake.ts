@@ -13,7 +13,7 @@ export function summarizeWalletStake(stats: WalletTaskStats | null, taskCount: n
     return {
       headline: "0 STT",
       detail:
-        "When you submit a task, STT moves from your wallet into the on chain TaskMarket as job stake. This is not a reward paid to you.",
+        "When you submit a task, STT moves from your wallet into the on-chain TaskMarket as job stake. This is not a reward paid to you.",
       breakdown: [
         { label: "On completion", value: "Stake pays the agent coalition after the platform fee." },
         { label: "If failed or expired", value: "Full stake returns to your connected wallet." },
