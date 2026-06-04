@@ -3,7 +3,7 @@ export type NavItem = {
   label: string;
 };
 
-/** Primary site navigation — single source of truth for navbar and footer. */
+/** Primary site navigation for navbar and footer. */
 export const MAIN_NAV: NavItem[] = [
   { to: "/", label: "Overview" },
   { to: "/agents", label: "Agents" },

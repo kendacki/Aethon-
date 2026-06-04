@@ -36,7 +36,7 @@ export function ConnectButton() {
       showToast(outcome.error);
       return;
     }
-    toast.info("Wallet connected. Sign in to operate the swarm.");
+    toast.info("Wallet connected. Sign in to use the operator console.");
   };
 
   const handleSignIn = async () => {
@@ -83,7 +83,7 @@ export function ConnectButton() {
     setSigningIn(true);
     try {
       await signInWithSomnia(activeSigner, activeAddress);
-      toast.success("Signed in. Swarm operator mode enabled.");
+      toast.success("Signed in. Operator features are now available.");
     } catch (err) {
       if (err instanceof Web3AuthError) {
         showToast(err.message);
@@ -113,7 +113,7 @@ export function ConnectButton() {
     return (
       <Button variant="outline" size="sm" onClick={handleDisconnect} title="Disconnect wallet">
         {shortAddr(address)}
-        {!isCorrectChain ? " · wrong network" : ""}
+        {!isCorrectChain ? ", wrong network" : ""}
       </Button>
     );
   }

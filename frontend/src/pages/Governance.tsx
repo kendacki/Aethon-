@@ -89,11 +89,11 @@ export default function GovernancePage() {
   useEffect(() => {
     if (!signedIn) return;
     if (lastEvent?.type === "CIRCUIT_BREAK") {
-      toast.error("Circuit breaker on. All work paused.");
+      toast.error("Circuit breaker is on. All work is paused.");
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      toast.success("Circuit reset. System running again.");
+      toast.success("Circuit breaker reset. The system is running again.");
       reload();
     }
   }, [lastEvent, reload, signedIn, toast]);
@@ -113,15 +113,15 @@ export default function GovernancePage() {
           </HeroItem>
           <HeroItem>
             <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
-              Circuit breaker, guardian reset, and protocol security. Sign in to view live operator data.
+              Monitor the circuit breaker, guardian reset, and protocol security. Sign in to view live data.
             </p>
           </HeroItem>
         </AnimatedPageHero>
 
         <AnimatedSection style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem" }}>
       <SignedInShell
-        title="Governance & safety"
-        description="Monitor circuit breaker state and indexed protocol health after you authenticate."
+        title="Governance and safety"
+        description="View circuit breaker state and protocol health after you sign in."
       >
         <ErrorBanner message={error} onRetry={reload} />
 
@@ -141,7 +141,7 @@ export default function GovernancePage() {
                 <div>
                   <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System paused" : "System running"}</div>
                   <div style={{ opacity: 0.72, fontSize: "0.875rem" }}>
-                    {cb.paused ? "Waiting for guardian reset." : "All contracts are active"}
+                    {cb.paused ? "Waiting for a guardian reset." : "All contracts are active."}
                   </div>
                 </div>
                 <Badge status={cb.paused ? "offline" : "online"} style={{ marginLeft: "auto" }}>

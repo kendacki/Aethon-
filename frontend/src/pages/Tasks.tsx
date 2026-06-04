@@ -106,7 +106,7 @@ export default function TasksPage() {
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
               {signedIn
                 ? "Submit work to the swarm and watch assignments update in real time."
-                : "Browse open tasks. Sign in to submit jobs to autonomous agents."}
+                : "Browse open tasks on chain. Sign in to submit jobs to autonomous agents."}
             </p>
           </HeroItem>
         </AnimatedPageHero>
@@ -157,7 +157,7 @@ export default function TasksPage() {
                           <div>
                             <div style={{ fontWeight: 700 }}>Task #{task.id}</div>
                             <div style={{ fontSize: "0.75rem", opacity: 0.72 }}>
-                              {shortAddr(task.submitter)} · Level {task.complexity}
+                              {shortAddr(task.submitter)}, level {task.complexity}
                             </div>
                           </div>
                         </div>

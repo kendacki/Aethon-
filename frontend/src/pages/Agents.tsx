@@ -33,7 +33,7 @@ function GuestFleetGrid() {
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
         {TYPES.map((t) => (
           <button key={t || "all"} onClick={() => { setType(t); setPage(0); }} style={filterBtn(type === t)}>
-            {t || "All Types"}
+            {t || "All types"}
           </button>
         ))}
       </div>
@@ -100,7 +100,7 @@ export default function AgentsPage() {
           <HeroItem>
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
               {signedIn
-                ? "View all five swarm agents on Somnia—who is online, how much is staked, and whether workers are ready before you submit a task."
+                ? "See all five swarm agents on Somnia: who is online, how much is staked, and whether workers are ready before you submit."
                 : "Five agents register on chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
             </p>
           </HeroItem>

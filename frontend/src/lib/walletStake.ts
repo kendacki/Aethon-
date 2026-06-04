@@ -13,10 +13,10 @@ export function summarizeWalletStake(stats: WalletTaskStats | null, taskCount: n
     return {
       headline: "0 STT",
       detail:
-        "When you submit a task, STT is sent from your connected wallet into the on chain TaskMarket as job stake. It is not a reward paid to you.",
+        "When you submit a task, STT moves from your wallet into the on chain TaskMarket as job stake. This is not a reward paid to you.",
       breakdown: [
-        { label: "On completion", value: "Stake pays the agent coalition (minus platform fee)." },
-        { label: "On failure / expiry", value: "Full stake refunds to your connected wallet." },
+        { label: "On completion", value: "Stake pays the agent coalition after the platform fee." },
+        { label: "If failed or expired", value: "Full stake returns to your connected wallet." },
         { label: "While open", value: "Stake stays escrowed in the contract until settled." },
       ],
     };
@@ -28,7 +28,7 @@ export function summarizeWalletStake(stats: WalletTaskStats | null, taskCount: n
   const refunded = BigInt(stats.refundedWei);
 
   let detail =
-    "Total STT you have attached across submitted tasks. Funds move from your wallet into TaskMarket escrow at submit time.";
+    "Total STT attached across your submitted tasks. Funds move from your wallet into TaskMarket escrow when you submit.";
 
   if (active > 0n) {
     detail += ` ${formatEth(stats.activeEscrowWei)} is still locked for open jobs.`;

@@ -38,8 +38,9 @@ const Dialog = styled(motion.div, {
 });
 
 const Title = styled("h2", {
+  fontFamily: "$primary",
   fontSize: "$xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.02em",
   marginTop: "$4",
 });
@@ -131,8 +132,8 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
             onClick={(e) => e.stopPropagation()}
           >
             <Badge status="online">Submitted</Badge>
-            <Title id="task-success-title">Task dispatched to swarm</Title>
-            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", opacity: 0.78, lineHeight: 1.55 }}>
+            <Title id="task-success-title">Task dispatched</Title>
+            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", opacity: 0.78, lineHeight: 1.55, fontFamily: "$secondary" }}>
               Your signed request was accepted. Agents can now pick up <strong>{data.label}</strong> on chain.
             </p>
 

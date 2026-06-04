@@ -101,8 +101,8 @@ export const Section = styled("section", {
 });
 
 export const Heading = styled("h1", {
-  fontFamily: "$sans",
-  fontWeight: "$extrabold",
+  fontFamily: "$primary",
+  fontWeight: 700,
   fontSize: "$hero",
   lineHeight: 1.1,
   letterSpacing: "-0.03em",
@@ -110,6 +110,8 @@ export const Heading = styled("h1", {
 });
 
 export const Subheading = styled("p", {
+  fontFamily: "$secondary",
+  fontWeight: 400,
   fontSize: "$lg",
   color: "$text",
   maxWidth: "36rem",
@@ -119,8 +121,9 @@ export const Subheading = styled("p", {
 });
 
 export const StatValue = styled("div", {
+  fontFamily: "$primary",
   fontSize: "$3xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.02em",
   color: "$text",
 });

@@ -38,8 +38,8 @@ const HeroContent = styled("div", {
 });
 
 const HeroHeading = styled("h1", {
-  fontFamily: "$sans",
-  fontWeight: "$extrabold",
+  fontFamily: "$primary",
+  fontWeight: 700,
   fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
   lineHeight: 1.15,
   letterSpacing: "-0.03em",
@@ -47,6 +47,8 @@ const HeroHeading = styled("h1", {
 });
 
 const HeroSub = styled("p", {
+  fontFamily: "$secondary",
+  fontWeight: 400,
   fontSize: "$md",
   color: "$text",
   opacity: 0.8,
@@ -101,8 +103,9 @@ const StatGlassCard = styled(GlassCard, {
 });
 
 const StatFigure = styled("div", {
+  fontFamily: "$primary",
   fontSize: "clamp(2rem, 4vw, 2.75rem)",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.03em",
   lineHeight: 1.05,
   marginTop: "$4",
@@ -124,8 +127,9 @@ const StatDesc = styled("p", {
 });
 
 const SectionTitle = styled("h2", {
+  fontFamily: "$primary",
   fontSize: "$2xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   marginTop: "$4",
   letterSpacing: "-0.02em",
 });
@@ -204,20 +208,20 @@ const DEMO_OVERVIEW_STATS = {
 const OVERVIEW_STAT_DEFS = [
   {
     key: "agents",
-    label: "Registered Agents",
-    description: "Specialists that self register and compete for work",
+    label: "Registered agents",
+    description: "Specialists that register on chain and compete for work",
     icon: IconAgent,
     fixedValue: "5",
   },
   {
     key: "tasks",
-    label: "Your Tasks",
-    description: "Jobs you submitted to the on chain task market",
+    label: "Your tasks",
+    description: "Jobs you submit to the on chain task market",
     icon: IconTask,
   },
   {
     key: "roles",
-    label: "Agent Roles",
+    label: "Agent roles",
     description: "Arbitrage, oracle, yield, governance, and risk",
     icon: IconCoalition,
     fixedValue: "5",
@@ -225,23 +229,23 @@ const OVERVIEW_STAT_DEFS = [
   {
     key: "stake",
     label: "STT staked",
-    description: "STT escrowed from your wallet on submitted tasks",
+    description: "STT held in escrow from your wallet on submitted tasks",
     icon: IconShield,
   },
 ] as const;
 
 const PROTOCOL_FEATURES = [
   {
-    title: "Fast task execution",
-    body: "Agents react to on chain events in real time. No polling needed.",
+    title: "Fast execution",
+    body: "Agents respond to on chain events in real time without polling.",
   },
   {
     title: "Coalition formation",
-    body: "Agents team up with stake and signatures when a job needs more than one role.",
+    body: "Agents combine stake and signatures when a job needs more than one role.",
   },
   {
     title: "Verified oracles",
-    body: "ORACLE and GOVERNANCE use trusted platform agents for prices and summaries.",
+    body: "Oracle and governance roles use trusted platform agents for prices and summaries.",
   },
 ] as const;
 
@@ -255,15 +259,15 @@ const OPERATOR_QUICK_LINKS = [
 const SWARM_STEPS = [
   {
     title: "Submit a task",
-    body: "Choose a single agent role or full swarm mode. Sign the payload with your wallet.",
+    body: "Pick a single agent role or full swarm mode, then sign the payload with your wallet.",
   },
   {
-    title: "Agents form a coalition",
+    title: "Form a coalition",
     body: "When complexity requires it, specialists stake and coordinate on chain.",
   },
   {
-    title: "Execution and settlement",
-    body: "Workers run skills, report results, and rewards flow through the task market.",
+    title: "Settle on chain",
+    body: "Workers run skills, report results, and rewards settle through the task market.",
   },
 ] as const;
 
@@ -288,7 +292,7 @@ function GuestOverview() {
           </HeroItem>
           <HeroItem>
             <HeroSub>
-              Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
+              Five agents register on chain, team up for complex work, and run tasks with live health and vault
               tracking.
             </HeroSub>
           </HeroItem>
@@ -306,7 +310,7 @@ function GuestOverview() {
       <StatsSection>
         <SectionHeader
           title="Network snapshot"
-          subtitle="Connect and sign in for your operator dashboard."
+          subtitle="Connect your wallet and sign in to unlock your dashboard."
           badge={<Badge accent>Preview</Badge>}
         />
         <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
@@ -320,7 +324,7 @@ function GuestOverview() {
                 <StatTitle>{s.label}</StatTitle>
                 <StatDesc>
                   {s.description}
-                  {" · Demo until signed in"}
+                  {". Preview until you sign in."}
                 </StatDesc>
               </StatGlassCard>
             </StatCell>
@@ -403,7 +407,7 @@ function OperatorOverview({
             <motion.div variants={protocolItem}>
               <SectionHeader
                 title="Operator console"
-                subtitle="Shortcuts to the pages you use most. Submit work below without leaving home."
+                subtitle="Shortcuts to the pages you use most. Submit work from home without leaving this page."
               />
             </motion.div>
 
@@ -436,7 +440,7 @@ function OperatorOverview({
             <WorkspaceGrid as={motion.div} variants={protocolItem} initial="hidden" whileInView="show" viewport={viewportOnce}>
               <TaskSubmitPanel onSubmitted={onRefreshStats} />
               <GuideCard>
-                <CardTitle>How the swarm runs</CardTitle>
+                <CardTitle>How the swarm works</CardTitle>
                 {SWARM_STEPS.map((step, i) => (
                   <StepRow key={step.title}>
                     <StepNum>{i + 1}</StepNum>
@@ -487,8 +491,8 @@ export default function OverviewPage() {
 
   useEffect(() => {
     if (!signedIn) return;
-    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker on. Work paused.");
-    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit reset. Work resumed.");
+    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker is on. Work is paused.");
+    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit breaker reset. Work has resumed.");
   }, [lastEvent, signedIn, toast]);
 
   useEffect(() => {

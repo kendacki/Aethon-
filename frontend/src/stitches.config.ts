@@ -22,7 +22,10 @@ export const {
       textDim: "rgba(255,255,255,0.72)",
     },
     fonts: {
-      sans: "Montserrat, system-ui, sans-serif",
+      primary: "Poppins, system-ui, sans-serif",
+      secondary: "Poppins, system-ui, sans-serif",
+      sans: "Poppins, system-ui, sans-serif",
+      mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
     },
     fontSizes: {
       xs: "0.75rem",

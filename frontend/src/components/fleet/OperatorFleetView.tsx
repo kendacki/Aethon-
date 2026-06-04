@@ -38,13 +38,16 @@ const Header = styled("div", {
 });
 
 const Title = styled("h2", {
+  fontFamily: "$primary",
   fontSize: "$xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.02em",
   margin: 0,
 });
 
 const Subtitle = styled("p", {
+  fontFamily: "$secondary",
+  fontWeight: 400,
   marginTop: "$2",
   fontSize: "$sm",
   opacity: 0.72,
@@ -76,8 +79,9 @@ const SummaryCell = styled("div", {
 });
 
 const SummaryValue = styled("div", {
+  fontFamily: "$primary",
   fontSize: "1.5rem",
-  fontWeight: 800,
+  fontWeight: 700,
   letterSpacing: "-0.02em",
 });
 
@@ -274,7 +278,7 @@ export function OperatorFleetView() {
       <Header>
         <div>
           <Title>Swarm fleet</Title>
-          <Subtitle>Filter by role, refresh live data, and open agent details from the cards below.</Subtitle>
+          <Subtitle>Filter by role, refresh live data, and open agent details from each card.</Subtitle>
         </div>
         <HeaderActions>
           <Button variant="outline" size="sm" as={Link} to="/tasks" style={{ width: "auto" }}>
@@ -300,12 +304,12 @@ export function OperatorFleetView() {
           <SummaryLabel>Total stake</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
-          <SummaryValue>{stats?.completedTasks?.toLocaleString() ?? "—"}</SummaryValue>
+          <SummaryValue>{stats?.completedTasks?.toLocaleString() ?? "N/A"}</SummaryValue>
           <SummaryLabel>Tasks completed</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
           <SummaryValue style={{ fontSize: "1.125rem", display: "flex", alignItems: "center", gap: 8 }}>
-            {fleetHealth?.status ?? "—"}
+            {fleetHealth?.status ?? "N/A"}
             {fleetHealth?.status === "HEALTHY" && <LiveDot aria-hidden />}
           </SummaryValue>
           <SummaryLabel>Fleet readiness</SummaryLabel>

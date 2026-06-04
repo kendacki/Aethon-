@@ -5,8 +5,6 @@ import { styled } from "../../stitches.config";
 import { Button } from "../ui";
 import { GlassContent, GlassPanel } from "../GlassPanel";
 
-/* ── Signed-in page shell ── */
-
 const Shell = styled("div", {
   width: "100%",
 });
@@ -64,8 +62,8 @@ function AuthFallbackCard({
 }) {
   const hint =
     phase === "wallet"
-      ? "Your wallet is connected. Click Sign in in the top right to unlock operator features."
-      : "Connect your wallet, then sign in to access swarm controls and personalized data.";
+      ? "Your wallet is connected. Use Sign in in the top right to unlock operator features."
+      : "Connect your wallet and sign in to access swarm controls and personalized data.";
 
   return (
     <FallbackCard>
@@ -84,13 +82,16 @@ function AuthFallbackCard({
 }
 
 const BlockTitle = styled("h2", {
+  fontFamily: "$primary",
   fontSize: "$xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.02em",
   marginBottom: "$2",
 });
 
 const BlockSub = styled("p", {
+  fontFamily: "$secondary",
+  fontWeight: 400,
   fontSize: "$sm",
   opacity: 0.72,
   lineHeight: 1.6,

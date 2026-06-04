@@ -39,8 +39,9 @@ const Header = styled("div", {
 const TitleBlock = styled("div", {});
 
 const Title = styled("h2", {
+  fontFamily: "$primary",
   fontSize: "$xl",
-  fontWeight: "$extrabold",
+  fontWeight: 700,
   letterSpacing: "-0.02em",
   margin: 0,
 });
@@ -343,7 +344,7 @@ export function OperatorActivitySection({
               </MetricTop>
               <MetricHint>
                 {emptyTasks
-                  ? "No jobs yet — dispatch your first task to the swarm."
+                  ? "No jobs yet. Dispatch your first task to the swarm."
                   : `${taskCount === 1 ? "1 job" : `${taskCount} jobs`} indexed for your wallet.`}
               </MetricHint>
               {emptyTasks ? (
@@ -440,7 +441,7 @@ export function OperatorActivitySection({
                 <TaskRow key={task.id} to="/tasks" state={{ scrollToTasks: true }}>
                   <span style={{ fontFamily: "monospace", fontSize: "0.75rem", opacity: 0.8 }}>#{task.id}</span>
                   <span style={{ fontSize: "0.8125rem", opacity: 0.85 }}>
-                    {formatEth(task.reward)} · complexity {task.complexity}
+                    {formatEth(task.reward)}, complexity {task.complexity}
                   </span>
                   <Badge status={statusBadgeVariant(task.status)} style={{ textTransform: "capitalize", letterSpacing: 0 }}>
                     {task.status.toLowerCase()}

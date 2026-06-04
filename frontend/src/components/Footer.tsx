@@ -74,7 +74,7 @@ export function SiteFooter() {
             <div>
               <AethonLogo height={36} style={{ marginBottom: 16 }} />
               <p style={{ fontSize: "0.875rem", opacity: 0.72, maxWidth: 300, lineHeight: 1.7 }}>
-                Autonomous agent network. Five agents, one task market, on chain rewards.
+                Autonomous agent network on Somnia. Five agents, one task market, settlement on chain.
               </p>
             </div>
             <div>

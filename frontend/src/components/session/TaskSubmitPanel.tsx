@@ -156,9 +156,9 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
       <Panel>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: "1.125rem" }}>Submit to swarm</div>
-            <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>
-              Dispatch work to autonomous agents on chain.
+            <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Submit to swarm</div>
+            <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72, fontFamily: "$secondary" }}>
+              Dispatch work to autonomous agents on the Somnia task market.
             </p>
           </div>
           {signedIn && <Badge status="online">Operator</Badge>}
@@ -218,8 +218,8 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
 
         <Hint>
           {swarmMode
-            ? "Swarm mode routes through all five agent types. Ensure the fleet is online before submitting complex jobs."
-            : "Single role tasks target one specialist. Increase complexity when coalitions may form."}
+            ? "Swarm mode uses all five agent types. Confirm the fleet is online before you submit complex jobs."
+            : "Single role tasks target one specialist. Raise complexity when a coalition may form."}
         </Hint>
       </Panel>
 
