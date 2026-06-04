@@ -89,11 +89,13 @@ export default function AgentsPage() {
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
       <PageMotion>
         <AnimatedPageHero>
+          {signedIn && (
+            <HeroItem>
+              <Badge accent>Agent Fleet</Badge>
+            </HeroItem>
+          )}
           <HeroItem>
-            <Badge accent>Agent Fleet</Badge>
-          </HeroItem>
-          <HeroItem>
-            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>
+            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: signedIn ? "1rem" : 0 }}>Agent fleet</Heading>
           </HeroItem>
           <HeroItem>
             <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
