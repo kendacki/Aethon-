@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { api, shortAddr, type WalletTaskStats } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
-import { Badge, Button, Grid, Muted, Section } from "../components/ui";
-import { GlassOverviewBand, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
+import { Badge, Button, Grid, Muted } from "../components/ui";
+import { GlassPageBand, GlassOverviewBand, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
 import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
@@ -55,18 +55,6 @@ const HeroSub = styled("p", {
   lineHeight: 1.65,
   marginTop: "$3",
   maxWidth: "28rem",
-});
-
-const StatsSection = styled(Section, {
-  paddingTop: "$8",
-  paddingBottom: "$6",
-});
-
-const PageBand = styled("section", {
-  width: "100%",
-  padding: "$6 $6 $8",
-  position: "relative",
-  zIndex: 10,
 });
 
 const BandGlassMotion = motion(GlassOverviewBand);
@@ -290,32 +278,38 @@ function GuestOverview() {
         </HeroContent>
       </HomePageHero>
 
-      <StatsSection>
-        <SectionHeader
-          title="Network snapshot"
-          subtitle="Connect your wallet and sign in to unlock your dashboard."
-          badge={<Badge accent>Preview</Badge>}
-        />
-        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          {statCards.map((s) => (
-            <StatCell key={s.key} variants={statCard}>
-              <StatGlassCard>
-                <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
-                <StatFigure as={motion.div} variants={statValue} initial="hidden" animate="show">
-                  {s.value}
-                </StatFigure>
-                <StatTitle>{s.label}</StatTitle>
-                <StatDesc>
-                  {s.description}
-                  {". Preview until you sign in."}
-                </StatDesc>
-              </StatGlassCard>
-            </StatCell>
-          ))}
-        </Grid>
-      </StatsSection>
+      <GlassPageBand css={{ paddingTop: "$8", paddingBottom: "$6" }}>
+        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
+            <motion.div variants={protocolItem}>
+              <SectionHeader
+                title="Network snapshot"
+                subtitle="Connect your wallet and sign in to unlock your dashboard."
+                badge={<Badge accent>Preview</Badge>}
+              />
+            </motion.div>
+            <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
+              {statCards.map((s) => (
+                <StatCell key={s.key} variants={statCard}>
+                  <StatGlassCard>
+                    <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
+                    <StatFigure as={motion.div} variants={statValue} initial="hidden" animate="show">
+                      {s.value}
+                    </StatFigure>
+                    <StatTitle>{s.label}</StatTitle>
+                    <StatDesc>
+                      {s.description}
+                      {". Preview until you sign in."}
+                    </StatDesc>
+                  </StatGlassCard>
+                </StatCell>
+              ))}
+            </Grid>
+          </GlassContent>
+        </BandGlassMotion>
+      </GlassPageBand>
 
-      <PageBand>
+      <GlassPageBand>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
@@ -331,7 +325,7 @@ function GuestOverview() {
             </Grid>
           </GlassContent>
         </BandGlassMotion>
-      </PageBand>
+      </GlassPageBand>
     </PageMotion>
   );
 }
@@ -373,7 +367,7 @@ function OperatorOverview({
         </HeroContent>
       </HomePageHero>
 
-      <PageBand css={{ paddingTop: "$8", paddingBottom: "$8" }}>
+      <GlassPageBand css={{ paddingTop: "$8", paddingBottom: "$8" }}>
         <OperatorActivitySection
           address={address}
           walletStats={walletStats}
@@ -382,9 +376,9 @@ function OperatorOverview({
           onRetry={onRetry}
           onRefresh={onRefreshStats}
         />
-      </PageBand>
+      </GlassPageBand>
 
-      <PageBand style={{ paddingBottom: "2.5rem" }}>
+      <GlassPageBand style={{ paddingBottom: "2.5rem" }}>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
@@ -442,7 +436,7 @@ function OperatorOverview({
             </WorkspaceGrid>
           </GlassContent>
         </BandGlassMotion>
-      </PageBand>
+      </GlassPageBand>
     </PageMotion>
   );
 }

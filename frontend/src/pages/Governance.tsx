@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
-import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
+import { AnimatedPageHero, HeroItem, PageMotion } from "../components/motion/PageMotion";
 import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
 import {
   IconAlert,
@@ -116,8 +116,7 @@ export default function GovernancePage() {
           </HeroItem>
         </AnimatedPageHero>
 
-        <AnimatedSection style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem" }}>
-      <SignedInShell
+        <SignedInShell
         title="Governance and safety"
         description="View circuit breaker state and protocol health after you sign in."
       >
@@ -190,7 +189,6 @@ export default function GovernancePage() {
           </motion.div>
         )}
       </SignedInShell>
-        </AnimatedSection>
       </PageMotion>
     </PageWrap>
   );

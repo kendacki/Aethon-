@@ -9,7 +9,7 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, s
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, Grid, PageWrap, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
-import { GlassFilterPill } from "../components/GlassPanel";
+import { GlassFilterPill, GlassPageBand } from "../components/GlassPanel";
 
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
 
@@ -98,9 +98,15 @@ export default function AgentsPage() {
           </HeroItem>
         </AnimatedPageHero>
 
-        <AnimatedSection style={{ paddingTop: signedIn ? "1.5rem" : "2.5rem", paddingBottom: "3rem" }}>
-          {signedIn ? <OperatorFleetView /> : <GuestFleetGrid />}
-        </AnimatedSection>
+        {signedIn ? (
+          <GlassPageBand css={{ paddingTop: "1.5rem", paddingBottom: "3rem" }}>
+            <OperatorFleetView />
+          </GlassPageBand>
+        ) : (
+          <AnimatedSection style={{ paddingTop: "2.5rem", paddingBottom: "3rem" }}>
+            <GuestFleetGrid />
+          </AnimatedSection>
+        )}
       </PageMotion>
     </PageWrap>
   );

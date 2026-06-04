@@ -6,7 +6,7 @@ import { useFetch } from "../../api/hooks";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassSectionPanel, GlassElevatedCard, GlassSurface, GlassFilterPill, GLASS } from "../GlassPanel";
+import { GlassOverviewBand, GlassContent, GlassElevatedCard, GlassSurface, GlassFilterPill, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconTask, ICON_MD } from "../icons";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
@@ -16,7 +16,7 @@ const pulse = keyframes({
   "50%": { opacity: 0.45 },
 });
 
-const Panel = GlassSectionPanel;
+const Panel = GlassOverviewBand;
 
 const Header = styled("div", {
   display: "flex",
@@ -241,6 +241,7 @@ export function OperatorFleetView() {
 
   return (
     <Panel as={motion.section} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+      <GlassContent>
       <Header>
         <div>
           <Title>Swarm fleet</Title>
@@ -373,6 +374,7 @@ export function OperatorFleetView() {
           );
         })}
       </AgentGrid>
+      </GlassContent>
     </Panel>
   );
 }

@@ -281,7 +281,7 @@ export function OperatorActivitySection({
   return (
     <Panel as={motion.section} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
       <GlassContent>
-      <Header>
+        <Header>
         <TitleBlock>
           <Title>Your activity</Title>
         </TitleBlock>

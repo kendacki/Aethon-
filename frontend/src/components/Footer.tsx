@@ -1,6 +1,6 @@
 import { Link as RouterLink } from "react-router-dom";
 import { styled } from "../stitches.config";
-import { GlassContent, GlassPanel } from "./GlassPanel";
+import { GlassBandPanel, GlassContent } from "./GlassPanel";
 import { AethonLogo } from "./Logo";
 import { env } from "../config/env";
 import { MAIN_NAV } from "../config/navigation";
@@ -13,12 +13,10 @@ const FooterShell = styled("footer", {
   pointerEvents: "none",
 });
 
-const FooterGlass = styled(GlassPanel, {
+const FooterGlass = styled(GlassBandPanel, {
   pointerEvents: "auto",
-  maxWidth: "1200px",
-  margin: "0 auto",
   padding: "$12 $8 $6",
-  defaultVariants: { radius: "top" },
+  defaultVariants: { radius: "top", tone: "neutral" },
 });
 
 const Inner = styled("div", {

@@ -3,25 +3,19 @@ import { Link } from "react-router-dom";
 import { useSignedIn, type SessionPhase } from "../../auth/useSignedIn";
 import { styled } from "../../stitches.config";
 import { Button } from "../ui";
-import { GlassContent, GlassPanel } from "../GlassPanel";
+import { GlassContent, GlassOverviewBand, GlassPageBand, GlassPanel } from "../GlassPanel";
 
 const Shell = styled("div", {
   width: "100%",
 });
 
-const ContentMax = styled("div", {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  width: "100%",
-  padding: "$8 $6 $10",
-  boxSizing: "border-box",
-});
-
 const FallbackCard = styled(GlassPanel, {
   maxWidth: "640px",
   margin: "0 auto",
+  width: "100%",
   padding: "$10 $8",
   textAlign: "center",
+  defaultVariants: { radius: "full", tone: "neutral" },
 });
 
 type SignedInShellProps = {
@@ -37,16 +31,22 @@ export function SignedInShell({ title, description, children, fallback }: Signed
   if (!signedIn) {
     return (
       <Shell>
-        <ContentMax>
-          {fallback ?? <AuthFallbackCard title={title} description={description} phase={phase} />}
-        </ContentMax>
+        <GlassPageBand>
+          <GlassContent>
+            {fallback ?? <AuthFallbackCard title={title} description={description} phase={phase} />}
+          </GlassContent>
+        </GlassPageBand>
       </Shell>
     );
   }
 
   return (
     <Shell>
-      <ContentMax>{children}</ContentMax>
+      <GlassPageBand css={{ paddingTop: "1.5rem" }}>
+        <GlassOverviewBand>
+          <GlassContent>{children}</GlassContent>
+        </GlassOverviewBand>
+      </GlassPageBand>
     </Shell>
   );
 }

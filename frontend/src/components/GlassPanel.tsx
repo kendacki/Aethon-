@@ -94,7 +94,16 @@ export const GlassBandPanel = styled(GlassPanel, {
   defaultVariants: { radius: "full", tone: "neutral" },
 });
 
-/** Overview operator bands (Your activity, Operator console). */
+/** Full-width page gutter; pairs with GlassOverviewBand for 1200px glass parents. */
+export const GlassPageBand = styled("section", {
+  width: "100%",
+  padding: "$6 $6 $8",
+  position: "relative",
+  zIndex: 10,
+  boxSizing: "border-box",
+});
+
+/** Standard glass parent (overview, activity, fleet, governance). */
 export const GlassOverviewBand = styled(GlassBandPanel, {
   padding: "$10 $6",
   "@md": {
@@ -102,16 +111,8 @@ export const GlassOverviewBand = styled(GlassBandPanel, {
   },
 });
 
-/** Operator pages (fleet) use accent shell. */
-export const GlassSectionPanel = styled(GlassPanel, {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "$6",
-  "@md": { padding: "$8" },
-  defaultVariants: { radius: "full", tone: "accent" },
-});
+/** @deprecated Alias for GlassOverviewBand */
+export const GlassSectionPanel = GlassOverviewBand;
 
 /** Elevated inner card (stats, metrics, quick links). */
 export const GlassElevatedCard = styled(GlassCard, {
