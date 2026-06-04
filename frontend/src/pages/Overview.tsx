@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { api, formatEth, shortAddr } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
@@ -25,11 +25,17 @@ import {
   viewportOnce,
 } from "../motion/overview";
 import { useEffect } from "react";
-import { styled } from "../stitches.config";
+import { spring, styled } from "../stitches.config";
 
 const Home = styled("main", {
-  paddingTop: "5rem",
   width: "100%",
+  variants: {
+    mode: {
+      guest: { paddingTop: "5rem" },
+      operator: { paddingTop: 0 },
+    },
+  },
+  defaultVariants: { mode: "guest" },
 });
 
 const HeroContent = styled("div", {
@@ -58,6 +64,11 @@ const HeroSub = styled("p", {
 const StatsSection = styled(Section, {
   paddingTop: "$8",
   paddingBottom: "$8",
+});
+
+const OperatorSection = styled(Section, {
+  paddingTop: "$6",
+  paddingBottom: "$10",
 });
 
 const StatCell = styled(motion.div, {
@@ -101,40 +112,6 @@ const StatDesc = styled("p", {
   marginTop: "$2",
   marginBottom: 0,
 });
-
-const DEMO_OVERVIEW_STATS = {
-  tasks: 10,
-  stakeLabel: "50 STT",
-} as const;
-
-const OVERVIEW_STAT_DEFS = [
-  {
-    key: "agents",
-    label: "Registered Agents",
-    description: "Specialists that self register and compete for work",
-    icon: IconAgent,
-    fixedValue: "5",
-  },
-  {
-    key: "tasks",
-    label: "Tasks in Market",
-    description: "Open jobs agents bid on and execute on chain",
-    icon: IconTask,
-  },
-  {
-    key: "roles",
-    label: "Agent Roles",
-    description: "Arbitrage, oracle, yield, governance, and risk",
-    icon: IconCoalition,
-    fixedValue: "5",
-  },
-  {
-    key: "stake",
-    label: "Fleet Stake",
-    description: "Total stake backing reputation and coalition bonds",
-    icon: IconShield,
-  },
-] as const;
 
 const ActionRow = styled(motion.div, {
   display: "flex",
@@ -182,6 +159,58 @@ const CardBody = styled("p", {
 
 const ProtocolCardMotion = motion(GlassCard);
 
+const OperatorHeader = styled(motion.header, {
+  padding: "$8 $6 $4",
+  maxWidth: "1200px",
+  margin: "0 auto",
+  width: "100%",
+  boxSizing: "border-box",
+});
+
+const OperatorTitle = styled("h1", {
+  fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
+  fontWeight: "$extrabold",
+  letterSpacing: "-0.03em",
+});
+
+const ModeWrap = styled(motion.div, {
+  width: "100%",
+});
+
+const DEMO_OVERVIEW_STATS = {
+  tasks: 10,
+  stakeLabel: "50 STT",
+} as const;
+
+const OVERVIEW_STAT_DEFS = [
+  {
+    key: "agents",
+    label: "Registered Agents",
+    description: "Specialists that self register and compete for work",
+    icon: IconAgent,
+    fixedValue: "5",
+  },
+  {
+    key: "tasks",
+    label: "Tasks in Market",
+    description: "Open jobs agents bid on and execute on chain",
+    icon: IconTask,
+  },
+  {
+    key: "roles",
+    label: "Agent Roles",
+    description: "Arbitrage, oracle, yield, governance, and risk",
+    icon: IconCoalition,
+    fixedValue: "5",
+  },
+  {
+    key: "stake",
+    label: "Fleet Stake",
+    description: "Total stake backing reputation and coalition bonds",
+    icon: IconShield,
+  },
+] as const;
+
 const PROTOCOL_FEATURES = [
   {
     title: "Fast task execution",
@@ -197,91 +226,44 @@ const PROTOCOL_FEATURES = [
   },
 ] as const;
 
-export default function OverviewPage() {
-  const { signedIn, address } = useSignedIn();
-  const walletAddress = address?.toLowerCase() ?? null;
-  const toast = useToast();
+const pageTransition = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: spring,
+};
 
-  const { error: healthError, reload: reloadHealth } = useFetch(() => {
-    if (!signedIn) return Promise.resolve(null);
-    return api.health();
-  }, [signedIn]);
-  const {
-    data: walletStats,
-    error: walletStatsError,
-    reload: reloadWalletStats,
-  } = useFetch(
-    () => {
-      if (!signedIn || !walletAddress) return Promise.resolve(null);
-      return api.walletTaskStats(walletAddress);
-    },
-    [signedIn, walletAddress],
-  );
-  const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
-
-  useEffect(() => {
-    if (!signedIn) return;
-    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker on. Work paused.");
-    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit reset. Work resumed.");
-  }, [lastEvent, signedIn, toast]);
-
-  useEffect(() => {
-    if (!signedIn || !walletAddress) return;
-    if (!lastEvent || lastEvent.channel !== "tasks") return;
-    if (["TASK_SUBMITTED", "TASK_QUEUED", "TASK_RELAYED", "TASK_COMPLETED", "TASK_FAILED"].includes(lastEvent.type)) {
-      reloadWalletStats();
-      toast.info(`Task update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
-    }
-  }, [lastEvent, signedIn, walletAddress, reloadWalletStats, toast]);
-
-  const statCards = OVERVIEW_STAT_DEFS.map((def) => {
-    if (def.key === "agents" || def.key === "roles") {
-      return { ...def, value: def.fixedValue! };
-    }
-    if (!signedIn) {
-      return {
-        ...def,
-        value: def.key === "tasks" ? String(DEMO_OVERVIEW_STATS.tasks) : DEMO_OVERVIEW_STATS.stakeLabel,
-        demo: true,
-      };
-    }
-    if (def.key === "tasks") {
-      return { ...def, value: String(walletStats?.taskCount ?? 0), demo: false };
-    }
-    return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0"), demo: false };
-  });
+function GuestOverview() {
+  const statCards = OVERVIEW_STAT_DEFS.map((def) => ({
+    ...def,
+    value:
+      def.key === "agents" || def.key === "roles"
+        ? def.fixedValue!
+        : def.key === "tasks"
+          ? String(DEMO_OVERVIEW_STATS.tasks)
+          : DEMO_OVERVIEW_STATS.stakeLabel,
+    demo: true,
+  }));
 
   return (
-    <Home>
-      {signedIn && <SessionStatusBar />}
-
+    <ModeWrap key="guest-overview" {...pageTransition}>
       <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
           <motion.div variants={heroItem}>
-            {signedIn && address ? (
-              <>
-                <Badge status="online" style={{ marginBottom: "0.75rem" }}>
-                  Operator session
-                </Badge>
-                <HeroHeading>Welcome back, {shortAddr(address)}</HeroHeading>
-              </>
-            ) : (
-              <HeroHeading>Autonomous agents on Somnia</HeroHeading>
-            )}
+            <HeroHeading>Autonomous agents on Somnia</HeroHeading>
           </motion.div>
           <motion.div variants={heroItem}>
             <HeroSub>
-              {signedIn
-                ? "Your dashboard is live. Submit tasks, monitor the five agent roles, and track rewards tied to your wallet."
-                : "Five agents register on chain, team up for complex jobs, and run tasks with live health and vault tracking."}
+              Five agents register on chain, team up for complex jobs, and run tasks with live health and vault
+              tracking.
             </HeroSub>
           </motion.div>
           <ActionRow variants={heroButton}>
-            <Button variant="primary" size="sm" as={Link} to={signedIn ? "/tasks" : "/agents"}>
-              {signedIn ? "Submit task" : "View fleet"} <IconArrowRight size={16} />
+            <Button variant="primary" size="sm" as={Link} to="/agents">
+              View fleet <IconArrowRight size={16} />
             </Button>
-            <Button variant="outline" size="sm" as={Link} to={signedIn ? "/agents" : "/tasks"}>
-              {signedIn ? "View fleet" : "Explore tasks"}
+            <Button variant="outline" size="sm" as={Link} to="/tasks">
+              Explore tasks
             </Button>
           </ActionRow>
         </HeroContent>
@@ -289,44 +271,27 @@ export default function OverviewPage() {
 
       <StatsSection>
         <SectionHeader
-          title={signedIn ? "Your activity" : "Network snapshot"}
-          subtitle={
-            signedIn
-              ? "Live stats from your wallet on the task market."
-              : "Preview values. Connect and sign in for personalized metrics."
-          }
-          badge={signedIn ? <Badge status="online">Live</Badge> : <Badge accent>Preview</Badge>}
+          title="Network snapshot"
+          subtitle="Preview values. Connect and sign in for your operator dashboard."
+          badge={<Badge accent>Preview</Badge>}
         />
-
-        <ErrorBanner
-          message={signedIn ? (healthError ?? walletStatsError) : null}
-          onRetry={() => {
-            if (signedIn) {
-              reloadHealth();
-              reloadWalletStats();
-            }
-          }}
-        />
-
         <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
           {statCards.map((s) => (
             <StatCell key={s.key} variants={statCard}>
               <StatGlassCard>
                 <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
-                <StatFigure as={motion.div} key={`${s.key}-${s.value}`} variants={statValue} initial="hidden" animate="show">
+                <StatFigure as={motion.div} variants={statValue} initial="hidden" animate="show">
                   {s.value}
                 </StatFigure>
                 <StatTitle>{s.label}</StatTitle>
                 <StatDesc>
                   {s.description}
-                  {"demo" in s && s.demo ? " · Demo until signed in" : ""}
+                  {" · Demo until signed in"}
                 </StatDesc>
               </StatGlassCard>
             </StatCell>
           ))}
         </Grid>
-
-        {signedIn && <OperatorDashboard />}
       </StatsSection>
 
       <ProtocolBand>
@@ -346,6 +311,152 @@ export default function OverviewPage() {
           </GlassContent>
         </ProtocolGlassMotion>
       </ProtocolBand>
+    </ModeWrap>
+  );
+}
+
+type OperatorOverviewProps = {
+  address: string;
+  statCards: Array<{
+    key: string;
+    label: string;
+    description: string;
+    icon: typeof IconAgent;
+    value: string;
+  }>;
+  healthError: string | null;
+  walletStatsError: string | null;
+  onRetry: () => void;
+};
+
+function OperatorOverview({ address, statCards, healthError, walletStatsError, onRetry }: OperatorOverviewProps) {
+  return (
+    <ModeWrap key="operator-dashboard" {...pageTransition}>
+      <OperatorHeader>
+        <Badge status="online" style={{ marginBottom: "0.75rem" }}>
+          Operator session
+        </Badge>
+        <OperatorTitle>Welcome back, {shortAddr(address)}</OperatorTitle>
+        <p style={{ marginTop: "0.75rem", opacity: 0.78, maxWidth: "36rem", lineHeight: 1.65, fontSize: "0.9375rem" }}>
+          Run the swarm from your dashboard. Submit tasks, monitor agents, and track wallet rewards.
+        </p>
+        <ActionRow style={{ marginTop: "1.25rem" }}>
+          <Button variant="primary" size="sm" as={Link} to="/tasks">
+            Submit task <IconArrowRight size={16} />
+          </Button>
+          <Button variant="outline" size="sm" as={Link} to="/agents">
+            View fleet
+          </Button>
+          <Button variant="ghost" size="sm" as={Link} to="/governance">
+            Safety
+          </Button>
+        </ActionRow>
+      </OperatorHeader>
+
+      <OperatorSection>
+        <SectionHeader
+          title="Your activity"
+          subtitle="Live stats from your wallet on the task market."
+          badge={<Badge status="online">Live</Badge>}
+        />
+
+        <ErrorBanner message={healthError ?? walletStatsError} onRetry={onRetry} />
+
+        <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" animate="show">
+          {statCards.map((s) => (
+            <StatCell key={s.key} variants={statCard}>
+              <StatGlassCard>
+                <s.icon size={ICON_LG} style={{ flexShrink: 0, opacity: 0.92 }} />
+                <StatFigure as={motion.div} key={`${s.key}-${s.value}`} variants={statValue} initial="hidden" animate="show">
+                  {s.value}
+                </StatFigure>
+                <StatTitle>{s.label}</StatTitle>
+                <StatDesc>{s.description}</StatDesc>
+              </StatGlassCard>
+            </StatCell>
+          ))}
+        </Grid>
+
+        <OperatorDashboard />
+      </OperatorSection>
+    </ModeWrap>
+  );
+}
+
+export default function OverviewPage() {
+  const { signedIn, address } = useSignedIn();
+  const walletAddress = address?.toLowerCase() ?? null;
+  const toast = useToast();
+
+  const { error: healthError, reload: reloadHealth } = useFetch(() => {
+    if (!signedIn) return Promise.resolve(null);
+    return api.health();
+  }, [signedIn]);
+
+  const {
+    data: walletStats,
+    error: walletStatsError,
+    reload: reloadWalletStats,
+  } = useFetch(
+    () => {
+      if (!signedIn || !walletAddress) return Promise.resolve(null);
+      return api.walletTaskStats(walletAddress);
+    },
+    [signedIn, walletAddress],
+  );
+
+  const { lastEvent } = useWebSocket(["circuit_breaker", "tasks"]);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker on. Work paused.");
+    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit reset. Work resumed.");
+  }, [lastEvent, signedIn, toast]);
+
+  useEffect(() => {
+    if (!signedIn || !walletAddress) return;
+    if (!lastEvent || lastEvent.channel !== "tasks") return;
+    if (["TASK_SUBMITTED", "TASK_QUEUED", "TASK_RELAYED", "TASK_COMPLETED", "TASK_FAILED"].includes(lastEvent.type)) {
+      reloadWalletStats();
+      toast.info(`Task update: ${lastEvent.type.replace("TASK_", "").toLowerCase()}`);
+    }
+  }, [lastEvent, signedIn, walletAddress, reloadWalletStats, toast]);
+
+  const operatorStatCards =
+    signedIn && address
+      ? OVERVIEW_STAT_DEFS.map((def) => {
+          if (def.key === "agents" || def.key === "roles") {
+            return { ...def, value: def.fixedValue! };
+          }
+          if (def.key === "tasks") {
+            return { ...def, value: String(walletStats?.taskCount ?? 0) };
+          }
+          return { ...def, value: formatEth(walletStats?.totalRewardWei ?? "0") };
+        })
+      : [];
+
+  const handleRetry = () => {
+    reloadHealth();
+    reloadWalletStats();
+  };
+
+  return (
+    <Home mode={signedIn ? "operator" : "guest"}>
+      {signedIn && <SessionStatusBar />}
+
+      <AnimatePresence mode="wait">
+        {signedIn && address ? (
+          <OperatorOverview
+            address={address}
+            statCards={operatorStatCards}
+            healthError={healthError}
+            walletStatsError={walletStatsError}
+            onRetry={handleRetry}
+          />
+        ) : (
+          <GuestOverview />
+        )}
+      </AnimatePresence>
     </Home>
   );
 }
