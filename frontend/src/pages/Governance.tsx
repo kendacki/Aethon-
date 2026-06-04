@@ -83,7 +83,7 @@ export default function GovernancePage() {
               </div>
             </Card>
 
-            <Grid cols={3} style={{ marginTop: "2rem" }}>
+            <Grid cols={2} style={{ marginTop: "2rem" }}>
               <Card>
                 <StatValue style={{ fontSize: "2rem" }}>
                   {cb.consecutiveFailures}/{cb.threshold}
@@ -94,12 +94,6 @@ export default function GovernancePage() {
                 <IconClock size={ICON_LG} style={{ marginBottom: 8 }} />
                 <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
                 <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset wait time</div>
-              </Card>
-              <Card>
-                <div style={{ fontWeight: 700, fontSize: "0.875rem", opacity: 0.72 }}>Guardian wallet</div>
-                <div style={{ fontFamily: "monospace", fontSize: "0.75rem", marginTop: 8, wordBreak: "break-all" }}>
-                  0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6
-                </div>
               </Card>
             </Grid>
 
