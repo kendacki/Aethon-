@@ -26,11 +26,28 @@ const SessionInner = styled("div", {
   maxWidth: "1200px",
   margin: "0 auto",
   padding: "$3 $6",
-  display: "flex",
+  display: "none",
   alignItems: "center",
   justifyContent: "space-between",
   gap: "$4",
   flexWrap: "wrap",
+  "@lg": {
+    display: "flex",
+  },
+});
+
+const SessionInnerCompact = styled("div", {
+  maxWidth: "1200px",
+  margin: "0 auto",
+  padding: "$2 $4",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "$3",
+  minHeight: "2.5rem",
+  "@lg": {
+    display: "none",
+  },
 });
 
 const SessionMeta = styled("div", {
@@ -55,6 +72,17 @@ export function SessionStatusBar() {
 
   return (
     <SessionStrip>
+      <SessionInnerCompact>
+        <SessionMeta>
+          <LiveDot aria-hidden />
+          <span style={{ fontWeight: 700, fontSize: "0.75rem" }}>Operator</span>
+          <span style={{ fontFamily: "monospace", fontSize: "0.6875rem", opacity: 0.8 }}>{shortAddr(address)}</span>
+        </SessionMeta>
+        <Badge status={isCorrectChain ? "online" : undefined} accent={!isCorrectChain} style={{ fontSize: "0.625rem" }}>
+          {isCorrectChain ? "Live" : "Wrong net"}
+        </Badge>
+      </SessionInnerCompact>
+
       <SessionInner>
         <SessionMeta>
           <LiveDot aria-hidden />

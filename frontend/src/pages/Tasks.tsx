@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
@@ -8,7 +9,6 @@ import { PageHero } from "../components/PageHero";
 import { Badge, Card, PageWrap, Section, Heading } from "../components/ui";
 import { IconTask, ICON_MD } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { SessionStatusBar } from "../components/session/SessionUI";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
 import { useToast } from "../components/ToastProvider";
 import { spring, styled } from "../stitches.config";
@@ -49,6 +49,8 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { signedIn } = useSignedIn();
   const toast = useToast();
+  const location = useLocation();
+  const taskListRef = useRef<HTMLDivElement>(null);
   const { data, loading, error, reload } = useFetch(() => api.tasks(page, status || undefined), [page, status]);
   const { lastEvent, connected } = useWebSocket(["tasks"]);
 
@@ -69,6 +71,14 @@ export default function TasksPage() {
   }, []);
 
   useEffect(() => {
+    const state = location.state as { scrollToTasks?: boolean } | null;
+    if (state?.scrollToTasks && taskListRef.current) {
+      taskListRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     if (lastEvent?.type === "TASK_SUBMITTED" && lastEvent.payload.taskId) {
       prependTask({
         id: Number(lastEvent.payload.taskId),
@@ -84,8 +94,6 @@ export default function TasksPage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      {signedIn && <SessionStatusBar />}
-
       <PageHero>
         <Badge accent>Task Market</Badge>
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Task market</Heading>
@@ -108,7 +116,7 @@ export default function TasksPage() {
             <TaskSubmitPanel onSubmitted={reload} />
           </div>
 
-          <div>
+          <div id="task-list" ref={taskListRef}>
             <ListHeader>
               <div style={{ fontWeight: 700, fontSize: "1.125rem" }}>Open tasks</div>
               {data && (

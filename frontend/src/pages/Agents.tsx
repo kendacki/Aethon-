@@ -6,7 +6,6 @@ import { useFetch } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PageHero } from "../components/PageHero";
-import { SessionStatusBar } from "../components/session/SessionUI";
 import { Badge, Card, Grid, PageWrap, Section, Heading } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
 import { spring } from "../stitches.config";
@@ -31,7 +30,6 @@ export default function AgentsPage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      {signedIn && <SessionStatusBar />}
       <PageHero>
         <Badge accent>Agent Fleet</Badge>
         <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Agent fleet</Heading>

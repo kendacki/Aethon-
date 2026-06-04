@@ -3,7 +3,8 @@ import { styled } from "../../stitches.config";
 import { useSignedIn } from "../../auth/useSignedIn";
 import { useWallet } from "../../wallet/WalletContext";
 import { useToast } from "../ToastProvider";
-import { api } from "../../api/client";
+import { TaskSuccessModal, type TaskSubmitSuccess } from "../TaskSuccessModal";
+import { api, formatEth } from "../../api/client";
 import { Button, Card, Badge } from "../ui";
 import {
   ALL_AGENT_TYPES,
@@ -87,6 +88,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
   const { address, signer, isCorrectChain, connect } = useWallet();
   const toast = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [successModal, setSuccessModal] = useState<TaskSubmitSuccess | null>(null);
   const [role, setRole] = useState<AgentType>("ORACLE");
   const [complexity, setComplexity] = useState(1);
   const [rewardEth, setRewardEth] = useState("0.01");
@@ -125,7 +127,15 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
         signature,
       });
 
-      toast.success(`Task submitted: ${payload.label ?? payload.action}`);
+      setSuccessModal({
+        label: payload.label ?? payload.action ?? "Task",
+        mode: swarmMode ? "swarm" : "single",
+        role: swarmMode ? undefined : role,
+        complexity,
+        rewardDisplay: formatEth(rewardWei),
+      });
+
+      toast.success("Task accepted by the swarm.");
       onSubmitted?.();
     } catch (err) {
       if (!isCorrectChain) {
@@ -139,75 +149,86 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
     }
   };
 
-  return (
-    <Panel>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: "1.125rem" }}>Submit to swarm</div>
-          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>
-            Dispatch work to autonomous agents on chain.
-          </p>
-        </div>
-        {signedIn && <Badge status="online">Operator</Badge>}
-      </div>
+  const closeSuccessModal = () => setSuccessModal(null);
 
-      <FieldGrid>
-        <Field>
-          Mode
-          <Select
-            value={swarmMode ? "swarm" : "single"}
-            disabled={!signedIn}
-            onChange={(e) => {
-              const swarm = e.target.value === "swarm";
-              setSwarmMode(swarm);
-              if (swarm) setComplexity(5);
-            }}
-          >
-            <option value="single">Single role</option>
-            <option value="swarm">Full swarm (5 agents)</option>
-          </Select>
-        </Field>
-        {!swarmMode && (
+  return (
+    <>
+      <Panel>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "1.125rem" }}>Submit to swarm</div>
+            <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>
+              Dispatch work to autonomous agents on chain.
+            </p>
+          </div>
+          {signedIn && <Badge status="online">Operator</Badge>}
+        </div>
+
+        <FieldGrid>
           <Field>
-            Agent role
-            <Select value={role} disabled={!signedIn} onChange={(e) => setRole(e.target.value as AgentType)}>
-              {ALL_AGENT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
+            Mode
+            <Select
+              value={swarmMode ? "swarm" : "single"}
+              disabled={!signedIn}
+              onChange={(e) => {
+                const swarm = e.target.value === "swarm";
+                setSwarmMode(swarm);
+                if (swarm) setComplexity(5);
+              }}
+            >
+              <option value="single">Single role</option>
+              <option value="swarm">Full swarm (5 agents)</option>
             </Select>
           </Field>
-        )}
-        <Field>
-          Complexity
-          <Input
-            type="number"
-            min={1}
-            max={5}
-            value={complexity}
-            disabled={!signedIn || swarmMode}
-            onChange={(e) => setComplexity(Number(e.target.value))}
-          />
-        </Field>
-        <Field>
-          Reward (STT)
-          <Input type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
-        </Field>
-      </FieldGrid>
+          {!swarmMode && (
+            <Field>
+              Agent role
+              <Select value={role} disabled={!signedIn} onChange={(e) => setRole(e.target.value as AgentType)}>
+                {ALL_AGENT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          <Field>
+            Complexity
+            <Input
+              type="number"
+              min={1}
+              max={5}
+              value={complexity}
+              disabled={!signedIn || swarmMode}
+              onChange={(e) => setComplexity(Number(e.target.value))}
+            />
+          </Field>
+          <Field>
+            Reward (STT)
+            <Input type="text" value={rewardEth} disabled={!signedIn} onChange={(e) => setRewardEth(e.target.value)} />
+          </Field>
+        </FieldGrid>
 
-      <Actions>
-        <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
-          {submitting ? "Submitting…" : swarmMode ? "Submit swarm task" : "Submit task"}
-        </Button>
-        {blockReason && <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>{blockReason}</span>}
-      </Actions>
+        <Actions>
+          <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
+            {submitting ? "Submitting…" : swarmMode ? "Submit swarm task" : "Submit task"}
+          </Button>
+          {blockReason && <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>{blockReason}</span>}
+        </Actions>
 
-      <Hint>
-        {swarmMode
-          ? "Swarm mode routes through all five agent types. Ensure the fleet is online before submitting complex jobs."
-          : "Single role tasks target one specialist. Increase complexity when coalitions may form."}
-      </Hint>
-    </Panel>
+        <Hint>
+          {swarmMode
+            ? "Swarm mode routes through all five agent types. Ensure the fleet is online before submitting complex jobs."
+            : "Single role tasks target one specialist. Increase complexity when coalitions may form."}
+        </Hint>
+      </Panel>
+
+      <TaskSuccessModal
+        open={Boolean(successModal)}
+        data={successModal}
+        onClose={closeSuccessModal}
+        onSubmitAnother={closeSuccessModal}
+      />
+    </>
   );
 }

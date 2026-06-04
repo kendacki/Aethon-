@@ -5,7 +5,7 @@ import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
 import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { SignedInShell, SessionStatusBar } from "../components/session/SessionUI";
+import { SignedInShell } from "../components/session/SessionUI";
 import { useSignedIn } from "../auth/useSignedIn";
 import { useToast } from "../components/ToastProvider";
 import { spring } from "../stitches.config";
@@ -41,7 +41,6 @@ export default function GovernancePage() {
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
-      {signedIn && <SessionStatusBar />}
       <PageHero>
         <Badge accent>
           <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />

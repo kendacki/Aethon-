@@ -7,7 +7,7 @@ import { Badge, Button, Grid, Section } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { GlassCard, GlassContent, GlassPanel } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
-import { OperatorDashboard, SectionHeader, SessionStatusBar } from "../components/session/SessionUI";
+import { OperatorDashboard, SectionHeader } from "../components/session/SessionUI";
 import { useToast } from "../components/ToastProvider";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
 import {
@@ -442,8 +442,6 @@ export default function OverviewPage() {
 
   return (
     <Home mode={signedIn ? "operator" : "guest"}>
-      {signedIn && <SessionStatusBar />}
-
       <AnimatePresence mode="wait">
         {signedIn && address ? (
           <OperatorOverview
