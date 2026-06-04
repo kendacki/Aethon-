@@ -389,15 +389,7 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
       <HomePageHero>
         <HeroContent as={motion.div} variants={heroSequence} initial="hidden" animate="show">
           <motion.div variants={heroItem}>
-            <Badge status="online" style={{ marginBottom: "0.75rem" }}>
-              Operator session
-            </Badge>
             <HeroHeading>Welcome back, {shortAddr(address)}</HeroHeading>
-          </motion.div>
-          <motion.div variants={heroItem}>
-            <HeroSub>
-              Your dashboard is live. Submit tasks, monitor the five agent roles, and track rewards tied to your wallet.
-            </HeroSub>
           </motion.div>
           <ActionRow variants={heroButton}>
             <Button variant="primary" size="sm" as={Link} to="/tasks">
@@ -405,9 +397,6 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
             </Button>
             <Button variant="outline" size="sm" as={Link} to="/agents">
               View fleet
-            </Button>
-            <Button variant="ghost" size="sm" as={Link} to="/governance">
-              Safety
             </Button>
           </ActionRow>
         </HeroContent>
@@ -436,7 +425,7 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
         </Grid>
       </StatsSection>
 
-      <PageBand>
+      <PageBand style={{ paddingBottom: "2.5rem" }}>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
@@ -492,27 +481,6 @@ function OperatorOverview({ address, statCards, healthError, walletStatsError, o
                 </div>
               </GuideCard>
             </WorkspaceGrid>
-          </GlassContent>
-        </BandGlassMotion>
-      </PageBand>
-
-      <PageBand style={{ paddingBottom: "2.5rem" }}>
-        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
-            <motion.div variants={protocolItem}>
-              <SectionTitle>How it works</SectionTitle>
-              <p style={{ marginTop: "$3", fontSize: "$sm", opacity: 0.72, maxWidth: "36rem", lineHeight: 1.65 }}>
-                The same protocol flow powers every operator session — from single role jobs to full swarm dispatch.
-              </p>
-            </motion.div>
-            <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
-              {PROTOCOL_FEATURES.map((feature) => (
-                <ProtocolCardMotion key={feature.title} variants={protocolCard}>
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardBody>{feature.body}</CardBody>
-                </ProtocolCardMotion>
-              ))}
-            </Grid>
           </GlassContent>
         </BandGlassMotion>
       </PageBand>
