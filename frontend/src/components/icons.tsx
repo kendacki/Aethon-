@@ -153,3 +153,53 @@ export function IconArrowRight({ size = ICON_MD, ...props }: IconProps) {
     </svg>
   );
 }
+
+/** Compact check — security checklist status */
+export function IconCheck({ size = ICON_SM, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="12" cy="12" r="10" fill="#0dbc82" fillOpacity="0.2" stroke="#0dbc82" strokeWidth="1.5" />
+      <path d="M8 12.5 L10.5 15 L16 9.5" stroke="#0dbc82" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Lock — access control / authorized contracts */
+export function IconLock({ size = ICON_MD, ...props }: IconProps) {
+  return (
+    <svg {...base(size)} {...props}>
+      <rect x="14" y="22" width="20" height="4" rx="1" fill="#FFFFFF" fillOpacity="0.35" />
+      <path d="M16 22 V16 C16 11.58 19.58 8 24 8 C28.42 8 32 11.58 32 16 V22" stroke="#FFFFFF" strokeWidth="2.5" fill="#FFFFFF" fillOpacity="0.45" />
+      <path d="M16 22 V16 C16 11.58 19.58 8 24 8 C28.42 8 32 11.58 32 16 V22" stroke="#FFFFFF" strokeWidth="1.5" fill="#FFFFFF" fillOpacity="0.75" clipPath="inset(0 50% 0 0)" />
+      <rect x="20" y="24" width="8" height="10" rx="1" fill="#FFFFFF" />
+      <circle cx="24" cy="28" r="2" fill="#000000" />
+    </svg>
+  );
+}
+
+/** Document with check — audits resolved */
+export function IconAudit({ size = ICON_MD, ...props }: IconProps) {
+  return (
+    <svg {...base(size)} {...props}>
+      <path d="M14 10 H30 V38 H14 Z" fill="#FFFFFF" fillOpacity="0.4" />
+      <path d="M14 10 H22 V38 H14 Z" fill="#FFFFFF" fillOpacity="0.7" />
+      <path d="M18 10 H30 L26 6 H18 Z" fill="#FFFFFF" />
+      <path d="M18 18 H28 M18 24 H26 M18 30 H24" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.35" />
+      <circle cx="32" cy="32" r="8" fill="#0dbc82" fillOpacity="0.35" />
+      <path d="M29 32 L31 34 L35 29" stroke="#0dbc82" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Vault / treasury */
+export function IconVault({ size = ICON_MD, ...props }: IconProps) {
+  return (
+    <svg {...base(size)} {...props}>
+      <path d="M10 20 H38 V36 H10 Z" fill="#FFFFFF" fillOpacity="0.45" />
+      <path d="M10 20 H24 V36 H10 Z" fill="#FFFFFF" fillOpacity="0.75" />
+      <path d="M14 20 V14 C14 10.5 18.5 8 24 8 C29.5 8 34 10.5 34 14 V20" stroke="#FFFFFF" strokeWidth="2" fill="#FFFFFF" fillOpacity="0.35" />
+      <path d="M14 20 V14 C14 10.5 18.5 8 24 8 C29.5 8 34 10.5 34 14 V20" stroke="#FFFFFF" strokeWidth="1.5" fill="#FFFFFF" fillOpacity="0.6" clipPath="inset(0 50% 0 0)" />
+      <circle cx="24" cy="28" r="3" fill="#FFFFFF" />
+    </svg>
+  );
+}

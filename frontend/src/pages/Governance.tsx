@@ -3,13 +3,77 @@ import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { PageHero } from "../components/PageHero";
 import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
-import { IconAlert, IconClock, IconShield, ICON_LG, ICON_SM, ICON_XL } from "../components/icons";
+import {
+  IconAlert,
+  IconAudit,
+  IconCheck,
+  IconClock,
+  IconCoalition,
+  IconLock,
+  IconShield,
+  IconVault,
+  ICON_LG,
+  ICON_MD,
+  ICON_SM,
+  ICON_XL,
+} from "../components/icons";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SignedInShell } from "../components/session/SessionUI";
 import { useSignedIn } from "../auth/useSignedIn";
 import { useToast } from "../components/ToastProvider";
-import { spring } from "../stitches.config";
+import { spring, styled } from "../stitches.config";
 import { useEffect } from "react";
+
+const SECURITY_ITEMS = [
+  { label: "All audit findings resolved", icon: IconAudit },
+  { label: "All attack simulations blocked", icon: IconShield },
+  { label: "Reputation changes require authorized contracts", icon: IconLock },
+  { label: "Only approved parties can dissolve coalitions", icon: IconCoalition },
+  { label: "Platform fees go to treasury", icon: IconVault },
+] as const;
+
+const SecurityGrid = styled("div", {
+  display: "grid",
+  gap: "$3",
+  "@md": {
+    gridTemplateColumns: "1fr 1fr",
+  },
+});
+
+const SecurityItem = styled(motion.div, {
+  display: "flex",
+  alignItems: "center",
+  gap: "$4",
+  padding: "$4 $5",
+  borderRadius: "$md",
+  background: "rgba(255, 255, 255, 0.04)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  minHeight: "4.5rem",
+});
+
+const ItemIcon = styled("div", {
+  flexShrink: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 40,
+  height: 40,
+});
+
+const ItemLabel = styled("span", {
+  flex: 1,
+  fontSize: "$sm",
+  fontWeight: 600,
+  lineHeight: 1.45,
+  opacity: 0.9,
+});
+
+const SecurityHeader = styled("div", {
+  display: "flex",
+  alignItems: "center",
+  gap: "$3",
+  marginBottom: "$5",
+});
 
 export default function GovernancePage() {
   const { signedIn } = useSignedIn();
@@ -18,11 +82,6 @@ export default function GovernancePage() {
   const { data: cb, loading, error, reload } = useFetch(() => {
     if (!signedIn) return Promise.resolve(null);
     return api.circuitBreaker();
-  }, [signedIn]);
-
-  const { data: health } = useFetch(() => {
-    if (!signedIn) return Promise.resolve(null);
-    return api.health();
   }, [signedIn]);
 
   const { lastEvent } = useWebSocket(["circuit_breaker"]);
@@ -98,34 +157,30 @@ export default function GovernancePage() {
             </Grid>
 
             <Card style={{ marginTop: "2rem" }}>
-              <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Security</h3>
-              <div style={{ display: "grid", gap: "0.75rem" }}>
-                {[
-                  "All audit findings resolved",
-                  "All attack simulations blocked",
-                  "Reputation changes require authorized contracts",
-                  "Only approved parties can dissolve coalitions",
-                  "Platform fees go to treasury",
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ ...spring, delay: i * 0.05 }}
-                    style={{ fontSize: "0.875rem", opacity: 0.82, display: "flex", gap: 8 }}
-                  >
-                    <span>✓</span> {item}
-                  </motion.div>
-                ))}
-              </div>
+              <SecurityHeader>
+                <IconShield size={ICON_MD} />
+                <h3 style={{ fontWeight: 800, fontSize: "1.125rem", margin: 0 }}>Security</h3>
+              </SecurityHeader>
+              <SecurityGrid>
+                {SECURITY_ITEMS.map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <SecurityItem
+                      key={item.label}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...spring, delay: i * 0.05 }}
+                    >
+                      <ItemIcon>
+                        <Icon size={ICON_MD} />
+                      </ItemIcon>
+                      <ItemLabel>{item.label}</ItemLabel>
+                      <IconCheck size={ICON_SM} aria-hidden />
+                    </SecurityItem>
+                  );
+                })}
+              </SecurityGrid>
             </Card>
-
-            {health && (
-              <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Badge status={health.database ? "online" : "offline"}>DB {health.database ? "OK" : "Down"}</Badge>
-                <Badge>Indexed block {health.lastIndexedBlock?.toLocaleString()}</Badge>
-              </div>
-            )}
           </motion.div>
         )}
       </SignedInShell>
