@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api, shortAddr, type WalletTaskStats } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
-import { Badge, Button, Grid, Muted } from "../components/ui";
+import { Button, Grid, Muted } from "../components/ui";
 import { GlassPageBand, GlassOverviewBand, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
 import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
