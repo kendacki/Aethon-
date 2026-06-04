@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { api, formatEth, type Task, type WalletTaskStats } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
-import { GlassBandPanel, GlassElevatedCard, GlassContent, GlassSurface, GLASS } from "../GlassPanel";
+import { GlassOverviewBand, GlassElevatedCard, GlassContent, GlassSurface, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
 import { summarizeWalletStake } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
@@ -15,10 +15,7 @@ const pulse = keyframes({
   "50%": { opacity: 0.45, transform: "scale(0.92)" },
 });
 
-const Panel = styled(GlassBandPanel, {
-  padding: "$6",
-  "@md": { padding: "$8" },
-});
+const Panel = GlassOverviewBand;
 
 const Header = styled("div", {
   display: "flex",

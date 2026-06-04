@@ -4,7 +4,7 @@ import { api, shortAddr, type WalletTaskStats } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { Badge, Button, Grid, Muted, Section } from "../components/ui";
-import { GlassBandPanel, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
+import { GlassOverviewBand, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
 import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
@@ -69,14 +69,7 @@ const PageBand = styled("section", {
   zIndex: 10,
 });
 
-const BandGlass = styled(GlassBandPanel, {
-  padding: "$10 $6",
-  "@md": {
-    padding: "$12 $8",
-  },
-});
-
-const BandGlassMotion = motion(BandGlass);
+const BandGlassMotion = motion(GlassOverviewBand);
 
 const StatCell = styled(motion.div, {
   height: "100%",
@@ -380,7 +373,7 @@ function OperatorOverview({
         </HeroContent>
       </HomePageHero>
 
-      <StatsSection css={{ paddingBottom: "$8" }}>
+      <PageBand css={{ paddingTop: "$8", paddingBottom: "$8" }}>
         <OperatorActivitySection
           address={address}
           walletStats={walletStats}
@@ -389,7 +382,7 @@ function OperatorOverview({
           onRetry={onRetry}
           onRefresh={onRefreshStats}
         />
-      </StatsSection>
+      </PageBand>
 
       <PageBand style={{ paddingBottom: "2.5rem" }}>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>

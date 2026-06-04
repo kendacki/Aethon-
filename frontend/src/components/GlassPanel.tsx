@@ -94,6 +94,14 @@ export const GlassBandPanel = styled(GlassPanel, {
   defaultVariants: { radius: "full", tone: "neutral" },
 });
 
+/** Overview operator bands (Your activity, Operator console). */
+export const GlassOverviewBand = styled(GlassBandPanel, {
+  padding: "$10 $6",
+  "@md": {
+    padding: "$12 $8",
+  },
+});
+
 /** Operator pages (fleet) use accent shell. */
 export const GlassSectionPanel = styled(GlassPanel, {
   maxWidth: "1200px",
