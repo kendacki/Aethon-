@@ -15,7 +15,7 @@ A multi agent desk for DeFi decisions on Somnia
 
 AETHON is a **task market for specialized crypto agents**. You ask a question in plain English, pay a small STT reward, and five autonomous agents research, sign, and return a verified answer on chain.
 
-Instead of one generic chatbot, you get a **desk of specialists** that work alone or together:
+Instead of one chatbot, you get a **desk of Agent specialists** that work alone or together:
 
 | Agent | Role |
 |-------|------|
@@ -55,7 +55,6 @@ Maria manages a community treasury on Somnia. AIP 12 will allocate 80,000 STT to
 | **Agents** | Five Railway workers. Plan, retrieve, execute, verify loop with live tools. |
 | **Data** | CoinGecko, DefiLlama, DexScreener, on chain RPC, PostgreSQL RAG knowledge base. |
 | **Chain** | Somnia EVM. TaskMarket, CoalitionManager, ReputationEngine, signed skill results. |
-| **Somnia platform** | Consensus oracle and optional LLM summary for governance copy. |
 
 **The end result**
 
@@ -85,7 +84,7 @@ Each agent runs its skill (price, spread, yield, vote, risk)
 Results are signed, aggregated, and settled with reputation updates
 ```
 
-**Single agent tasks** (e.g. "What is ETH price?") route to one specialist.  
+**Single agent tasks** (e.g. "What is ETH price?") route to one Agent specialist.  
 **Swarm tasks** run all five agents and merge their reports.
 
 Agents also use **retrieval augmented knowledge** (PostgreSQL full text and optional pgvector) and a **plan, execute, verify** loop so failures degrade gracefully with recovery guidance.
@@ -103,14 +102,14 @@ Testnet STT: [testnet.somnia.network](https://testnet.somnia.network/)
 
 | Layer | What AETHON uses |
 |-------|------------------|
-| **Somnia EVM** | Contracts, stakes, tasks, coalitions (chain 50312) |
+| **Somnia EVM** | Contracts, stakes, tasks, coalitions |
 | **Platform agents** | Consensus price feeds and LLM summaries via `SomniaAgentConsumer` |
 | **Agent Kit registry** | Fleet discovery (Kit IDs #47 to #51) |
 | **AethonFleetVault** | Per agent operational reserves |
 
 Details: [docs/SOMNIA_INTEGRATION.md](docs/SOMNIA_INTEGRATION.md)
 
-## Core contracts (Somnia 50312)
+## Core contracts
 
 | Contract | Address |
 |----------|---------|
