@@ -1,289 +1,142 @@
-<div align="center" style="font-family: 'Times New Roman', Times, serif;">
+<div align="center">
 
 # AETHON
 
-**Autonomous Emergent Trading & Hierarchical Operations Network**
+**Autonomous Emergent Trading and Hierarchical Operations Network**
 
-*A self-governing agent economy on Somnia*
-
----
+A multi agent desk for DeFi decisions on Somnia
 
 **Live app:** [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app)  
-**API:** [aethon-production-3f5a.up.railway.app](https://aethon-production-3f5a.up.railway.app/v1/health)  
+**API health:** [aethon-production-3f5a.up.railway.app/v1/health](https://aethon-production-3f5a.up.railway.app/v1/health)
 
 </div>
 
-<div style="font-family: 'Times New Roman', Times, serif;">
-
----
-
 ## What is AETHON?
 
-AETHON is a **multi-agent operating system for financial decisions**.
+AETHON is a **task market for specialized crypto agents**. You ask a question in plain English, pay a small STT reward, and five autonomous agents research, sign, and return a verified answer on chain.
 
-Instead of one chatbot doing everything, AETHON runs **five specialized agents** that work together like a small desk:
+Instead of one generic chatbot, you get a **desk of specialists** that work alone or together:
 
-| Agent | What it does |
-|-------|----------------------------------|
-| **ARBITRAGE** | Checks if prices differ enough across platforms to make a trade worthwhile |
-| **ORACLE** | Fetches and signs verified asset prices |
-| **YIELD_OPT** | Recommends where to park funds for the best risk-adjusted yield |
-| **GOVERNANCE** | Analyzes DAO proposals such as quorum, vote math, and plain-language summaries |
-| **RISK_MGMT** | Monitors protocol health and recommends proceed or pause |
+| Agent | Role |
+|-------|------|
+| **ORACLE** | Live asset prices with signed attestations |
+| **ARBITRAGE** | Cross venue spread scans with gas adjusted profit |
+| **YIELD_OPT** | Yield allocation from live DefiLlama pools |
+| **GOVERNANCE** | Quorum math, vote recommendation, proposal summary |
+| **RISK_MGMT** | Fleet health, circuit breaker, proceed or pause |
 
-You **submit one task** (with a small STT reward). Agents pick it up on-chain, form a **coalition** when the job is complex, execute their skills, and settle rewards and reputation on-chain.
+Each agent has **stake, reputation, and signed skill results** so outputs are accountable, not anonymous model text.
 
-**New to Web3?** Think of it as: *post a job → autonomous workers bid and collaborate → you get a signed report back.*
+## Practical use case
 
----
+**Scenario:** Your team is about to vote on a treasury move. You need price context, yield options, governance math, and a fleet health check before committing capital.
 
-## What problem does it solve?
+**What you do:**
 
-| Problem today | How AETHON helps |
-|---------------|------------------|
-| DAOs and treasuries rely on manual spreadsheets and forum posts before big moves | One **swarm task** produces price, yield, governance, liquidity, and risk checks in parallel |
-| “AI agents” are often a single LLM with no accountability | Five **role-specific agents** with on-chain stake, reputation, and signed skill results |
-| DeFi ops are fragmented across dashboards | One **Task Market** + live **fleet health** view |
-| Oracle and LLM calls are hard to trust | **Somnia L1 platform agents** provide validator-consensus JSON API and LLM inference |
-| Failures can cascade silently | **Circuit breaker** halts the system; **RISK_MGMT** surfaces composite risk scores |
+1. Connect wallet on [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app) and sign in.
+2. Ask: *"Brief me on ETH: live price, arbitrage spreads, yield options for 1 ETH, governance on AIP 1, and fleet risk."*
+3. Submit one **swarm task** (all five agents).
+4. Within minutes you receive a **single coordinated answer**: spot price, spread view, allocation plan, vote analysis, and risk score with clear next steps.
 
-**Example use case:** A grants committee submits a complexity-5 swarm task before voting on an $80k allocation. In under two minutes they receive a coordinated compiled and verified result — not five separate tool outputs.
+**Why it matters:** One submission replaces five dashboards, three APIs, and a manual spreadsheet. Every number comes from **live tools** (CoinGecko, DefiLlama, on chain state), not hallucinated chat.
 
----
+## How it works
 
-## How Somnia is used
+```
+You submit a task (wallet + STT reward)
+        ↓
+TaskMarket on Somnia records the job on chain
+        ↓
+Agents form a coalition when the job needs multiple roles
+        ↓
+Each agent runs its skill (price, spread, yield, vote, risk)
+        ↓
+Results are signed, aggregated, and settled with reputation updates
+```
 
-AETHON is an **application layer** on [Somnia Agentic L1](https://docs.somnia.network/agents). Somnia provides two things we rely on:
+**Single agent tasks** (e.g. "What is ETH price?") route to one specialist.  
+**Swarm tasks** run all five agents and merge their reports.
 
-### 1. EVM chain (Somnia)
+Agents also use **retrieval augmented knowledge** (PostgreSQL full text + optional pgvector) and a **plan → execute → verify** loop so failures degrade gracefully with recovery guidance.
 
-All AETHON contracts, agent wallets, stakes, tasks, and coalitions live on **chain ID 50312**.
+## Try it in five steps
 
-### 2. Somnia platform agents (validator-consensus compute)
+1. Open the [live app](https://aethon-lemon.vercel.app).
+2. Connect wallet on **Somnia (chain 50312)**.
+3. **Sign in** with SIWE.
+4. Go to **Tasks**, pick an example or type your question, then **Run task**.
+5. Watch the answer appear when status reaches **COMPLETED**.
 
-| Somnia base agent | Used by | Purpose |
-|-------------------|---------|---------|
-| **JSON API Request** | ORACLE | Consensus-verified price feeds (e.g. ETH/USD) |
-| **LLM Inference** | GOVERNANCE | Deterministic plain-language proposal summaries |
-| **LLM Parse Website** | *(planned)* | Future news / prediction-market resolution |
+Testnet STT: [testnet.somnia.network](https://testnet.somnia.network/)
 
-Our relay contract **`SomniaAgentConsumer`** invokes the Somnia platform; agent workers read results and attach them to skill outputs.
+## Built on Somnia
 
-### 3. Somnia Agent Kit registry (discovery)
+| Layer | What AETHON uses |
+|-------|------------------|
+| **Somnia EVM** | Contracts, stakes, tasks, coalitions (chain 50312) |
+| **Platform agents** | Consensus price feeds and LLM summaries via `SomniaAgentConsumer` |
+| **Agent Kit registry** | Fleet discovery (Kit IDs #47 to #51) |
+| **AethonFleetVault** | Per agent operational reserves |
 
-All five fleet wallets are registered in the official Kit registry for ecosystem discovery and hackathon visibility:
+Details: [docs/SOMNIA_INTEGRATION.md](docs/SOMNIA_INTEGRATION.md)
 
-| Role | Kit ID | Wallet |
-|------|--------|--------|
-| ARBITRAGE | #47 | `0x0eec621450cA9a0445DBdadC0624FDD5cc888037` |
-| ORACLE | #48 | `0xfc501c679aFb3689191448f92621ACD49e86482C` |
-| YIELD_OPT | #49 | `0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e` |
-| GOVERNANCE | #50 | `0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0` |
-| RISK_MGMT | #51 | `0x25229e52bd699F82C1dcF3257bC3299fC98960bB` |
-
-### 4. AethonFleetVault (Kit-compatible reserves)
-
-The shared Somnia Kit vault is admin-owned by a third party, so we deploy our own **`AethonFleetVault`** — same API (`createVault`, `depositNative`, daily limits), owned by our deployer. Each agent has a reserve balance for operational segregation.
-
-**Deep dive:** [docs/SOMNIA_INTEGRATION.md](docs/SOMNIA_INTEGRATION.md)
-
----
-
-## Deployed addresses (Somnia — chain 50312)
-
-Explorer: [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network)
-
-### AETHON core contracts
+## Core contracts (Somnia 50312)
 
 | Contract | Address |
 |----------|---------|
-| **AgentRegistry** | [`0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F`](https://shannon-explorer.somnia.network/address/0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F) |
-| **TaskMarket** | [`0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc`](https://shannon-explorer.somnia.network/address/0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc) |
-| **CoalitionManager** | [`0x55B189B30980c95Bfb2936de0ed11e54fC590648`](https://shannon-explorer.somnia.network/address/0x55B189B30980c95Bfb2936de0ed11e54fC590648) |
-| **ReputationEngine** | [`0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91`](https://shannon-explorer.somnia.network/address/0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91) |
-| **CircuitBreaker** | [`0x4Eed8B20f302b8A28f375F5b7FE33E2296803893`](https://shannon-explorer.somnia.network/address/0x4Eed8B20f302b8A28f375F5b7FE33E2296803893) |
+| AgentRegistry | [`0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F`](https://shannon-explorer.somnia.network/address/0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F) |
+| TaskMarket | [`0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc`](https://shannon-explorer.somnia.network/address/0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc) |
+| CoalitionManager | [`0x55B189B30980c95Bfb2936de0ed11e54fC590648`](https://shannon-explorer.somnia.network/address/0x55B189B30980c95Bfb2936de0ed11e54fC590648) |
+| ReputationEngine | [`0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91`](https://shannon-explorer.somnia.network/address/0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91) |
+| CircuitBreaker | [`0x4Eed8B20f302b8A28f375F5b7FE33E2296803893`](https://shannon-explorer.somnia.network/address/0x4Eed8B20f302b8A28f375F5b7FE33E2296803893) |
+| SomniaAgentConsumer | [`0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353`](https://shannon-explorer.somnia.network/address/0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353) |
+| AethonFleetVault | [`0x71bb54c9507387B716199D72858a1F4DEB8FfE1b`](https://shannon-explorer.somnia.network/address/0x71bb54c9507387B716199D72858a1F4DEB8FfE1b) |
 
-### Somnia integration contracts
-
-| Contract | Address |
-|----------|---------|
-| **Somnia Agents Platform** | [`0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776`](https://shannon-explorer.somnia.network/address/0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776) |
-| **SomniaAgentConsumer** (AETHON relay) | [`0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353`](https://shannon-explorer.somnia.network/address/0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353) |
-| **AethonFleetVault** | [`0x71bb54c9507387B716199D72858a1F4DEB8FfE1b`](https://shannon-explorer.somnia.network/address/0x71bb54c9507387B716199D72858a1F4DEB8FfE1b) |
-
-### Somnia Agent Kit (reference — registry only)
-
-| Contract | Address |
-|----------|---------|
-| **Kit AgentRegistry** | [`0xC9f3452090EEB519467DEa4a390976D38C008347`](https://shannon-explorer.somnia.network/address/0xC9f3452090EEB519467DEa4a390976D38C008347) |
-| Kit AgentManager | `0x77F6dC5924652e32DBa0B4329De0a44a2C95691E` *(not used — AETHON has its own TaskMarket)* |
-| Kit AgentVault (shared) | `0x7cEe3142A9c6d15529C322035041af697B2B5129` *(not used — we use AethonFleetVault)* |
-
-### Operations
-
-| Role | Address |
-|------|---------|
-| **Deployer / Relayer / Guardian** | `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6` |
-
-Full JSON record: [`backend/deployments/somniaTestnet-50312.json`](backend/deployments/somniaTestnet-50312.json) (includes `deploymentBlock` **400735331** for indexer start)
-
-Previous stack addresses are archived under the `previous` key in that file.
-
----
-
-## Happy path (try it yourself)
-
-1. Open **[aethon-lemon.vercel.app](https://aethon-lemon.vercel.app)**.
-2. Click **Connect wallet** → approve **Somnia (50312)**.
-3. Click **Sign in** (SIWE) so you can submit tasks.
-4. Go to **Tasks** → choose **Full swarm (5 agents)** → set reward (e.g. `0.05` STT) → **Submit task**.
-5. Watch the task move **PENDING → COMPLETED** (live updates included).
-6. Visit **Agents** for fleet health, or **Somnia** for the integration report.
-
-You need testnet STT: [testnet.somnia.network](https://testnet.somnia.network/)
-
----
+Full deployment record: [`backend/deployments/somniaTestnet-50312.json`](backend/deployments/somniaTestnet-50312.json)
 
 ## Tech stack
 
-| Layer | Technology |
-|-------|------------|
-| **Blockchain** | Somnia (EVM, chain 50312) |
-| **Smart contracts** | Solidity 0.8.24, Hardhat, OpenZeppelin |
-| **Backend** | Node.js, TypeScript, Express, PostgreSQL |
-| **Real-time** | WebSocket event bus (`tasks`, `agents`, `circuit_breaker`) |
-| **Auth** | SIWE (EIP-4361) + JWT |
-| **Frontend** | React 18, Vite, TypeScript, ethers v6, Framer Motion |
-| **Agent runtime** | Custom `AgentCore` — reactivity, health monitor, skill executors |
-| **Somnia** | Platform agents via `SomniaAgentConsumer`; Kit registry for discovery |
-| **Deploy** | Railway (API + workers), Vercel (frontend) |
-
----
+| Layer | Stack |
+|-------|--------|
+| Chain | Somnia (EVM, 50312) |
+| Contracts | Solidity 0.8.24, Hardhat, OpenZeppelin |
+| Backend | Node.js, TypeScript, Express, PostgreSQL |
+| Real time | WebSocket (`tasks`, `agents`, `circuit_breaker`) |
+| Auth | SIWE + JWT |
+| Frontend | React 18, Vite, ethers v6 |
+| Agents | Custom runtime, live data tools, RAG knowledge base |
+| Deploy | Railway (API + workers), Vercel (frontend) |
 
 ## Repository layout
 
 ```
 Aethon/
-├── backend/
-│   ├── contracts/          # AgentRegistry, TaskMarket, CoalitionManager, SomniaAgentConsumer, AethonFleetVault
-│   ├── deployments/        # On-chain address records
-│   ├── scripts/            # Deploy, fund fleet, verify Somnia, simulate
-│   └── src/
-│       ├── agent/          # Agent runtime, skills, health monitor
-│       ├── api/            # REST + WebSocket
-│       ├── db/             # Postgres schema + indexer
-│       └── somnia/         # SomniaAgentsClient, AgentVaultClient, Kit modules
-├── frontend/
-│   └── src/                # React app — Overview, Agents, Tasks, Somnia, Governance
-├── docs/
-│   └── SOMNIA_INTEGRATION.md
+├── backend/          API, agent workers, contracts, migrations
+├── frontend/         React app (Overview, Tasks, Agents)
+├── docs/             Integration and ops guides
 └── docker-compose.yml
 ```
 
----
+## Run locally
 
-## How to replicate locally
-
-### Prerequisites
-
-- **Node.js 22+**
-- **PostgreSQL 16** (or Docker)
-- **MetaMask** (or any Web3 wallet)
-- **Testnet STT** from the [Somnia faucet](https://testnet.somnia.network/)
-
-### Step 1 — Clone and install
+**Prerequisites:** Node.js 22+, PostgreSQL 16 (or Docker), wallet with Somnia testnet STT.
 
 ```bash
 git clone https://github.com/kendacki/Aethon-.git
-cd Aethon-
-cd backend && npm install
-cd ../frontend && npm install
+cd Aethon-/backend && npm install && npm run db:migrate && npm run build && npm run start:api
+cd ../frontend && npm install && npm run dev
 ```
 
-### Step 2 — Contracts (optional — addresses already deployed)
+Copy contract addresses from `backend/deployments/somniaTestnet-50312.json` into `backend/.env`.  
+Optional agent worker: `AGENT_TYPE=ORACLE AGENT_PRIVATE_KEY=<key> npm run start:agent`
 
-```bash
-cd backend
-cp .env.example .env
-# Add DEPLOYER_PK only if redeploying
-npm run compile
-# npm run deploy:testnet        # fresh deploy (needs funded wallet)
-# npm run deploy:somnia-consumer
-# npm run deploy:aethon-vault
-# npm run register:somnia-kit
-```
+More detail: [docs/AGENTS.md](docs/AGENTS.md) · [backend/DEPLOYMENT.md](backend/DEPLOYMENT.md)
 
-For most developers, **copy addresses from** `backend/deployments/somniaTestnet-50312.json` **into** `backend/.env`.
+## Production notes
 
-### Step 3 — Backend
+**Railway (backend):** Set root to `backend`. Migrations run on deploy via `preDeployCommand` (not on every API replica). Template env: [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example)
 
-```bash
-cd backend
-docker compose up postgres -d    # from repo root, or use local Postgres
-npm run db:migrate
-npm run build
-npm run start:api                # http://localhost:3001
-```
-
-Optional — run one agent worker:
-
-```bash
-AGENT_TYPE=ORACLE AGENT_PRIVATE_KEY=<key> npm run start:agent
-```
-
-See [`docs/AGENTS.md`](docs/AGENTS.md) for the full five-agent fleet.
-
-### Step 4 — Frontend
-
-```bash
-cd frontend
-npm run dev                      # http://localhost:5173
-```
-
-Vite proxies `/v1` and `/ws` to `localhost:3001`.
-
-### Step 5 — Verify everything
-
-```bash
-cd backend
-npm run verify:somnia            # Somnia + vault + Kit registry checks
-npm run simulate:fleet           # On-chain fleet + API health
-```
-
----
-
-## Production deployment
-
-### Railway (backend + agent workers)
-
-Set root directory to `backend`. Required env vars (minimum):
-
-```env
-DATABASE_URL=<from Railway Postgres>
-CORS_ORIGIN=https://aethon-lemon.vercel.app,http://localhost:5173
-AGENT_REGISTRY_ADDR=0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F
-TASK_MARKET_ADDR=0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc
-COALITION_MANAGER_ADDR=0x55B189B30980c95Bfb2936de0ed11e54fC590648
-REPUTATION_ENGINE_ADDR=0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91
-CIRCUIT_BREAKER_ADDR=0x4Eed8B20f302b8A28f375F5b7FE33E2296803893
-AETHON_FLEET_VAULT_ADDR=0x71bb54c9507387B716199D72858a1F4DEB8FfE1b
-SWARM_EXECUTION_ROUTER_ADDR=0x71bb54c9507387B716199D72858a1F4DEB8FfE1b
-INDEXER_START_BLOCK=400735331
-SOMNIA_RPC_URL=https://dream-rpc.somnia.network
-SOMNIA_AGENTS_ENABLED=true
-SOMNIA_AGENTS_PLATFORM_ADDR=0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776
-SOMNIA_AGENT_CONSUMER_ADDR=0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353
-SOMNIA_KIT_REGISTRY_ADDR=0xC9f3452090EEB519467DEa4a390976D38C008347
-SOMNIA_VAULT_ENABLED=true
-```
-
-Copy-paste template: [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example).  
-Agent workers need the five `*_ADDR` contract vars above (not vault/indexer).  
-Also set `JWT_SECRET`, `RELAYER_PRIVATE_KEY`, and `API_KEY` in Railway — never commit those.
-
-Never commit `DEPLOYER_PK` or agent private keys.
-
-### Vercel (frontend)
+**Vercel (frontend):**
 
 ```env
 VITE_API_URL=https://aethon-production-3f5a.up.railway.app
@@ -293,51 +146,29 @@ VITE_SIWE_URI=https://aethon-lemon.vercel.app
 VITE_SOMNIA_CHAIN_ID=50312
 ```
 
----
+Never commit private keys or production secrets.
 
 ## API quick reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/v1/health` | Indexer sync + circuit state |
-| GET | `/v1/stats` | Agents, tasks, TVL |
-| GET | `/v1/agents/fleet-health` | Live worker diagnostics |
-| GET | `/v1/somnia/agents` | Somnia compatibility report |
-| GET | `/v1/tasks` | Task list |
-| POST | `/v1/tasks/submit` | Submit task (SIWE auth + signature) |
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/v1/health` | Sync and circuit state |
+| GET | `/v1/stats` | Fleet and task stats |
+| GET | `/v1/agents/fleet-health` | Agent diagnostics |
+| GET | `/v1/knowledge/:role` | RAG citations for agents |
+| POST | `/v1/tasks/submit` | Submit task (SIWE required) |
 
-OpenAPI: `{API_URL}/docs`  
-WebSocket: `{API_ORIGIN}/ws` — channels: `tasks`, `agents`, `coalitions`, `circuit_breaker`
+OpenAPI docs: `{API_URL}/docs`
 
----
-
-## Network reference
+## Network
 
 | | |
 |---|---|
-| **Chain ID** | 50312 |
-| **Network** | Somnia |
-| **RPC** | `https://dream-rpc.somnia.network` |
-| **WebSocket** | `wss://ws.somnia.network` |
-| **Explorer** | [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network) |
-| **Agent Explorer** | [agents.testnet.somnia.network](https://agents.testnet.somnia.network) |
-| **Faucet** | [testnet.somnia.network](https://testnet.somnia.network/) |
-
----
-
-## Useful scripts
-
-```bash
-npm run verify:somnia          # 14-point Somnia integration check
-npm run simulate:fleet         # On-chain + vault + API fleet health
-npm run fund:fleet -- 3        # Top up agent wallets to 3 STT
-npm run setup:agent-vaults     # Create + seed fleet vaults
-```
-
----
+| Chain ID | 50312 |
+| RPC | `https://dream-rpc.somnia.network` |
+| Explorer | [shannon-explorer.somnia.network](https://shannon-explorer.somnia.network) |
+| Faucet | [testnet.somnia.network](https://testnet.somnia.network/) |
 
 ## License
 
 MIT
-
-</div>
