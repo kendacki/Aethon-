@@ -317,22 +317,78 @@ export const repo = {
     return r.rows[0].id;
   },
 
-  async getPendingOutbox(limit = 10): Promise<
-    Array<{ id: number; submitter: string; taskHash: string; complexity: number; rewardWei: string; signature: string }>
+  async enqueueTaskOutboxSubmitted(
+    row: {
+      submitter: string;
+      taskHash: string;
+      complexity: number;
+      rewardWei: string;
+      signature: string;
+    },
+    onChainTaskId: number,
+    txHash: string,
+  ): Promise<number> {
+    const r = await query<{ id: number }>(
+      `INSERT INTO task_outbox (submitter, task_hash, complexity, reward_wei, signature, status, on_chain_task_id, tx_hash)
+       VALUES ($1,$2,$3,$4,$5,'SUBMITTED',$6,$7) RETURNING id`,
+      [
+        row.submitter.toLowerCase(),
+        row.taskHash,
+        row.complexity,
+        row.rewardWei,
+        row.signature,
+        onChainTaskId,
+        txHash,
+      ],
+    );
+    return r.rows[0].id;
+  },
+
+  async getOutboxByOnChainTaskId(onChainTaskId: number): Promise<{
+    submitter: string;
+    taskHash: string;
+    complexity: number;
+    rewardWei: string;
+    txHash: string;
+  } | null> {
+    const r = await query(
+      `SELECT submitter, task_hash, complexity, reward_wei, tx_hash FROM task_outbox
+       WHERE on_chain_task_id = $1 AND status = 'SUBMITTED'
+       ORDER BY id DESC LIMIT 1`,
+      [onChainTaskId],
+    );
+    if (!r.rows[0]) return null;
+    const row = r.rows[0];
+    return {
+      submitter: row.submitter as string,
+      taskHash: row.task_hash as string,
+      complexity: row.complexity as number,
+      rewardWei: row.reward_wei as string,
+      txHash: row.tx_hash as string,
+    };
+  },
+
+  async claimNextPendingOutbox(): Promise<
+    { id: number; submitter: string; taskHash: string; complexity: number; rewardWei: string; signature: string } | null
   > {
     const r = await query(
-      `SELECT id, submitter, task_hash, complexity, reward_wei, signature FROM task_outbox
-       WHERE status = 'PENDING' ORDER BY id ASC LIMIT $1`,
-      [limit]
+      `UPDATE task_outbox SET status = 'PROCESSING', updated_at = NOW()
+       WHERE id = (
+         SELECT id FROM task_outbox WHERE status = 'PENDING' ORDER BY id ASC LIMIT 1
+         FOR UPDATE SKIP LOCKED
+       )
+       RETURNING id, submitter, task_hash, complexity, reward_wei, signature`,
     );
-    return r.rows.map((row) => ({
-      id: row.id,
-      submitter: row.submitter,
-      taskHash: row.task_hash,
-      complexity: row.complexity,
-      rewardWei: row.reward_wei,
-      signature: row.signature,
-    }));
+    if (!r.rows[0]) return null;
+    const row = r.rows[0];
+    return {
+      id: row.id as number,
+      submitter: row.submitter as string,
+      taskHash: row.task_hash as string,
+      complexity: row.complexity as number,
+      rewardWei: row.reward_wei as string,
+      signature: row.signature as string,
+    };
   },
 
   async markOutboxSubmitted(id: number, onChainTaskId: number, txHash: string): Promise<void> {

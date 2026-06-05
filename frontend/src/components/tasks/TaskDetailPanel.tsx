@@ -78,10 +78,12 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
   const loadDetail = useCallback(async () => {
     if (taskId == null) return;
     setLoading(true);
-    setError(null);
     try {
       const data = await api.taskDetail(taskId);
-      setDetail(data);
+      if (data) {
+        setDetail(data);
+        setError(null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load the answer.");
     } finally {
@@ -99,7 +101,9 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
   }, [taskId, loadDetail]);
 
   useEffect(() => {
-    if (taskId == null || !detail || !isTaskInProgress(detail.task.status)) return;
+    if (taskId == null) return;
+    const inProgress = !detail || isTaskInProgress(detail.task.status);
+    if (!inProgress) return;
     const timer = window.setInterval(() => {
       void loadDetail();
     }, 2500);

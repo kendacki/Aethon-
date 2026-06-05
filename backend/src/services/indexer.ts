@@ -302,6 +302,11 @@ export class ChainIndexer {
     }
   }
 
+  /** Sync a single task row from chain into Postgres (public for submit/detail paths). */
+  async syncTaskRecord(id: number, txHash?: string): Promise<void> {
+    await this.syncTaskById(id, txHash);
+  }
+
   private async syncTaskById(id: number, txHash?: string): Promise<void> {
     if (!CONTRACTS.taskMarket) return;
     try {

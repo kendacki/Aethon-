@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { repo } from "../db/repository.js";
+import { indexer } from "./indexer.js";
 import { eventBus } from "./eventBus.js";
 
 const TASK_MARKET_ABI = [
@@ -71,7 +72,9 @@ export class TaskRelayer {
 
   private async processOutbox(): Promise<void> {
     if (!this.market) return;
-    for (const row of await repo.getPendingOutbox(5)) {
+    for (;;) {
+      const row = await repo.claimNextPendingOutbox();
+      if (!row) break;
       try {
         const { taskId, txHash } = await this.submitImmediate({
           submitter: row.submitter,
@@ -81,6 +84,7 @@ export class TaskRelayer {
           signature: row.signature,
         });
         await repo.markOutboxSubmitted(row.id, taskId, txHash);
+        await indexer.syncTaskRecord(taskId, txHash);
         eventBus.publish("tasks", "TASK_RELAYED", { outboxId: row.id, taskId, txHash });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

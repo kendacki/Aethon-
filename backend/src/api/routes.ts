@@ -226,7 +226,26 @@ tasksRouter.get("/:id/detail", async (req, res, next) => {
   try {
     const taskId = Number(req.params.id);
     if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
-    const task = await repo.getTask(taskId);
+    let task = await repo.getTask(taskId);
+    if (!task) {
+      await indexer.syncTaskRecord(taskId);
+      task = await repo.getTask(taskId);
+    }
+    if (!task) {
+      const outbox = await repo.getOutboxByOnChainTaskId(taskId);
+      if (outbox) {
+        task = {
+          id: taskId,
+          submitter: outbox.submitter,
+          taskHash: outbox.taskHash,
+          reward: outbox.rewardWei,
+          complexity: outbox.complexity,
+          deadline: new Date(Date.now() + 86_400_000).toISOString(),
+          status: "PENDING",
+          txHash: outbox.txHash,
+        };
+      }
+    }
     if (!task) return res.status(404).json({ error: "Task not found" });
     const rawPayload = await repo.getTaskPayload(task.taskHash);
     const payload =

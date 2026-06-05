@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
+import { indexer } from "../services/indexer.js";
 import { relayer, verifyTaskSignature } from "../services/relayer.js";
 import { requireAuth } from "./authenticateToken.js";
 import {
@@ -85,7 +86,6 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
     );
 
     if (hasRelayer && process.env.TASK_MARKET_ADDR) {
-      const outboxId = await repo.enqueueTaskOutbox({ submitter, taskHash, complexity, rewardWei, signature });
       const { taskId, txHash } = await relayer.submitImmediate({
         submitter,
         taskHash,
@@ -93,7 +93,12 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
         rewardWei,
         signature,
       });
-      await repo.markOutboxSubmitted(outboxId, taskId, txHash);
+      await repo.enqueueTaskOutboxSubmitted(
+        { submitter, taskHash, complexity, rewardWei, signature },
+        taskId,
+        txHash,
+      );
+      await indexer.syncTaskRecord(taskId, txHash);
       res.status(201).json({ data: { taskId, taskHash, txHash, status: "SUBMITTED_ON_CHAIN" } });
       return;
     }

@@ -252,7 +252,19 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  taskDetail: (id: number) => fetchApi<{ data: TaskDetailResponse }>(`/tasks/${id}/detail`).then((r) => r.data),
+  taskDetail: async (id: number) => {
+    const path = `/tasks/${id}/detail`;
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+    });
+    if (res.status === 404) return null;
+    if (res.status === 429) throw new Error("Rate limit exceeded. Please try again shortly.");
+    if (res.status === 401) throw new Error("Session expired. Connect your wallet and sign in again.");
+    if (res.status === 403) throw new Error("Access denied. Sign in with your wallet.");
+    if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+    const body = await parseApiJson<{ data: TaskDetailResponse }>(res, path);
+    return body.data;
+  },
   taskPayload: (hash: string) =>
     fetchApi<{ data: { taskHash: string; payload: Record<string, unknown> } }>(`/tasks/payload/${hash}`).then(
       (r) => r.data.payload,
