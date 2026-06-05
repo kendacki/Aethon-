@@ -43,7 +43,8 @@ async function synthesizeBrainSummary(
     `User question: ${userQuery.slice(0, 400)}`,
     `Verified tool output (do not invent numbers): ${facts}`,
     citeText ? `Reference policies: ${citeText}` : "",
-    "Write 2 concise sentences for the user. Use only numbers from the tool output.",
+    "Write 2 concise sentences for the user in plain language. Use only numbers from the tool output.",
+    "Do not mention confidence scores, fallback tables, attestations, signatures, API names as raw codes, or internal quality tiers.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -166,7 +167,7 @@ export async function runAgentLoop(
       .catch(() => undefined);
   }
 
-  if (brainSummary) {
+  if (brainSummary && !/\b(fallback_table|attestation|confidence\s*\d+%)\b/i.test(brainSummary)) {
     brainSummary = proseClean(brainSummary);
     result.data.summary = brainSummary;
     const report = result.data.report as { summary?: string } | undefined;

@@ -19,6 +19,7 @@ export type TaskResultOutput = {
 function titleCaseAsset(raw: string): string {
   const lower = raw.toLowerCase();
   if (lower === "ethereum" || lower === "eth") return "Ethereum";
+  if (lower === "bitcoin" || lower === "btc") return "Bitcoin";
   return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
@@ -35,31 +36,46 @@ export function proseClean(text: string): string {
     .trim();
 }
 
+const TECHNICAL_LINE =
+  /\b(fallback_table|somnia_json_api|attestation|wallet attestation|quality tier|basis points|wei\b|criteriaMet|signed by the oracle)\b/i;
+
+function isTechnicalCopy(text: string): boolean {
+  return TECHNICAL_LINE.test(text) || /\(\d{1,3}%\s*confidence/i.test(text);
+}
+
 function polishLegacySummary(text: string): string {
   const oracleMatch = text.match(
     /^(\w+)\s+spot\s+\$([\d,.]+)\s+USD\s+via\s+(\w+)\s+\(confidence\s+(\d+)%\)/i,
   );
   if (oracleMatch) {
-    const [, asset, price, source, conf] = oracleMatch;
-    return proseClean(`${titleCaseAsset(asset)} is $${price} (${conf}% confidence, ${source}).`);
+    const [, asset, price] = oracleMatch;
+    return proseClean(`${titleCaseAsset(asset)} is about $${price} USD. Live feeds were busy, so this uses reference pricing. Refresh for a live quote before trading.`);
   }
 
   const staleMatch = text.match(/^(\w+)\s+price\s+\$([\d,.]+)\s+\((\w+)\)\s+.*stale/i);
   if (staleMatch) {
     const [, asset, price] = staleMatch;
-    return proseClean(`${titleCaseAsset(asset)} last traded at $${price}, but the quote is no longer fresh.`);
+    return proseClean(`${titleCaseAsset(asset)} last traded near $${price}, but the quote is no longer fresh. Ask again for an updated price.`);
   }
 
   return proseClean(
     text
       .replace(/\bETHEREUM\b/g, "Ethereum")
+      .replace(/\bfallback_table\b/gi, "reference pricing")
+      .replace(/\bcoingecko\b/gi, "CoinGecko")
+      .replace(/\bsomnia_json_api\b/gi, "Somnia oracle")
+      .replace(/\(confidence\s+\d+%[^)]*\)/gi, "")
       .replace(/\s+via\s+/gi, " from ")
-      .replace(/\(confidence\s+(\d+)%\)/gi, "($1% confidence)"),
+      .replace(/Spot:\s*\$[\d,.]+ USD\s*/gi, "")
+      .replace(/Source:\s*\w+\s*/gi, "")
+      .replace(/Age:\s*\d+s\s*\([^)]*\)\s*/gi, "")
+      .replace(/Attestation:\s*signed\s*/gi, ""),
   );
 }
 
 function cleanCopy(text: string): string {
-  return polishLegacySummary(text);
+  const polished = polishLegacySummary(text);
+  return isTechnicalCopy(polished) ? polishLegacySummary(text) : polished;
 }
 
 function friendlySkillError(error?: string): string {
@@ -72,19 +88,21 @@ function friendlySkillError(error?: string): string {
   return proseClean(error);
 }
 
+function formatReportSections(sections?: SkillReportView["sections"]): string {
+  if (!sections?.length) return "";
+  const blocks: string[] = [];
+  for (const section of sections) {
+    const lines = section.lines.map((line) => cleanCopy(line)).filter((line) => line && !isTechnicalCopy(line));
+    if (!lines.length) continue;
+    blocks.push([section.title, ...lines.map((line) => line)].join("\n"));
+  }
+  return blocks.join("\n\n");
+}
+
 function knowledgeLines(data: Record<string, unknown>): string[] {
   const lines: string[] = [];
   const brain = typeof data.brainSummary === "string" ? data.brainSummary.trim() : "";
-  if (brain) lines.push(cleanCopy(brain));
-
-  const citations = data.ragCitations;
-  if (Array.isArray(citations)) {
-    for (const c of citations.slice(0, 2)) {
-      if (c && typeof c === "object" && "title" in c && typeof (c as { title: string }).title === "string") {
-        lines.push(cleanCopy(`Reference: ${(c as { title: string }).title}.`));
-      }
-    }
-  }
+  if (brain && !isTechnicalCopy(brain)) lines.push(cleanCopy(brain));
 
   const recovery = typeof data.recovery === "string" ? data.recovery.trim() : "";
   const guidance = typeof data.userGuidance === "string" ? data.userGuidance.trim() : "";
@@ -105,15 +123,12 @@ function extractReport(data: Record<string, unknown>, error?: string): {
 
   const thinking = cleanCopy(String(report?.thinking ?? ""));
 
-  const sectionText =
-    report?.sections
-      ?.flatMap((s) => s.lines.map((line) => cleanCopy(line)))
-      .filter(Boolean)
-      .join(" ") ?? "";
+  const sectionText = formatReportSections(report?.sections);
 
-  const knowledge = knowledgeLines(data).join(" ");
+  const knowledge = knowledgeLines(data).join("\n\n");
 
-  const body = [summary, sectionText, knowledge].filter(Boolean).join("\n\n");
+  const bodyParts = [summary, sectionText, knowledge].filter(Boolean);
+  const body = uniqueParagraphs(bodyParts);
 
   const recommendation = cleanCopy(
     String(

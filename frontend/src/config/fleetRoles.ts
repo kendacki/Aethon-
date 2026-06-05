@@ -16,7 +16,7 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
   ORACLE: {
     type: "ORACLE",
     label: "Oracle",
-    description: "Fetches USD prices, checks freshness, and signs an attestation.",
+    description: "Fetches USD prices, checks freshness, and returns a clear market answer.",
   },
   YIELD_OPT: {
     type: "YIELD_OPT",

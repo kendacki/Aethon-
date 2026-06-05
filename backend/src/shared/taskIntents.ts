@@ -45,7 +45,7 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     defaultMode: "single",
     primaryRole: "ORACLE",
     action: "fetch_price",
-    agentWork: "Oracle agent fetches live spot data, checks freshness, signs an attestation, and returns confidence.",
+    agentWork: "Oracle agent fetches live spot data, checks freshness, and returns a plain-language market answer.",
     sources: ["CoinGecko simple/price API", "Somnia JSON oracle (when enabled)", "Deterministic fallback table"],
     successCriteria: [
       { id: "price_returned", label: "Price returned", description: "A numeric USD price is produced." },
