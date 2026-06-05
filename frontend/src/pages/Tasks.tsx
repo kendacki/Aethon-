@@ -9,7 +9,6 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../comp
 import {
   PageContent,
   SectionHeading,
-  SectionHeadingMeta,
   SectionHeadingTitle,
   SubpageHero,
 } from "../components/layout/SubpageLayout";
@@ -285,11 +284,6 @@ export default function TasksPage() {
 
             <SectionHeading>
               <SectionHeadingTitle>History</SectionHeadingTitle>
-              {data && (
-                <SectionHeadingMeta>
-                  {data.pagination.total} task{data.pagination.total === 1 ? "" : "s"}
-                </SectionHeadingMeta>
-              )}
             </SectionHeading>
 
             <FilterRow>
