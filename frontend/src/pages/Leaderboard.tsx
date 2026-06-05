@@ -188,7 +188,6 @@ export default function LeaderboardPage() {
                 </Badge>
               }
               title="Leaderboard"
-              lead="Rank 1 is the highest on-chain reputation. Lower ranks appear further down the list."
             />
           </HeroItem>
         </AnimatedPageHero>
