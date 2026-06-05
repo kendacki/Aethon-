@@ -342,8 +342,8 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                 type="button"
                 disabled={!canSubmit || submitting}
                 onClick={() => void handleSubmit()}
-                aria-label={submitting ? "Submitting task" : "Run task on Somnia"}
-                title={submitting ? "Submitting..." : "Run task on Somnia"}
+                aria-label={submitting ? "Submitting task" : "Run Task"}
+                title={submitting ? "Submitting..." : "Run Task"}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path
@@ -392,7 +392,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
         </div>
 
         <GlassField>
-          What do you need?
           <GlassTextarea
             value={userQuery}
             disabled={!signedIn}
@@ -435,14 +434,9 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
           </GlassField>
         </FieldGrid>
 
-        <Preview>
-          <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>Preview</div>
-          {previewBody}
-        </Preview>
-
         <Actions>
           <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
-            {submitting ? "Submitting..." : "Run task on Somnia"}
+            {submitting ? "Submitting..." : "Run Task"}
           </Button>
           {blockReason && <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>{blockReason}</span>}
         </Actions>
