@@ -4,6 +4,7 @@ import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
 import { relayer, verifyTaskSignature } from "../services/relayer.js";
 import { requireAuth } from "./authenticateToken.js";
+import { validateSkillParams } from "../agent/skills/validate.js";
 import {
   hashTaskPayload,
   validateTaskPayload,
@@ -59,7 +60,14 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
       if (!validateTaskPayload(parsed.data.payload)) {
         return res.status(400).json({ error: "Invalid task payload schema" });
       }
-      taskHash = hashTaskPayload(parsed.data.payload as TaskPayload);
+      const payload = parsed.data.payload as TaskPayload;
+      if (parsed.data.complexity === 1) {
+        const validation = validateSkillParams(payload.primaryRole, payload);
+        if (!validation.ok) {
+          return res.status(400).json({ error: validation.errors.join("; ") });
+        }
+      }
+      taskHash = hashTaskPayload(payload);
     }
     if (!taskHash) {
       return res.status(400).json({ error: "Provide taskHash or payload" });

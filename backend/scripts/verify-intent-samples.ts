@@ -2,6 +2,7 @@
  * Verifies catalog sample queries produce well-formed payloads and structured report shapes.
  * Run: npx tsx scripts/verify-intent-samples.ts
  */
+import { SKILL_MANIFESTS } from "../src/agent/manifests/data.js";
 import { buildSkillReport } from "../src/shared/skillReport.js";
 import { buildTaskPayload, INTENT_CATALOG, type TaskIntent } from "../src/shared/taskIntents.js";
 import type { AgentType } from "../src/shared/taskPayload.js";
@@ -35,6 +36,21 @@ for (const intent of SAMPLE_INTENTS) {
 
   if (!payload.userQuery || payload.intent !== intent) {
     console.error(`[FAIL] ${intent}: payload intent mismatch`);
+    failed++;
+    continue;
+  }
+
+  const manifest = SKILL_MANIFESTS[payload.primaryRole];
+  if (!manifest?.actions.includes(payload.action)) {
+    console.error(
+      `[FAIL] ${intent}: action "${payload.action}" not allowed for ${payload.primaryRole}`,
+    );
+    failed++;
+    continue;
+  }
+
+  if (entry.defaultMode !== "swarm" && payload.primaryRole !== entry.primaryRole) {
+    console.error(`[FAIL] ${intent}: primaryRole ${payload.primaryRole} !== ${entry.primaryRole}`);
     failed++;
     continue;
   }

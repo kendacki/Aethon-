@@ -49,12 +49,22 @@ function cleanCopy(text: string): string {
   return polishLegacySummary(text.replace(/\s+/g, " ").trim());
 }
 
+function friendlySkillError(error?: string): string {
+  if (!error) return "";
+  if (/not in manifest/i.test(error)) {
+    return "This request was sent to the wrong agent. Submit again — routing is now tied to your request type.";
+  }
+  return error;
+}
+
 function extractReport(data: Record<string, unknown>, error?: string): {
   body: string;
   recommendation: string;
 } {
   const report = data.report as SkillReportView | undefined;
-  const body = cleanCopy(String(report?.summary ?? data.summary ?? error ?? ""));
+  const body = cleanCopy(
+    String(report?.summary ?? data.summary ?? friendlySkillError(error) ?? ""),
+  );
 
   const recommendation = cleanCopy(
     String(

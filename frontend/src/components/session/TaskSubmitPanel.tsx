@@ -13,7 +13,6 @@ import {
   hashTaskPayload,
   parseEthToWei,
   signTaskSubmission,
-  type AgentType,
 } from "../../task/payload";
 import {
   INTENT_CATALOG,
@@ -209,7 +208,6 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
   const [userQuery, setUserQuery] = useState(INTENT_CATALOG.MARKET_PRICE.exampleQuery);
   const [intent, setIntent] = useState<TaskIntent>("MARKET_PRICE");
   const [intentManual, setIntentManual] = useState(false);
-  const [role] = useState<AgentType>("ORACLE");
 
   const catalog = INTENT_CATALOG[intent];
   const effectiveMode = catalog.defaultMode;
@@ -223,9 +221,8 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
         userQuery,
         intent,
         mode: effectiveMode,
-        role: effectiveMode === "single" ? role : undefined,
       }),
-    [userQuery, intent, effectiveMode, role],
+    [userQuery, intent, effectiveMode],
   );
 
   const canSubmit =
@@ -244,7 +241,13 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
 
   const onQueryChange = (value: string) => {
     setUserQuery(value);
-    if (!intentManual) setIntent(inferIntentFromQuery(value));
+    const inferred = inferIntentFromQuery(value);
+    if (!intentManual) {
+      setIntent(inferred);
+    } else if (inferred !== intent) {
+      setIntent(inferred);
+      setIntentManual(false);
+    }
   };
 
   const onIntentSelect = (next: TaskIntent) => {
@@ -288,8 +291,7 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
           userQuery: payload.userQuery,
           intent: catalog.label,
           mode: effectiveMode,
-          role: effectiveMode === "single" ? role : undefined,
-          complexity,
+        complexity,
           rewardDisplay: formatEth(rewardWei),
           taskId,
         });

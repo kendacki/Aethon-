@@ -163,13 +163,12 @@ export function buildTaskPayload(opts: {
   userQuery: string;
   intent: TaskIntent;
   mode: "single" | "swarm";
-  role?: AgentType;
 }): TaskPayload {
   const entry = INTENT_CATALOG[opts.intent];
   const query = opts.userQuery.trim();
   const asset = parseAssetFromQuery(query);
   const mode = opts.mode === "swarm" || entry.defaultMode === "swarm" ? "swarm" : "single";
-  const primaryRole = mode === "swarm" ? "ARBITRAGE" : (opts.role ?? entry.primaryRole);
+  const primaryRole = mode === "swarm" ? "ARBITRAGE" : entry.primaryRole;
   const action = mode === "swarm" ? "swarm_execute" : entry.action;
 
   const baseParams: Record<string, unknown> = {
