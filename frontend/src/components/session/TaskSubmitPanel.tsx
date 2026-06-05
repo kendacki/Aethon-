@@ -206,10 +206,9 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
   const [submitting, setSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState<TaskSubmitSuccess | null>(null);
   const [userQuery, setUserQuery] = useState(INTENT_CATALOG.MARKET_PRICE.exampleQuery);
-  const [intent, setIntent] = useState<TaskIntent>("MARKET_PRICE");
-  const [intentManual, setIntentManual] = useState(false);
 
-  const catalog = INTENT_CATALOG[intent];
+  const resolvedIntent = useMemo(() => inferIntentFromQuery(userQuery), [userQuery]);
+  const catalog = INTENT_CATALOG[resolvedIntent];
   const effectiveMode = catalog.defaultMode;
 
   const complexity = effectiveMode === "swarm" ? 5 : 1;
@@ -219,10 +218,10 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
     () =>
       buildTaskPayload({
         userQuery,
-        intent,
+        intent: resolvedIntent,
         mode: effectiveMode,
       }),
-    [userQuery, intent, effectiveMode],
+    [userQuery, resolvedIntent, effectiveMode],
   );
 
   const canSubmit =
@@ -239,21 +238,8 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
             ? "Describe your request in at least 8 characters."
             : null;
 
-  const onQueryChange = (value: string) => {
-    setUserQuery(value);
-    const inferred = inferIntentFromQuery(value);
-    if (!intentManual) {
-      setIntent(inferred);
-    } else if (inferred !== intent) {
-      setIntent(inferred);
-      setIntentManual(false);
-    }
-  };
-
   const onIntentSelect = (next: TaskIntent) => {
-    setIntent(next);
     setUserQuery(INTENT_CATALOG[next].exampleQuery);
-    setIntentManual(true);
   };
 
   const handleSubmit = async () => {
@@ -319,7 +305,7 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
             <ComposerTextarea
               value={userQuery}
               disabled={!signedIn}
-              onChange={(e) => onQueryChange(e.target.value)}
+              onChange={(e) => setUserQuery(e.target.value)}
               placeholder="Ask about price, yield, governance, risk, or a full briefing..."
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -331,7 +317,7 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
             <ComposerFooter>
               <ComposerMeta>
                 <MetaSelect
-                  value={intent}
+                  value={resolvedIntent}
                   disabled={!signedIn}
                   onChange={(e) => onIntentSelect(e.target.value as TaskIntent)}
                   aria-label="Request type"
@@ -402,7 +388,7 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
           <GlassTextarea
             value={userQuery}
             disabled={!signedIn}
-            onChange={(e) => onQueryChange(e.target.value)}
+            onChange={(e) => setUserQuery(e.target.value)}
             placeholder="e.g. What is ETH price right now, and is the fleet healthy enough to trade?"
           />
         </GlassField>
@@ -424,7 +410,7 @@ export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" 
           <GlassField>
             Request type
             <GlassSelect
-              value={intent}
+              value={resolvedIntent}
               disabled={!signedIn}
               onChange={(e) => onIntentSelect(e.target.value as TaskIntent)}
             >

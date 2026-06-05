@@ -148,14 +148,34 @@ export {
   parseRiskToleranceFromQuery,
 } from "./queryParsing.js";
 
+function distinctIntentTopics(query: string): Set<TaskIntent> {
+  const q = query.toLowerCase();
+  const topics = new Set<TaskIntent>();
+  if (/\b(price|usd|spot|oracle|worth|trading at|how much)\b/.test(q)) topics.add("MARKET_PRICE");
+  if (/\b(arbitrage|spread|dex)\b/.test(q)) topics.add("ARBITRAGE_SCAN");
+  if (/\b(yield|allocate|vault|apy)\b/.test(q)) topics.add("YIELD_STRATEGY");
+  if (/\b(aip|governance|vote|proposal|quorum)\b/.test(q)) topics.add("GOVERNANCE_ANALYSIS");
+  if (/\b(risk|healthy|health|circuit|breaker)\b/.test(q) && /\b(fleet|agent|protocol)\b/.test(q)) {
+    topics.add("RISK_CHECK");
+  }
+  return topics;
+}
+
 export function inferIntentFromQuery(query: string): TaskIntent {
   const q = query.toLowerCase();
-  if (/\b(brief|portfolio|full swarm|all agents|everything)\b/.test(q)) return "PORTFOLIO_BRIEFING";
-  if (/\b(yield|allocate|vault|apy)\b/.test(q)) return "YIELD_STRATEGY";
+
+  if (/\b(brief|portfolio|full swarm|all agents|everything|all five|5 specialists)\b/.test(q)) {
+    return "PORTFOLIO_BRIEFING";
+  }
+  if (distinctIntentTopics(query).size >= 2) return "PORTFOLIO_BRIEFING";
   if (/\b(arbitrage|spread|dex)\b/.test(q)) return "ARBITRAGE_SCAN";
-  if (/\b(aip|governance|vote|proposal|quorum)\b/.test(q)) return "GOVERNANCE_ANALYSIS";
-  if (/\b(risk|healthy|fleet|circuit|safe)\b/.test(q)) return "RISK_CHECK";
-  if (/\b(price|usd|oracle|cost)\b/.test(q)) return "MARKET_PRICE";
+  if (/\b(yield|allocate|vault|apy)\b/.test(q)) return "YIELD_STRATEGY";
+  if (/\b(aip[-_]?\d+|governance|vote|proposal|quorum)\b/.test(q)) return "GOVERNANCE_ANALYSIS";
+  if (/\b(risk|healthy|health|circuit|breaker|safe)\b/.test(q) && /\b(fleet|agent|protocol|circuit)\b/.test(q)) {
+    return "RISK_CHECK";
+  }
+  if (/\b(risk|safe enough|safe to run)\b/.test(q)) return "RISK_CHECK";
+  if (/\b(price|usd|oracle|cost|worth|trading at|how much)\b/.test(q)) return "MARKET_PRICE";
   return "MARKET_PRICE";
 }
 
@@ -234,7 +254,7 @@ export function buildTaskPayload(opts: {
   const label =
     query.length > 72 ? `${query.slice(0, 69)}…` : query || entry.label;
 
-  return {
+  const payload: TaskPayload = {
     version: 1,
     primaryRole,
     action,
@@ -245,4 +265,13 @@ export function buildTaskPayload(opts: {
     intent: opts.intent,
     successCriteria: entry.successCriteria,
   };
+
+  return payload;
+}
+
+/** Infer intent from the question, then build a routed payload for the matching agent. */
+export function buildTaskPayloadFromQuery(userQuery: string): TaskPayload {
+  const intent = inferIntentFromQuery(userQuery);
+  const mode = INTENT_CATALOG[intent].defaultMode;
+  return buildTaskPayload({ userQuery, intent, mode });
 }

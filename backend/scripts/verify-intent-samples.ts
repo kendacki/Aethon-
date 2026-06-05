@@ -1,10 +1,17 @@
 /**
- * Verifies catalog sample queries produce well-formed payloads and structured report shapes.
+ * Verifies catalog sample queries infer the correct intent, route to the right agent,
+ * and produce structured report shapes.
  * Run: npx tsx scripts/verify-intent-samples.ts
  */
-import { SKILL_MANIFESTS } from "../src/agent/manifests/data.js";
 import { buildSkillReport } from "../src/shared/skillReport.js";
-import { buildTaskPayload, INTENT_CATALOG, type TaskIntent } from "../src/shared/taskIntents.js";
+import {
+  buildTaskPayload,
+  buildTaskPayloadFromQuery,
+  inferIntentFromQuery,
+  INTENT_CATALOG,
+  type TaskIntent,
+} from "../src/shared/taskIntents.js";
+import { validatePayloadRouting } from "../src/shared/taskRouting.js";
 import type { AgentType } from "../src/shared/taskPayload.js";
 
 const SAMPLE_INTENTS = Object.keys(INTENT_CATALOG) as TaskIntent[];
@@ -28,23 +35,24 @@ let failed = 0;
 
 for (const intent of SAMPLE_INTENTS) {
   const entry = INTENT_CATALOG[intent];
-  const payload = buildTaskPayload({
-    userQuery: entry.exampleQuery,
-    intent,
-    mode: entry.defaultMode,
-  });
 
+  const inferred = inferIntentFromQuery(entry.exampleQuery);
+  if (inferred !== intent) {
+    console.error(`[FAIL] ${intent}: example query inferred as ${inferred}`);
+    failed++;
+    continue;
+  }
+
+  const payload = buildTaskPayloadFromQuery(entry.exampleQuery);
   if (!payload.userQuery || payload.intent !== intent) {
     console.error(`[FAIL] ${intent}: payload intent mismatch`);
     failed++;
     continue;
   }
 
-  const manifest = SKILL_MANIFESTS[payload.primaryRole];
-  if (!manifest?.actions.includes(payload.action)) {
-    console.error(
-      `[FAIL] ${intent}: action "${payload.action}" not allowed for ${payload.primaryRole}`,
-    );
+  const routingErrors = validatePayloadRouting(payload);
+  if (routingErrors.length) {
+    console.error(`[FAIL] ${intent}: ${routingErrors.join("; ")}`);
     failed++;
     continue;
   }
@@ -75,7 +83,75 @@ for (const intent of SAMPLE_INTENTS) {
     }
   }
 
-  console.log(`[OK] ${intent} — ${roles.join(", ")}`);
+  console.log(`[OK] ${intent} → ${roles.join(", ")}`);
+}
+
+const crossChecks: Array<{ query: string; intent: TaskIntent; role: AgentType; action: string }> = [
+  {
+    query: "Scan Ethereum for DEX arbitrage above 15 bps with 1 ETH notional.",
+    intent: "ARBITRAGE_SCAN",
+    role: "ARBITRAGE",
+    action: "check_spread",
+  },
+  {
+    query: "What is the current ETH price in USD?",
+    intent: "MARKET_PRICE",
+    role: "ORACLE",
+    action: "fetch_price",
+  },
+  {
+    query: "Allocate 2 ETH across Somnia vaults with moderate risk tolerance.",
+    intent: "YIELD_STRATEGY",
+    role: "YIELD_OPT",
+    action: "optimize_yield",
+  },
+  {
+    query: "Analyze AIP-12: 15 STT for, 4 STT against, quorum 10 STT.",
+    intent: "GOVERNANCE_ANALYSIS",
+    role: "GOVERNANCE",
+    action: "analyze_proposal",
+  },
+  {
+    query: "Is the Aethon agent fleet healthy enough to run production tasks?",
+    intent: "RISK_CHECK",
+    role: "RISK_MGMT",
+    action: "assess_protocol_risk",
+  },
+  {
+    query: "What is ETH price right now, and is the fleet healthy enough to trade?",
+    intent: "PORTFOLIO_BRIEFING",
+    role: "ARBITRAGE",
+    action: "swarm_execute",
+  },
+];
+
+for (const check of crossChecks) {
+  const inferred = inferIntentFromQuery(check.query);
+  const payload = buildTaskPayload({
+    userQuery: check.query,
+    intent: inferred,
+    mode: INTENT_CATALOG[inferred].defaultMode,
+  });
+
+  if (inferred !== check.intent) {
+    console.error(`[FAIL] cross-check inferred ${check.intent} as ${inferred}: ${check.query}`);
+    failed++;
+    continue;
+  }
+  if (payload.primaryRole !== check.role || payload.action !== check.action) {
+    console.error(
+      `[FAIL] cross-check ${check.intent}: routed to ${payload.primaryRole}/${payload.action}, expected ${check.role}/${check.action}`,
+    );
+    failed++;
+    continue;
+  }
+  const routingErrors = validatePayloadRouting(payload);
+  if (routingErrors.length) {
+    console.error(`[FAIL] cross-check ${check.intent}: ${routingErrors.join("; ")}`);
+    failed++;
+    continue;
+  }
+  console.log(`[OK] cross-check ${check.intent}`);
 }
 
 if (failed > 0) {
@@ -83,4 +159,4 @@ if (failed > 0) {
   process.exit(1);
 }
 
-console.log("\nAll sample intents produce valid payloads and structured reports.");
+console.log("\nAll intents infer correctly and route to the right agent.");

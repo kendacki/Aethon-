@@ -4,12 +4,12 @@ import { repo } from "../db/repository.js";
 import { eventBus } from "../services/eventBus.js";
 import { relayer, verifyTaskSignature } from "../services/relayer.js";
 import { requireAuth } from "./authenticateToken.js";
-import { validateSkillParams } from "../agent/skills/validate.js";
 import {
   hashTaskPayload,
   validateTaskPayload,
   type TaskPayload,
 } from "../shared/taskPayload.js";
+import { validatePayloadRouting } from "../shared/taskRouting.js";
 
 export const writeRouter = Router();
 
@@ -61,11 +61,9 @@ writeRouter.post("/tasks/submit", requireAuth, async (req, res, next) => {
         return res.status(400).json({ error: "Invalid task payload schema" });
       }
       const payload = parsed.data.payload as TaskPayload;
-      if (parsed.data.complexity === 1) {
-        const validation = validateSkillParams(payload.primaryRole, payload);
-        if (!validation.ok) {
-          return res.status(400).json({ error: validation.errors.join("; ") });
-        }
+      const routingErrors = validatePayloadRouting(payload);
+      if (routingErrors.length) {
+        return res.status(400).json({ error: routingErrors.join("; ") });
       }
       taskHash = hashTaskPayload(payload);
     }
