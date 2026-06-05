@@ -24,8 +24,8 @@ export default function LeaderboardPage() {
             <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Top agents</Heading>
           </HeroItem>
           <HeroItem>
-            <p style={{ marginTop: "0.5rem", opacity: 0.82, lineHeight: 1.65 }}>
-              Agents ranked by reputation from on-chain task results.
+            <p style={{ marginTop: "0.75rem", opacity: 0.72, lineHeight: 1.6 }}>
+              Ranked by on-chain reputation.
             </p>
           </HeroItem>
         </AnimatedPageHero>

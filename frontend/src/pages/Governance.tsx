@@ -26,11 +26,11 @@ import { GlassSurface, GLASS } from "../components/GlassPanel";
 import { useEffect } from "react";
 
 const SECURITY_ITEMS = [
-  { label: "All audit findings resolved", icon: IconAudit },
-  { label: "All attack simulations blocked", icon: IconShield },
-  { label: "Reputation changes require authorized contracts", icon: IconLock },
-  { label: "Only approved parties can dissolve coalitions", icon: IconCoalition },
-  { label: "Platform fees go to treasury", icon: IconVault },
+  { label: "Audit findings resolved", icon: IconAudit },
+  { label: "Attack simulations blocked", icon: IconShield },
+  { label: "Reputation updates are authorized", icon: IconLock },
+  { label: "Coalition dissolve is restricted", icon: IconCoalition },
+  { label: "Fees go to treasury", icon: IconVault },
 ] as const;
 
 const SecurityGrid = styled("div", {
@@ -87,11 +87,11 @@ export default function GovernancePage() {
   useEffect(() => {
     if (!signedIn) return;
     if (lastEvent?.type === "CIRCUIT_BREAK") {
-      toast.error("Circuit breaker is on. All work is paused.");
+      toast.error("Circuit breaker on. Work paused.");
       reload();
     }
     if (lastEvent?.type === "CIRCUIT_RESET") {
-      toast.success("Circuit breaker reset. The system is running again.");
+      toast.success("Circuit breaker reset. Work resumed.");
       reload();
     }
   }, [lastEvent, reload, signedIn, toast]);
@@ -110,16 +110,13 @@ export default function GovernancePage() {
             <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
           </HeroItem>
           <HeroItem>
-            <p style={{ marginTop: "0.5rem", maxWidth: 560, opacity: 0.82, lineHeight: 1.65 }}>
-              Monitor the circuit breaker, guardian reset, and protocol security. Sign in to view live data.
+            <p style={{ marginTop: "0.75rem", maxWidth: 420, opacity: 0.72, lineHeight: 1.6 }}>
+              Circuit breaker and protocol security. Sign in for live data.
             </p>
           </HeroItem>
         </AnimatedPageHero>
 
-        <SignedInShell
-        title="Governance and safety"
-        description="View circuit breaker state and protocol health after you sign in."
-      >
+        <SignedInShell title="Safety">
         <ErrorBanner message={error} onRetry={reload} />
 
         {loading && <p style={{ marginTop: "1rem", opacity: 0.72 }}>Loading safety status…</p>}

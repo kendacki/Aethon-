@@ -24,7 +24,7 @@ const ChatPage = styled("div", {
 });
 
 const SectionDivider = styled("div", {
-  margin: "$10 0 $6",
+  margin: "$12 0 $8",
   borderTop: `1px solid ${GLASS.divider}`,
 });
 
@@ -214,26 +214,26 @@ export default function TasksPage() {
               Ask the swarm
             </Heading>
           </HeroItem>
-          <HeroItem>
-            <p
-              style={{
-                marginTop: "0.5rem",
-                opacity: 0.82,
-                maxWidth: 520,
-                lineHeight: 1.65,
-                textAlign: "center",
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-            >
-              {signedIn
-                ? "Ask a question. Agents run it on-chain and return results you can verify."
-                : "Past tasks are below. Sign in to submit a new one."}
-            </p>
-          </HeroItem>
+          {!signedIn && (
+            <HeroItem>
+              <p
+                style={{
+                  marginTop: "0.75rem",
+                  opacity: 0.72,
+                  maxWidth: 420,
+                  lineHeight: 1.6,
+                  textAlign: "center",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                }}
+              >
+                Sign in to submit a task.
+              </p>
+            </HeroItem>
+          )}
         </AnimatedPageHero>
 
-        <AnimatedSection style={{ paddingTop: "2rem" }}>
+        <AnimatedSection style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
           <ErrorBanner message={error} onRetry={reload} />
 
           <ChatPage>

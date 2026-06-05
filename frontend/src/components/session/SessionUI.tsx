@@ -62,8 +62,8 @@ function AuthFallbackCard({
 }) {
   const hint =
     phase === "wallet"
-      ? "Your wallet is connected. Use Sign in in the top right to unlock operator features."
-      : "Connect your wallet and sign in to access swarm controls and personalized data.";
+      ? "Wallet connected. Sign in to continue."
+      : "Connect your wallet and sign in.";
 
   return (
     <FallbackCard>
@@ -95,8 +95,8 @@ const BlockSub = styled("p", {
   fontSize: "$sm",
   opacity: 0.72,
   lineHeight: 1.6,
-  marginBottom: "$6",
-  maxWidth: "36rem",
+  marginBottom: "$8",
+  maxWidth: "32rem",
 });
 
 export function SectionHeader({
@@ -109,7 +109,7 @@ export function SectionHeader({
   badge?: ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: "1.5rem", display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "1rem" }}>
+    <div style={{ marginBottom: "2rem", display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "1rem" }}>
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
           <BlockTitle style={{ marginBottom: 0 }}>{title}</BlockTitle>

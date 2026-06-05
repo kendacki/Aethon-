@@ -96,7 +96,7 @@ export const Grid = styled("div", {
 });
 
 export const Section = styled("section", {
-  padding: "$16 $6",
+  padding: "$12 $6 $20",
   maxWidth: "1200px",
   margin: "0 auto",
   width: "100%",
@@ -133,7 +133,7 @@ export const StatValue = styled("div", {
 export const PageWrap = styled("div", {
   minHeight: "100vh",
   paddingTop: "5rem",
-  paddingBottom: "$16",
+  paddingBottom: "$20",
 });
 
 export const Muted = styled("span", {

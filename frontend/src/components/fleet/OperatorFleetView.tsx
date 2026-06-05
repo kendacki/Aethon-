@@ -35,16 +35,6 @@ const Title = styled("h2", {
   margin: 0,
 });
 
-const Subtitle = styled("p", {
-  fontFamily: "$secondary",
-  fontWeight: 400,
-  marginTop: "$2",
-  fontSize: "$sm",
-  opacity: 0.72,
-  lineHeight: 1.55,
-  maxWidth: "32rem",
-});
-
 const HeaderActions = styled("div", {
   display: "flex",
   gap: "$2",
@@ -258,12 +248,11 @@ export function OperatorFleetView() {
       <GlassContent>
       <Header>
         <div>
-          <Title>Swarm fleet</Title>
-          <Subtitle>Filter by role, refresh live data, and open agent details from each card.</Subtitle>
+          <Title>Fleet</Title>
         </div>
         <HeaderActions>
           <Button variant="outline" size="sm" as={Link} to="/tasks" style={{ width: "auto" }}>
-            Dispatch <IconArrowRight size={14} />
+            New task <IconArrowRight size={14} />
           </Button>
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={busy} style={{ width: "auto" }}>
             {busy ? "Updating…" : "Refresh"}
@@ -381,7 +370,7 @@ export function OperatorFleetView() {
                   Details
                 </Button>
                 <Button variant="ghost" size="sm" as={Link} to="/tasks">
-                  <IconTask size={16} /> Task market
+                  <IconTask size={16} /> Tasks
                 </Button>
               </CardActions>
             </AgentCard>

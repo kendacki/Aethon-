@@ -110,7 +110,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: "1.0625rem" }}>Task #{taskId}</div>
-          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Your query, agent work, and results</p>
+          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Query and results</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           Close

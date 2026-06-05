@@ -499,11 +499,8 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
   return (
     <>
       <Panel>
-        <div style={{ marginBottom: "1.25rem" }}>
+        <div style={{ marginBottom: "1rem" }}>
           <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Ask the swarm</div>
-          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72, fontFamily: "$secondary", lineHeight: 1.55 }}>
-            Describe what you want. The fleet turns it into on-chain work with live data and clear success checks.
-          </p>
           {signedIn && (
             <div style={{ marginTop: "0.75rem" }}>
               <Badge status="online">Operator</Badge>

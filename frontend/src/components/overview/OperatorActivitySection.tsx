@@ -318,17 +318,15 @@ export function OperatorActivitySection({
                 </IconRing>
               </MetricTop>
               <MetricHint>
-                {emptyTasks
-                  ? "No jobs yet. Dispatch your first task to the swarm."
-                  : `${taskCount === 1 ? "1 job" : `${taskCount} jobs`} indexed for your wallet.`}
+                {emptyTasks ? "Submit your first task to the swarm." : `${taskCount} task${taskCount === 1 ? "" : "s"} for this wallet.`}
               </MetricHint>
               {emptyTasks ? (
                 <Button variant="primary" size="sm" as={Link} to="/tasks" style={{ marginTop: "0.25rem", alignSelf: "flex-start" }}>
-                  Submit first task
+                  New task
                 </Button>
               ) : (
                 <MetricFooter as={Link} to="/tasks">
-                  View task market <IconArrowRight size={14} />
+                  All tasks <IconArrowRight size={14} />
                 </MetricFooter>
               )}
             </>
@@ -347,7 +345,7 @@ export function OperatorActivitySection({
               <MetricTop>
                 <div>
                   <MetricValue>{stakeSummary.headline}</MetricValue>
-                  <MetricLabel>STT staked on tasks</MetricLabel>
+                  <MetricLabel>STT on tasks</MetricLabel>
                 </div>
                 <IconRing>
                   <IconVault size={ICON_MD} />
@@ -363,7 +361,7 @@ export function OperatorActivitySection({
                 ))}
               </StakeBreakdown>
               <MetricFooter as={Link} to="/tasks" style={{ marginTop: "0.75rem" }}>
-                How stake settles <IconArrowRight size={14} />
+                About stake <IconArrowRight size={14} />
               </MetricFooter>
             </>
           )}
@@ -377,7 +375,7 @@ export function OperatorActivitySection({
           </IconRing>
           <div>
             <FleetValue>5</FleetValue>
-            <FleetLabel>Registered agents</FleetLabel>
+            <FleetLabel>Agents</FleetLabel>
           </div>
         </FleetStat>
         <FleetStat>
@@ -386,7 +384,7 @@ export function OperatorActivitySection({
           </IconRing>
           <div>
             <FleetValue>5</FleetValue>
-            <FleetLabel>Active roles</FleetLabel>
+            <FleetLabel>Roles</FleetLabel>
           </div>
         </FleetStat>
         <span style={{ fontSize: "0.8125rem", fontWeight: 600, opacity: 0.7, display: "inline-flex", alignItems: "center", gap: 4 }}>
@@ -397,7 +395,7 @@ export function OperatorActivitySection({
       {(recentLoading || recentTasks.length > 0) && (
         <RecentBlock>
           <RecentTitle>
-            <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>Recent submissions</span>
+            <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>Recent tasks</span>
             <Button variant="ghost" size="sm" as={Link} to="/tasks" state={{ scrollToTasks: true }}>
               All tasks
             </Button>
@@ -409,7 +407,7 @@ export function OperatorActivitySection({
               ))}
             </div>
           ) : recentTasks.length === 0 ? (
-            <p style={{ margin: 0, fontSize: "$sm", opacity: 0.65 }}>No indexed tasks for this wallet yet.</p>
+            <p style={{ margin: 0, fontSize: "$sm", opacity: 0.65 }}>No tasks yet.</p>
           ) : (
             <div style={{ display: "grid", gap: "$1" }}>
               {recentTasks.slice(0, 5).map((task: Task) => (

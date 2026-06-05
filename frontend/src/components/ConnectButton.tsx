@@ -36,7 +36,7 @@ export function ConnectButton() {
       showToast(outcome.error);
       return;
     }
-    toast.info("Wallet connected. Sign in to use the operator console.");
+    toast.info("Wallet connected. Sign in to continue.");
   };
 
   const handleSignIn = async () => {
@@ -83,7 +83,7 @@ export function ConnectButton() {
     setSigningIn(true);
     try {
       await signInWithSomnia(activeSigner, activeAddress);
-      toast.success("Signed in. Operator features are now available.");
+      toast.success("Signed in.");
     } catch (err) {
       if (err instanceof Web3AuthError) {
         showToast(err.message);

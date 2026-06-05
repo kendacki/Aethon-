@@ -7,17 +7,16 @@ export type StakeSummary = {
   breakdown: Array<{ label: string; value: string }>;
 };
 
-/** Copy and breakdown for operator wallet stake (TaskMarket escrow), not agent earnings. */
+/** Operator wallet stake in the on-chain TaskMarket (not agent earnings). */
 export function summarizeWalletStake(stats: WalletTaskStats | null, taskCount: number): StakeSummary {
   if (!stats || taskCount === 0) {
     return {
       headline: "0 STT",
-      detail:
-        "When you submit a task, STT moves from your wallet into the on-chain TaskMarket as job stake. This is not a reward paid to you.",
+      detail: "STT moves to the on-chain TaskMarket when you submit a task.",
       breakdown: [
-        { label: "On completion", value: "Stake pays the agent coalition after the platform fee." },
-        { label: "If failed or expired", value: "Full stake returns to your connected wallet." },
-        { label: "While open", value: "Stake stays escrowed in the contract until settled." },
+        { label: "Completed", value: "Stake pays agents after the platform fee." },
+        { label: "Failed or expired", value: "Stake returns to your wallet." },
+        { label: "Open", value: "Stake stays in the contract until settled." },
       ],
     };
   }
@@ -27,26 +26,25 @@ export function summarizeWalletStake(stats: WalletTaskStats | null, taskCount: n
   const paid = BigInt(stats.paidToAgentsWei);
   const refunded = BigInt(stats.refundedWei);
 
-  let detail =
-    "Total STT attached across your submitted tasks. Funds move from your wallet into TaskMarket escrow when you submit.";
+  let detail = "Total STT across your submitted tasks.";
 
   if (active > 0n) {
-    detail += ` ${formatEth(stats.activeEscrowWei)} is still locked for open jobs.`;
+    detail += ` ${formatEth(stats.activeEscrowWei)} is locked in open tasks.`;
   }
   if (paid > 0n) {
-    detail += ` ${formatEth(stats.paidToAgentsWei)} was paid out to agents on completed tasks (not credited back to you).`;
+    detail += ` ${formatEth(stats.paidToAgentsWei)} went to agents on completed tasks.`;
   }
   if (refunded > 0n) {
-    detail += ` ${formatEth(stats.refundedWei)} was refunded to your connected wallet after failed or expired tasks.`;
+    detail += ` ${formatEth(stats.refundedWei)} was returned to your wallet.`;
   }
 
   return {
     headline: total,
     detail,
     breakdown: [
-      { label: "In escrow (open)", value: formatEth(stats.activeEscrowWei) },
+      { label: "Open tasks", value: formatEth(stats.activeEscrowWei) },
       { label: "Paid to agents", value: formatEth(stats.paidToAgentsWei) },
-      { label: "Refunded to you", value: formatEth(stats.refundedWei) },
+      { label: "Refunded", value: formatEth(stats.refundedWei) },
     ],
   };
 }

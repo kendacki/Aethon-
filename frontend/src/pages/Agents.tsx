@@ -97,13 +97,13 @@ export default function AgentsPage() {
           <HeroItem>
             <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: signedIn ? "1rem" : 0 }}>Agent fleet</Heading>
           </HeroItem>
-          <HeroItem>
-            <p style={{ marginTop: "0.5rem", opacity: 0.82, maxWidth: 560, lineHeight: 1.65 }}>
-              {signedIn
-                ? "See all five swarm agents on Somnia: who is online, how much is staked, and whether workers are ready before you submit."
-                : "Five agents register on-chain, stake, find peers, and execute tasks. Sign in for the operator fleet console."}
-            </p>
-          </HeroItem>
+          {!signedIn && (
+            <HeroItem>
+              <p style={{ marginTop: "0.75rem", opacity: 0.72, maxWidth: 420, lineHeight: 1.6 }}>
+                Five agents on Somnia. Sign in for live status.
+              </p>
+            </HeroItem>
+          )}
         </AnimatedPageHero>
 
         {signedIn ? (

@@ -142,7 +142,7 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
             <Badge status="online">Submitted</Badge>
             <Title id="task-success-title">Task submitted</Title>
             <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", opacity: 0.78, lineHeight: 1.55, fontFamily: "$secondary" }}>
-              Your request was accepted. Agents will fetch live data and finish on-chain when checks pass.
+              Your request was accepted. Agents will finish on-chain when checks pass.
             </p>
             {data.userQuery && (
               <p style={{ marginTop: "0.75rem", fontSize: "0.8125rem", opacity: 0.85, lineHeight: 1.5, fontStyle: "italic" }}>

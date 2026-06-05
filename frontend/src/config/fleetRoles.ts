@@ -13,31 +13,31 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
     type: "ARBITRAGE",
     label: "Arbitrage",
     shortLabel: "ARB",
-    description: "Compares simulated DEX venues against a live reference price and recommends execute or hold.",
+    description: "Compares DEX prices to a live reference and recommends trade or hold.",
   },
   ORACLE: {
     type: "ORACLE",
     label: "Oracle",
     shortLabel: "ORC",
-    description: "Fetches USD spot prices (CoinGecko / Somnia oracle), checks freshness, and signs an attestation.",
+    description: "Fetches USD prices, checks freshness, and signs an attestation.",
   },
   YIELD_OPT: {
     type: "YIELD_OPT",
     label: "Yield optimizer",
     shortLabel: "YLD",
-    description: "Builds a risk adjusted vault allocation from the on-chain vault catalog.",
+    description: "Builds vault allocation from the on-chain catalog.",
   },
   GOVERNANCE: {
     type: "GOVERNANCE",
     label: "Governance",
     shortLabel: "GOV",
-    description: "Evaluates proposal quorum and vote ratio. Optional plain language summary.",
+    description: "Evaluates quorum and vote ratio.",
   },
   RISK_MGMT: {
     type: "RISK_MGMT",
     label: "Risk management",
     shortLabel: "RSK",
-    description: "Scores fleet health from circuit breaker, active agents, and gas reserves.",
+    description: "Scores fleet health from circuit breaker and agent reserves.",
   },
 };
 

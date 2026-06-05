@@ -14,7 +14,7 @@ export const PageHeroShell = styled("section", {
   variants: {
     size: {
       default: {
-        minHeight: "clamp(200px, 28vh, 380px)",
+        minHeight: "clamp(140px, 20vh, 260px)",
       },
       tall: {
         minHeight: "clamp(320px, 62vh, 720px)",

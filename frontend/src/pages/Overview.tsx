@@ -89,34 +89,10 @@ const StatTitle = styled("div", {
   letterSpacing: "-0.01em",
 });
 
-const StatDesc = styled("p", {
-  fontSize: "$xs",
-  opacity: 0.68,
-  lineHeight: 1.6,
-  marginTop: "$2",
-  marginBottom: 0,
-});
-
-const SectionTitle = styled("h2", {
-  fontFamily: "$primary",
-  fontSize: "$2xl",
-  fontWeight: 700,
-  marginTop: "$4",
-  letterSpacing: "-0.02em",
-});
-
 const CardTitle = styled("h3", {
   fontWeight: "$bold",
   marginBottom: "$2",
 });
-
-const CardBody = styled("p", {
-  fontSize: "$sm",
-  opacity: 0.82,
-  lineHeight: 1.65,
-});
-
-const ProtocolCardMotion = motion(GlassElevatedCard);
 
 const QuickLinkCard = styled(GlassElevatedCard, {
   padding: "$5 $5",
@@ -177,69 +153,23 @@ const DEMO_OVERVIEW_STATS = {
 } as const;
 
 const OVERVIEW_STAT_DEFS = [
-  {
-    key: "agents",
-    label: "Registered agents",
-    description: "Specialists that register on-chain and compete for work",
-    icon: IconAgent,
-    fixedValue: "5",
-  },
-  {
-    key: "tasks",
-    label: "Your tasks",
-    description: "Jobs you submit to the on-chain task market",
-    icon: IconTask,
-  },
-  {
-    key: "roles",
-    label: "Agent roles",
-    description: "Arbitrage, oracle, yield, governance, and risk",
-    icon: IconCoalition,
-    fixedValue: "5",
-  },
-  {
-    key: "stake",
-    label: "STT staked",
-    description: "STT held in escrow from your wallet on submitted tasks",
-    icon: IconShield,
-  },
-] as const;
-
-const PROTOCOL_FEATURES = [
-  {
-    title: "Fast execution",
-    body: "Agents respond to on-chain events in real time without polling.",
-  },
-  {
-    title: "Coalition formation",
-    body: "Agents combine stake and signatures when a job needs more than one role.",
-  },
-  {
-    title: "Verified oracles",
-    body: "Oracle and governance roles use trusted platform agents for prices and summaries.",
-  },
+  { key: "agents", label: "Registered agents", icon: IconAgent, fixedValue: "5" },
+  { key: "tasks", label: "Your tasks", icon: IconTask },
+  { key: "roles", label: "Agent roles", icon: IconCoalition, fixedValue: "5" },
+  { key: "stake", label: "STT staked", icon: IconShield },
 ] as const;
 
 const OPERATOR_QUICK_LINKS = [
-  { to: "/tasks", label: "Task market", desc: "Submit and track jobs", icon: IconTask },
-  { to: "/agents", label: "Agent fleet", desc: "Five on-chain roles", icon: IconAgent },
-  { to: "/governance", label: "Safety", desc: "Circuit breaker status", icon: IconShield },
-  { to: "/leaderboard", label: "Leaderboard", desc: "Reputation rankings", icon: IconCoalition },
+  { to: "/tasks", label: "Tasks", desc: "Submit and track", icon: IconTask },
+  { to: "/agents", label: "Fleet", desc: "Agent status", icon: IconAgent },
+  { to: "/governance", label: "Safety", desc: "Circuit breaker", icon: IconShield },
+  { to: "/leaderboard", label: "Rankings", desc: "Reputation", icon: IconCoalition },
 ] as const;
 
 const SWARM_STEPS = [
-  {
-    title: "Submit a task",
-    body: "Pick a single agent role or full swarm mode, then sign the payload with your wallet.",
-  },
-  {
-    title: "Form a coalition",
-    body: "When complexity requires it, specialists stake and coordinate on-chain.",
-  },
-  {
-    title: "Settle on-chain",
-    body: "Workers run skills, report results, and rewards settle through the task market.",
-  },
+  { title: "Ask", body: "Describe what you need and sign with your wallet." },
+  { title: "Run", body: "Agents fetch live data and report results." },
+  { title: "Settle", body: "Rewards and reputation update on-chain." },
 ] as const;
 
 function GuestOverview() {
@@ -262,10 +192,7 @@ function GuestOverview() {
             <HeroHeading>Autonomous agents on Somnia</HeroHeading>
           </HeroItem>
           <HeroItem>
-            <HeroSub>
-              Five agents register on-chain, team up for complex work, and run tasks with live health and vault
-              tracking.
-            </HeroSub>
+            <HeroSub>Five agents on Somnia. Tasks settle on-chain.</HeroSub>
           </HeroItem>
           <HeroActions style={{ display: "flex", marginTop: "1.25rem", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
             <Button variant="primary" size="sm" as={Link} to="/agents">
@@ -278,14 +205,11 @@ function GuestOverview() {
         </HeroContent>
       </HomePageHero>
 
-      <GlassPageBand css={{ paddingTop: "$8", paddingBottom: "$6" }}>
+      <GlassPageBand css={{ paddingTop: "$12", paddingBottom: "$12" }}>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
-              <SectionHeader
-                title="Network snapshot"
-                subtitle="Connect your wallet and sign in to unlock your dashboard."
-              />
+              <SectionHeader title="Network snapshot" subtitle="Sign in to see your dashboard." />
             </motion.div>
             <Grid cols={4} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
               {statCards.map((s) => (
@@ -296,27 +220,8 @@ function GuestOverview() {
                       {s.value}
                     </StatFigure>
                     <StatTitle>{s.label}</StatTitle>
-                    <StatDesc>{s.description}</StatDesc>
                   </StatGlassCard>
                 </StatCell>
-              ))}
-            </Grid>
-          </GlassContent>
-        </BandGlassMotion>
-      </GlassPageBand>
-
-      <GlassPageBand>
-        <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
-            <motion.div variants={protocolItem}>
-              <SectionTitle>How it works</SectionTitle>
-            </motion.div>
-            <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={protocolCards}>
-              {PROTOCOL_FEATURES.map((feature) => (
-                <ProtocolCardMotion key={feature.title} variants={protocolCard}>
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardBody>{feature.body}</CardBody>
-                </ProtocolCardMotion>
               ))}
             </Grid>
           </GlassContent>
@@ -363,7 +268,7 @@ function OperatorOverview({
         </HeroContent>
       </HomePageHero>
 
-      <GlassPageBand css={{ paddingTop: "$8", paddingBottom: "$8" }}>
+      <GlassPageBand css={{ paddingTop: "$10", paddingBottom: "$12" }}>
         <OperatorActivitySection
           address={address}
           walletStats={walletStats}
@@ -374,17 +279,14 @@ function OperatorOverview({
         />
       </GlassPageBand>
 
-      <GlassPageBand style={{ paddingBottom: "2.5rem" }}>
+      <GlassPageBand style={{ paddingBottom: "3rem" }}>
         <BandGlassMotion variants={protocolPanel} initial="hidden" whileInView="show" viewport={viewportOnce}>
           <GlassContent as={motion.div} variants={protocolContent} initial="hidden" whileInView="show" viewport={viewportOnce}>
             <motion.div variants={protocolItem}>
-              <SectionHeader
-                title="Operator console"
-                subtitle="Shortcuts to the pages you use most. Submit work from home without leaving this page."
-              />
+              <SectionHeader title="Quick links" />
             </motion.div>
 
-            <Grid cols={4} style={{ marginTop: "0.5rem" }} as={motion.div} variants={protocolCards}>
+            <Grid cols={4} style={{ marginTop: "$2" }} as={motion.div} variants={protocolCards}>
               {OPERATOR_QUICK_LINKS.map((item) => (
                 <motion.div key={item.to} variants={protocolCard}>
                   <Link to={item.to} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
@@ -413,7 +315,7 @@ function OperatorOverview({
             <WorkspaceGrid as={motion.div} variants={protocolItem} initial="hidden" whileInView="show" viewport={viewportOnce}>
               <TaskSubmitPanel onSubmitted={onRefreshStats} />
               <GuideCard>
-                <CardTitle>How the swarm works</CardTitle>
+                <CardTitle>How it works</CardTitle>
                 {SWARM_STEPS.map((step, i) => (
                   <StepRow key={step.title}>
                     <StepNum>{i + 1}</StepNum>
@@ -423,11 +325,6 @@ function OperatorOverview({
                     </div>
                   </StepRow>
                 ))}
-                <div style={{ marginTop: "$6" }}>
-                  <Button variant="outline" size="sm" as={Link} to="/tasks">
-                    Full task market <IconArrowRight size={16} />
-                  </Button>
-                </div>
               </GuideCard>
             </WorkspaceGrid>
           </GlassContent>
@@ -464,8 +361,8 @@ export default function OverviewPage() {
 
   useEffect(() => {
     if (!signedIn) return;
-    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker is on. Work is paused.");
-    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit breaker reset. Work has resumed.");
+    if (lastEvent?.type === "CIRCUIT_BREAK") toast.error("Circuit breaker on. Work paused.");
+    if (lastEvent?.type === "CIRCUIT_RESET") toast.success("Circuit breaker reset. Work resumed.");
   }, [lastEvent, signedIn, toast]);
 
   useEffect(() => {
