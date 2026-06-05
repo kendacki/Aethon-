@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { styled } from "../../stitches.config";
 import { GlassField, GlassInput, GlassSelect, GlassTextarea } from "../GlassFormField";
-import { FLEET_ROLE_META } from "../../config/fleetRoles";
 import { useSignedIn } from "../../auth/useSignedIn";
 import { useWallet } from "../../wallet/WalletContext";
 import { useToast } from "../ToastProvider";
@@ -358,20 +357,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
       <p style={{ margin: "0.75rem 0 0", opacity: 0.8 }}>
         <strong>Agents:</strong> {catalog.agentWork}
       </p>
-      <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-        <strong>Sources:</strong> {catalog.sources.join(" · ")}
-      </p>
-      <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-        <strong>Checks:</strong> {catalog.successCriteria.map((c) => c.label).join(" · ")}
-      </p>
-      {effectiveMode === "single" && (
-        <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>
-          Dispatch: <strong>{FLEET_ROLE_META[role].label}</strong>
-        </p>
-      )}
-      {effectiveMode === "swarm" && (
-        <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>Routing: all five agents in parallel</p>
-      )}
     </>
   );
 
