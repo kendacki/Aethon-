@@ -11,7 +11,6 @@ import { Button } from "../ui";
 import { GlassCard } from "../GlassPanel";
 import { GLASS } from "../../theme/glass";
 import {
-  ALL_AGENT_TYPES,
   hashTaskPayload,
   parseEthToWei,
   signTaskSubmission,
@@ -188,19 +187,6 @@ const ChatPreview = styled("details", {
   },
 });
 
-const Advanced = styled("details", {
-  marginTop: "$3",
-  fontSize: "0.8125rem",
-  "& summary": {
-    cursor: "pointer",
-    opacity: 0.75,
-    fontWeight: 600,
-    listStyle: "none",
-    fontSize: "0.75rem",
-    "&::-webkit-details-marker": { display: "none" },
-  },
-});
-
 const FieldGrid = styled("div", {
   display: "grid",
   gap: "$4",
@@ -250,16 +236,10 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
   const [userQuery, setUserQuery] = useState(INTENT_CATALOG.MARKET_PRICE.exampleQuery);
   const [intent, setIntent] = useState<TaskIntent>("MARKET_PRICE");
   const [intentManual, setIntentManual] = useState(false);
-  const [dispatchMode, setDispatchMode] = useState<"auto" | "single" | "swarm">("auto");
-  const [role, setRole] = useState<AgentType>("ORACLE");
+  const [role] = useState<AgentType>("ORACLE");
 
   const catalog = INTENT_CATALOG[intent];
-
-  const effectiveMode = useMemo(() => {
-    if (dispatchMode === "single") return "single" as const;
-    if (dispatchMode === "swarm") return "swarm" as const;
-    return catalog.defaultMode;
-  }, [dispatchMode, catalog.defaultMode]);
+  const effectiveMode = catalog.defaultMode;
 
   const complexity = effectiveMode === "swarm" ? 5 : 1;
   const rewardEth = effectiveMode === "swarm" ? TASK_REWARD_STT.swarm : TASK_REWARD_STT.single;
@@ -369,38 +349,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
     </>
   );
 
-  const dispatchOptions = (
-    <Advanced>
-      <summary>Routing (optional)</summary>
-      <FieldGrid>
-        <GlassField>
-          Routing
-          <GlassSelect
-            value={dispatchMode}
-            disabled={!signedIn}
-            onChange={(e) => setDispatchMode(e.target.value as "auto" | "single" | "swarm")}
-          >
-            <option value="auto">Auto ({catalog.defaultMode === "swarm" ? "swarm" : "single"})</option>
-            <option value="single">Force single agent</option>
-            <option value="swarm">Force full swarm</option>
-          </GlassSelect>
-        </GlassField>
-        {effectiveMode === "single" && (
-          <GlassField>
-            Specialist
-            <GlassSelect value={role} disabled={!signedIn} onChange={(e) => setRole(e.target.value as AgentType)}>
-              {ALL_AGENT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {FLEET_ROLE_META[t].label}
-                </option>
-              ))}
-            </GlassSelect>
-          </GlassField>
-        )}
-      </FieldGrid>
-    </Advanced>
-  );
-
   if (variant === "chat") {
     return (
       <>
@@ -481,8 +429,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
             <summary>What happens next</summary>
             <div style={{ marginTop: "0.75rem" }}>{previewBody}</div>
           </ChatPreview>
-
-          {dispatchOptions}
         </ChatShell>
 
         <TaskSuccessModal
@@ -557,8 +503,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>Preview</div>
           {previewBody}
         </Preview>
-
-        {dispatchOptions}
 
         <Actions>
           <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
