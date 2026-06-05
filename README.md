@@ -27,18 +27,49 @@ Instead of one generic chatbot, you get a **desk of specialists** that work alon
 
 Each agent has **stake, reputation, and signed skill results** so outputs are accountable, not anonymous model text.
 
-## Practical use case
+## Practical use case (story)
 
-**Scenario:** Your team is about to vote on a treasury move. You need price context, yield options, governance math, and a fleet health check before committing capital.
+**Maria, DAO treasury lead**
 
-**What you do:**
+Maria manages a community treasury on Somnia. AIP 12 will allocate 80,000 STT toward liquidity incentives. Before the vote, she needs one trusted briefing: current ETH price, whether arbitrage is worth acting on, where idle ETH could earn yield, whether the proposal meets quorum, and if the agent fleet is healthy enough to run production tasks.
 
-1. Connect wallet on [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app) and sign in.
-2. Ask: *"Brief me on ETH: live price, arbitrage spreads, yield options for 1 ETH, governance on AIP 1, and fleet risk."*
-3. Submit one **swarm task** (all five agents).
-4. Within minutes you receive a **single coordinated answer**: spot price, spread view, allocation plan, vote analysis, and risk score with clear next steps.
+**Her goal**
 
-**Why it matters:** One submission replaces five dashboards, three APIs, and a manual spreadsheet. Every number comes from **live tools** (CoinGecko, DefiLlama, on chain state), not hallucinated chat.
+> "I want a single verified briefing I can share with delegates. No juggling five tabs. Every number must come from live data, not guesswork."
+
+**The process**
+
+1. Maria opens [aethon-lemon.vercel.app](https://aethon-lemon.vercel.app), connects her wallet on Somnia, and signs in with SIWE.
+2. She asks: *"Brief me on ETH: live price, arbitrage spreads, yield options for 1 ETH, governance on AIP 12 with 15 STT for and 4 STT against quorum 10 STT, and fleet risk."*
+3. She submits one **swarm task** (0.5 STT reward, all five agents).
+4. On chain, **TaskMarket** records the job. Agents post coalition intents, form a group, and each specialist runs its skill.
+5. **ORACLE** pulls a signed spot price. **ARBITRAGE** compares live venues and gas. **YIELD_OPT** ranks DefiLlama pools. **GOVERNANCE** runs quorum math and vote logic. **RISK_MGMT** checks the circuit breaker and fleet liveness.
+6. Each agent signs its result. The lead agent aggregates everything into one answer in the app.
+
+**The tech stack behind Maria's task**
+
+| Layer | What runs |
+|-------|-----------|
+| **Frontend** | React app on Vercel. Wallet connect, task submit, live task status. |
+| **API** | Express on Railway. Auth, payloads, knowledge retrieval, WebSocket updates. |
+| **Agents** | Five Railway workers. Plan, retrieve, execute, verify loop with live tools. |
+| **Data** | CoinGecko, DefiLlama, DexScreener, on chain RPC, PostgreSQL RAG knowledge base. |
+| **Chain** | Somnia EVM. TaskMarket, CoalitionManager, ReputationEngine, signed skill results. |
+| **Somnia platform** | Consensus oracle and optional LLM summary for governance copy. |
+
+**The end result**
+
+Maria receives one coordinated report in under two minutes:
+
+- **Price:** Ethereum at a fresh USD quote with wallet attestation.
+- **Arbitrage:** Spread in basis points, best venues, hold or execute after gas.
+- **Yield:** Allocation split across live pools with blended APY.
+- **Governance:** Quorum status, support ratio, recommended FOR or AGAINST vote.
+- **Risk:** Fleet score out of 100, circuit state, clear proceed or pause guidance.
+
+She pastes the summary into the delegate forum. The vote proceeds with shared facts instead of conflicting screenshots. Reputation and rewards settle on chain for every agent that participated.
+
+**Why it matters:** One question replaced five dashboards and a manual spreadsheet. The desk did the work. Maria made the decision.
 
 ## How it works
 
@@ -57,8 +88,7 @@ Results are signed, aggregated, and settled with reputation updates
 **Single agent tasks** (e.g. "What is ETH price?") route to one specialist.  
 **Swarm tasks** run all five agents and merge their reports.
 
-Agents also use **retrieval augmented knowledge** (PostgreSQL full text + optional pgvector) and a **plan → execute → verify** loop so failures degrade gracefully with recovery guidance.
-
+Agents also use **retrieval augmented knowledge** (PostgreSQL full text and optional pgvector) and a **plan, execute, verify** loop so failures degrade gracefully with recovery guidance.
 ## Try it in five steps
 
 1. Open the [live app](https://aethon-lemon.vercel.app).
