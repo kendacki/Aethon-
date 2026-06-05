@@ -287,6 +287,18 @@ export type TaskDetailResponse = {
   };
   catalog: { agentWork?: string; sources?: string[] } | null;
   execution: { targetContract: string; executionPayload: string } | null;
+  portfolioBriefing?: {
+    headline: string;
+    atGlance: string;
+    sections: Array<{
+      role: string;
+      title: string;
+      summary: string;
+      action: string;
+      bullets: string[];
+    }>;
+    nextSteps: string[];
+  } | null;
 };
 
 export function formatEth(wei: string): string {

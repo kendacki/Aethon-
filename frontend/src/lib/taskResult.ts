@@ -8,9 +8,19 @@ type SkillReportView = {
   sections?: Array<{ title: string; lines: string[] }>;
 };
 
+export type TaskResultSection = {
+  title: string;
+  summary: string;
+  bullets: string[];
+  action?: string;
+};
+
 export type TaskResultOutput = {
   thinking: string;
+  headline?: string;
+  atGlance?: string;
   body: string;
+  sections: TaskResultSection[];
   recommendation: string;
   isPending: boolean;
   isFailed: boolean;
@@ -37,7 +47,7 @@ export function proseClean(text: string): string {
 }
 
 const TECHNICAL_LINE =
-  /\b(fallback_table|somnia_json_api|attestation|wallet attestation|quality tier|basis points|wei\b|criteriaMet|signed by the oracle)\b/i;
+  /\b(fallback_table|somnia_json_api|attestation|wallet attestation|quality tier|basis points|bps\b|wei\b|criteriaMet|signed by the oracle|cex_|circuit_breaker|fleet_liveness)\b/i;
 
 function isTechnicalCopy(text: string): boolean {
   return TECHNICAL_LINE.test(text) || /\(\d{1,3}%\s*confidence/i.test(text);
@@ -49,7 +59,9 @@ function polishLegacySummary(text: string): string {
   );
   if (oracleMatch) {
     const [, asset, price] = oracleMatch;
-    return proseClean(`${titleCaseAsset(asset)} is about $${price} USD. Live feeds were busy, so this uses reference pricing. Refresh for a live quote before trading.`);
+    return proseClean(
+      `${titleCaseAsset(asset)} is about $${price} USD. Live feeds were busy, so this uses reference pricing. Refresh for a live quote before trading.`,
+    );
   }
 
   const staleMatch = text.match(/^(\w+)\s+price\s+\$([\d,.]+)\s+\((\w+)\)\s+.*stale/i);
@@ -65,6 +77,7 @@ function polishLegacySummary(text: string): string {
       .replace(/\bcoingecko\b/gi, "CoinGecko")
       .replace(/\bsomnia_json_api\b/gi, "Somnia oracle")
       .replace(/\(confidence\s+\d+%[^)]*\)/gi, "")
+      .replace(/\bbasis points?\b/gi, "% spread")
       .replace(/\s+via\s+/gi, " from ")
       .replace(/Spot:\s*\$[\d,.]+ USD\s*/gi, "")
       .replace(/Source:\s*\w+\s*/gi, "")
@@ -88,68 +101,54 @@ function friendlySkillError(error?: string): string {
   return proseClean(error);
 }
 
-function formatReportSections(sections?: SkillReportView["sections"]): string {
-  if (!sections?.length) return "";
+function formatReportSections(sections?: SkillReportView["sections"]): string[] {
+  if (!sections?.length) return [];
   const blocks: string[] = [];
   for (const section of sections) {
     const lines = section.lines.map((line) => cleanCopy(line)).filter((line) => line && !isTechnicalCopy(line));
     if (!lines.length) continue;
-    blocks.push([section.title, ...lines.map((line) => line)].join("\n"));
+    blocks.push(lines.join("\n"));
   }
-  return blocks.join("\n\n");
+  return blocks;
 }
 
-function knowledgeLines(data: Record<string, unknown>): string[] {
-  const lines: string[] = [];
-  const brain = typeof data.brainSummary === "string" ? data.brainSummary.trim() : "";
-  if (brain && !isTechnicalCopy(brain)) lines.push(cleanCopy(brain));
-
-  const recovery = typeof data.recovery === "string" ? data.recovery.trim() : "";
-  const guidance = typeof data.userGuidance === "string" ? data.userGuidance.trim() : "";
-  if (recovery) lines.push(cleanCopy(recovery));
-  if (guidance) lines.push(cleanCopy(`You can ask: ${guidance}`));
-
-  return lines;
-}
-
-function extractReport(data: Record<string, unknown>, error?: string): {
-  body: string;
-  recommendation: string;
-  thinking: string;
-} {
+function extractSingleAgentReport(data: Record<string, unknown>, error?: string): TaskResultSection | null {
   const report = data.report as SkillReportView | undefined;
-
   const summary = cleanCopy(String(report?.summary ?? data.summary ?? friendlySkillError(error) ?? ""));
+  if (!summary) return null;
 
-  const thinking = cleanCopy(String(report?.thinking ?? ""));
-
-  const sectionText = formatReportSections(report?.sections);
-
-  const knowledge = knowledgeLines(data).join("\n\n");
-
-  const bodyParts = [summary, sectionText, knowledge].filter(Boolean);
-  const body = uniqueParagraphs(bodyParts);
-
-  const recommendation = cleanCopy(
-    String(
-      report?.recommendation ??
-        (typeof data.recommendation === "string" ? data.recommendation : ""),
-    ),
+  const bullets = formatReportSections(report?.sections);
+  const action = cleanCopy(
+    String(report?.recommendation ?? (typeof data.recommendation === "string" ? data.recommendation : "")),
   );
 
-  return { body, recommendation, thinking };
+  return {
+    title: cleanCopy(String(report?.headline ?? "Answer")),
+    summary,
+    bullets,
+    action: action || undefined,
+  };
 }
 
-function uniqueParagraphs(parts: string[]): string {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const part of parts) {
-    const paragraph = cleanCopy(part);
-    if (!paragraph || seen.has(paragraph.toLowerCase())) continue;
-    seen.add(paragraph.toLowerCase());
-    out.push(paragraph);
-  }
-  return out.join("\n\n");
+function formatPortfolioBriefing(detail: TaskDetailResponse): TaskResultOutput {
+  const briefing = detail.portfolioBriefing!;
+  const sections: TaskResultSection[] = briefing.sections.map((s) => ({
+    title: s.title,
+    summary: cleanCopy(s.summary),
+    bullets: s.bullets.map((b) => cleanCopy(b)).filter(Boolean),
+    action: s.action ? cleanCopy(s.action) : undefined,
+  }));
+
+  return {
+    thinking: "",
+    headline: cleanCopy(briefing.headline),
+    atGlance: cleanCopy(briefing.atGlance),
+    body: "",
+    sections,
+    recommendation: briefing.nextSteps.map((s) => cleanCopy(s)).filter(Boolean).join("\n"),
+    isPending: false,
+    isFailed: false,
+  };
 }
 
 function recommendationDistinct(body: string, recommendation: string): string {
@@ -165,6 +164,7 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
     return {
       thinking: "Analyzing your question with live market and fleet data.",
       body: "",
+      sections: [],
       recommendation: "",
       isPending: true,
       isFailed: false,
@@ -183,6 +183,7 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
         : isFailed
           ? proseClean("This request could not be completed. Please submit again with a specific question.")
           : proseClean("No answer was returned for this request."),
+      sections: [],
       recommendation: isFailed
         ? proseClean("Use one of the example prompts such as a price check, yield allocation, or fleet health question.")
         : "",
@@ -191,23 +192,31 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
     };
   }
 
-  const parts = detail.skillResults.map((row) =>
-    extractReport(row.result.data ?? {}, row.result.error),
-  );
+  if (detail.portfolioBriefing && !isPending) {
+    return formatPortfolioBriefing(detail);
+  }
 
-  const thinkingParts = parts.map((p) => p.thinking).filter(Boolean);
+  const sections = detail.skillResults
+    .map((row) => extractSingleAgentReport(row.result.data ?? {}, row.result.error))
+    .filter((s): s is TaskResultSection => s != null);
+
   const thinking =
-    isPending && !parts.some((p) => p.body)
-      ? thinkingParts[0] || "Analyzing your question with live market and fleet data."
+    isPending && sections.length === 0
+      ? "Analyzing your question with live market and fleet data."
       : "";
 
-  const body = uniqueParagraphs(parts.map((p) => p.body).filter(Boolean));
-  const rawRecommendation = uniqueParagraphs(parts.map((p) => p.recommendation).filter(Boolean));
+  const primary = sections[0];
+  const body = primary?.summary ?? "";
+  const rawRecommendation = sections
+    .map((s) => s.action)
+    .filter(Boolean)
+    .join("\n");
   const recommendation = recommendationDistinct(body, rawRecommendation);
 
   return {
     thinking,
     body: body || (isPending ? "" : proseClean("No answer was returned.")),
+    sections: sections.length > 1 ? sections : primary ? [{ ...primary, action: undefined }] : [],
     recommendation,
     isPending: isPending && !body,
     isFailed,

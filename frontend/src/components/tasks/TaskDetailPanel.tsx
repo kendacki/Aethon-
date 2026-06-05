@@ -31,6 +31,65 @@ const StatusLine = styled("p", {
   opacity: 0.55,
 });
 
+const Headline = styled("h2", {
+  margin: "0 0 $3",
+  fontSize: "1.125rem",
+  fontWeight: 600,
+  lineHeight: 1.4,
+  color: "rgba(255,255,255,0.96)",
+});
+
+const AtGlance = styled("p", {
+  margin: "0 0 $5",
+  padding: "$3 $4",
+  borderRadius: "$md",
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  fontSize: "0.875rem",
+  lineHeight: 1.6,
+  color: "rgba(255,255,255,0.82)",
+});
+
+const SectionBlock = styled("section", {
+  marginBottom: "$5",
+  paddingBottom: "$4",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  "&:last-of-type": {
+    borderBottom: "none",
+    marginBottom: 0,
+    paddingBottom: 0,
+  },
+});
+
+const SectionTitle = styled("h3", {
+  margin: "0 0 $2",
+  fontSize: "0.9375rem",
+  fontWeight: 600,
+  letterSpacing: "0.01em",
+  color: "rgba(255,255,255,0.92)",
+});
+
+const SectionSummary = styled("p", {
+  margin: "0 0 $2",
+  color: "rgba(255,255,255,0.88)",
+});
+
+const BulletList = styled("ul", {
+  margin: "0 0 $2",
+  paddingLeft: "1.25rem",
+  color: "rgba(255,255,255,0.78)",
+  fontSize: "0.875rem",
+  lineHeight: 1.6,
+});
+
+const SectionAction = styled("p", {
+  margin: 0,
+  fontSize: "0.8125rem",
+  lineHeight: 1.55,
+  color: "rgba(255,255,255,0.62)",
+  fontStyle: "italic",
+});
+
 const Body = styled("div", {
   color: "rgba(255,255,255,0.94)",
   whiteSpace: "pre-wrap",
@@ -38,13 +97,20 @@ const Body = styled("div", {
   lineHeight: 1.7,
 });
 
-const NextStep = styled("p", {
+const NextStep = styled("div", {
   margin: "$4 0 0",
   paddingTop: "$4",
   borderTop: "1px solid rgba(255,255,255,0.08)",
   fontSize: "0.875rem",
   lineHeight: 1.6,
-  opacity: 0.82,
+  opacity: 0.88,
+});
+
+const NextStepTitle = styled("p", {
+  margin: "0 0 $2",
+  fontWeight: 600,
+  fontSize: "0.875rem",
+  opacity: 0.95,
 });
 
 const PendingDots = styled("span", {
@@ -114,6 +180,7 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
 
   const output = formatTaskOutput(detail);
   const showStatus = output.isPending || (loading && !detail);
+  const isPortfolio = Boolean(output.headline && output.sections.length > 1);
 
   return (
     <ResponseShell aria-live="polite" aria-busy={loading || output.isPending}>
@@ -125,12 +192,55 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
           </StatusLine>
         )}
 
-        {output.body ? <Body>{output.body}</Body> : null}
+        {output.headline ? <Headline>{output.headline}</Headline> : null}
+        {output.atGlance ? <AtGlance>{output.atGlance}</AtGlance> : null}
+
+        {isPortfolio
+          ? output.sections.map((section) => (
+              <SectionBlock key={section.title}>
+                <SectionTitle>{section.title}</SectionTitle>
+                <SectionSummary>{section.summary}</SectionSummary>
+                {section.bullets.length > 0 ? (
+                  <BulletList>
+                    {section.bullets.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </BulletList>
+                ) : null}
+                {section.action ? <SectionAction>{section.action}</SectionAction> : null}
+              </SectionBlock>
+            ))
+          : null}
+
+        {!isPortfolio && output.body ? <Body>{output.body}</Body> : null}
+
+        {!isPortfolio &&
+          output.sections.map((section) =>
+            section.bullets.length > 0 ? (
+              <SectionBlock key={section.title}>
+                {section.bullets.length > 0 ? (
+                  <BulletList>
+                    {section.bullets.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </BulletList>
+                ) : null}
+              </SectionBlock>
+            ) : null,
+          )}
 
         {output.recommendation ? (
           <NextStep>
-            <strong style={{ fontWeight: 600, opacity: 0.9 }}>Recommended next step. </strong>
-            {output.recommendation}
+            <NextStepTitle>{isPortfolio ? "Recommended next steps" : "Recommended next step"}</NextStepTitle>
+            {isPortfolio ? (
+              <BulletList>
+                {output.recommendation.split("\n").filter(Boolean).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </BulletList>
+            ) : (
+              <Body>{output.recommendation}</Body>
+            )}
           </NextStep>
         ) : null}
 

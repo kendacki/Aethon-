@@ -49,11 +49,11 @@ function buildEvaluationSummary(
   const total = criteria.length;
 
   if (intent === "PORTFOLIO_BRIEFING") {
-    const okRoles = roleSummaries.filter((r) => r.success).map((r) => r.role);
+    const okRoles = roleSummaries.filter((r) => r.success).length;
     if (overallSuccess) {
-      return `Portfolio briefing complete. All specialists reported (${okRoles.length}/5 roles). Review each section below for price, spreads, yield, governance, and risk.`;
+      return `All five specialists reported. Review the structured briefing below for price, spreads, yield, governance, and fleet risk.`;
     }
-    return `Portfolio briefing partial. ${okRoles.length} of 5 specialists succeeded. Check failed roles before acting on the briefing.`;
+    return `Partial briefing: ${okRoles} of 5 specialists succeeded. Review available sections before acting.`;
   }
 
   if (overallSuccess && entry) {

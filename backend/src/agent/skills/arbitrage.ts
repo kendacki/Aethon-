@@ -5,7 +5,7 @@ import { fetchDexScreenerPairs } from "../tools/dexScreener.js";
 import { estimateSwapGasCost } from "../tools/liveGas.js";
 import { fetchSpotQuote } from "./http.js";
 import { fetchDexReserves, impliedPriceUsdFromReserves, spreadBpsBetween } from "./dexPool.js";
-import { proseClean } from "../../shared/skillReport.js";
+import { proseClean, formatVenueLabel, spreadPct } from "../../shared/skillReport.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
@@ -114,10 +114,10 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
 
     const recommendation = profitable
       ? proseClean(
-          `Execute from ${bestBuy.id} to ${bestSell.id} at ${spreadBps} basis points net positive after live gas.`,
+          `Buy on ${formatVenueLabel(bestBuy.id)} and sell on ${formatVenueLabel(bestSell.id)}. Estimated gap is ${spreadPct(spreadBps)} after gas.`,
         )
       : proseClean(
-          `Hold. Spread is ${spreadBps} basis points, below your threshold or gas adjusted profit is negative.`,
+          `Hold. The gap is ${spreadPct(spreadBps)}, below your threshold or not profitable after gas.`,
         );
 
     const criteriaMet = profitable && spreadBps >= minSpreadBps;

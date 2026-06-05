@@ -1,7 +1,7 @@
 import type { Provider } from "ethers";
 import { JsonRpcProvider } from "ethers";
 import type { TaskPayload } from "../../shared/taskPayload.js";
-import { proseClean } from "../../shared/skillReport.js";
+import { proseClean, formatProjectLabel, titleCaseAsset } from "../../shared/skillReport.js";
 import { fetchLiveVaults } from "../tools/defiLlamaYields.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
@@ -87,7 +87,9 @@ export const executeYieldOpt: SkillExecutor = async (payload, _ctx) => {
   );
   const expectedYieldEth = (amountEth * blendedApyBps) / 10_000 / 365;
   const recommendation = proseClean(
-    `Route ${amountEth} ETH into ${allocation.map((a) => `${a.pct}% ${a.project} on ${a.chain}`).join(", ")}.`,
+    `Route ${amountEth} ETH into ${allocation
+      .map((a) => `${a.pct}% ${formatProjectLabel(a.project)} on ${titleCaseAsset(a.chain)}`)
+      .join(", ")}.`,
   );
 
   return skillOk(

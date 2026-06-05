@@ -32,12 +32,12 @@ export function proseClean(text: string): string {
     .trim();
 }
 
-function fmtUsd(n: unknown): string {
+export function fmtUsd(n: unknown): string {
   const v = Number(n);
   return Number.isFinite(v) ? `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}` : "not available";
 }
 
-function fmtPctFromBps(bps: unknown): string {
+export function fmtPctFromBps(bps: unknown): string {
   const v = Number(bps);
   return Number.isFinite(v) ? `${(v / 100).toFixed(2)}%` : "not available";
 }
@@ -47,7 +47,7 @@ function fmtNum(n: unknown, suffix = ""): string {
   return Number.isFinite(v) ? `${v}${suffix}` : "not available";
 }
 
-function titleCaseAsset(asset: string): string {
+export function titleCaseAsset(asset: string): string {
   const lower = asset.toLowerCase();
   if (lower === "ethereum" || lower === "eth") return "Ethereum";
   if (lower === "bitcoin" || lower === "btc") return "Bitcoin";
@@ -85,8 +85,47 @@ function userDataSource(source: string): string {
   return map[source] ?? "live market data";
 }
 
-function spreadPct(spreadBps: number): string {
+export function spreadPct(spreadBps: number): string {
   return `${(spreadBps / 100).toFixed(2)}%`;
+}
+
+function isPortfolioBriefing(intent: TaskIntent | string): boolean {
+  return intent === "PORTFOLIO_BRIEFING";
+}
+
+/** Turn internal venue ids (cex_binance) into readable exchange names. */
+export function formatVenueLabel(id: string): string {
+  if (!id) return "Unknown venue";
+  const cex = id.match(/^cex_(.+)$/i);
+  if (cex) {
+    const name = cex[1];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  if (id.startsWith("dex_")) return "On-chain DEX pool";
+  return id.replace(/_/g, " ");
+}
+
+/** Turn defillama project slugs into readable protocol names. */
+export function formatProjectLabel(project: string): string {
+  if (!project) return "Pool";
+  return project
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function riskHealthLabel(level: string): string {
+  switch (level) {
+    case "LOW":
+      return "healthy";
+    case "MEDIUM":
+      return "cautious";
+    case "HIGH":
+      return "critical";
+    default:
+      return "unknown";
+  }
 }
 
 export function buildSkillReport(
@@ -182,7 +221,7 @@ function buildOracleReport(intent: TaskIntent | string, data: Record<string, unk
     summary,
     thinking,
     recommendation,
-    sections: [{ title: "Market snapshot", lines: snapshotLines }],
+    sections: isPortfolioBriefing(intent) ? [] : [{ title: "Market snapshot", lines: snapshotLines }],
     metrics: {
       price,
       stale,
@@ -220,8 +259,8 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
       )
     : proseClean("No trade is recommended right now. Monitor the pair or wait for volatility to widen the gap.");
 
-  const buyVenue = String(data.bestBuyVenue ?? "not available");
-  const sellVenue = String(data.bestSellVenue ?? "not available");
+  const buyVenue = formatVenueLabel(String(data.bestBuyVenue ?? ""));
+  const sellVenue = formatVenueLabel(String(data.bestSellVenue ?? ""));
   const gasEth =
     data.gasEstimateWei != null
       ? `${(Number(data.gasEstimateWei) / 1e18).toFixed(6)} ETH`
@@ -234,19 +273,21 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
     summary,
     thinking,
     recommendation,
-    sections: [
-      {
-        title: "Spread breakdown",
-        lines: [
-          proseClean(`Reference price: ${fmtUsd(data.referenceUsd)} (${refSource})`),
-          proseClean(`Observed gap: ${spreadLabel} (your minimum ${spreadPct(minSpreadBps)})`),
-          proseClean(`Cheapest venue: ${buyVenue}`),
-          proseClean(`Richest venue: ${sellVenue}`),
-          proseClean(`Modeled size: ${notional} ETH`),
-          proseClean(`Estimated gas: ${gasEth}`),
+    sections: isPortfolioBriefing(intent)
+      ? []
+      : [
+          {
+            title: "Spread breakdown",
+            lines: [
+              proseClean(`Reference price: ${fmtUsd(data.referenceUsd)} (${refSource})`),
+              proseClean(`Observed gap: ${spreadLabel} (your minimum ${spreadPct(minSpreadBps)})`),
+              proseClean(`Cheapest venue: ${buyVenue}`),
+              proseClean(`Richest venue: ${sellVenue}`),
+              proseClean(`Modeled size: ${notional} ETH`),
+              proseClean(`Estimated gas: ${gasEth}`),
+            ],
+          },
         ],
-      },
-    ],
     metrics: {
       spreadBps,
       profitable,
@@ -267,7 +308,10 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
   const dailyYield = fmtNum(data.expectedDailyYieldEth);
 
   const allocationLines = allocation.map((a) => {
-    const label = a.project && a.chain ? `${a.project} on ${a.chain}` : a.vaultId;
+    const label =
+      a.project && a.chain
+        ? `${formatProjectLabel(a.project)} on ${titleCaseAsset(a.chain)}`
+        : formatProjectLabel(String(a.vaultId ?? "pool"));
     return proseClean(`${a.pct}% to ${label} at ${fmtPctFromBps(a.apyBps)} APY`);
   });
 
@@ -306,15 +350,15 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
     summary,
     thinking,
     recommendation,
-    sections: [
-      {
-        title: "Recommended split",
-        lines: allocationLines.length ? allocationLines : [proseClean("No allocation was produced.")],
-      },
-      ...(altLines.length
-        ? [{ title: "Other pools considered", lines: altLines }]
-        : []),
-    ],
+    sections: isPortfolioBriefing(intent)
+      ? []
+      : [
+          {
+            title: "Recommended split",
+            lines: allocationLines.length ? allocationLines : [proseClean("No allocation was produced.")],
+          },
+          ...(altLines.length ? [{ title: "Other pools considered", lines: altLines }] : []),
+        ],
     metrics: {
       amountEth: Number(data.amountEth ?? 0),
       expectedApyBps: Number(data.expectedApyBps ?? 0),
@@ -334,7 +378,10 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
   const quorumStake = fmtNum(data.quorumEth);
   const passThreshold = Math.round(Number(data.passThreshold ?? 0.66) * 100);
 
-  const llmSummary = typeof data.llmSummary === "string" ? proseClean(data.llmSummary.trim()) : "";
+  const llmSummary =
+    !isPortfolioBriefing(intent) && typeof data.llmSummary === "string"
+      ? proseClean(data.llmSummary.trim())
+      : "";
   const summary =
     llmSummary ||
     (quorumReached
@@ -362,18 +409,20 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
     summary,
     thinking,
     recommendation,
-    sections: [
-      {
-        title: "Vote snapshot",
-        lines: [
-          proseClean(`Suggested vote: ${vote}`),
-          proseClean(`Quorum: ${quorumReached ? "reached" : "not reached"} (${participation}% participation)`),
-          proseClean(`For: ${supportStake} STT, against: ${againstStake} STT`),
-          proseClean(`Quorum needed: ${quorumStake} STT`),
-          proseClean(`Support share: ${supportPct}% (pass threshold ${passThreshold}%)`),
+    sections: isPortfolioBriefing(intent)
+      ? []
+      : [
+          {
+            title: "Vote snapshot",
+            lines: [
+              proseClean(`Suggested vote: ${vote}`),
+              proseClean(`Quorum: ${quorumReached ? "reached" : "not reached"} (${participation}% participation)`),
+              proseClean(`For: ${supportStake} STT, against: ${againstStake} STT`),
+              proseClean(`Quorum needed: ${quorumStake} STT`),
+              proseClean(`Support share: ${supportPct}% (pass threshold ${passThreshold}%)`),
+            ],
+          },
         ],
-      },
-    ],
     metrics: {
       recommendedVote: vote,
       quorumReached,
@@ -386,20 +435,14 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
 function buildRiskReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
   const level = String(data.riskLevel ?? "UNKNOWN");
   const score = Number(data.compositeScore);
-  const levelLabel = level.charAt(0) + level.slice(1).toLowerCase();
+  const health = riskHealthLabel(level);
   const activeAgents = fmtNum(data.activeAgents);
   const minHealthy = fmtNum(data.minHealthyAgents ?? 3);
   const failures = fmtNum(data.consecutiveFailures);
   const circuit = Boolean(data.circuitPaused);
 
-  const factorLines = Array.isArray(data.riskFactors)
-    ? (data.riskFactors as Array<{ name: string; score: number }>).map((f) =>
-        proseClean(`${f.name.replace(/_/g, " ")}: ${f.score}/100`),
-      )
-    : [];
-
   const summary = proseClean(
-    `Fleet health is ${levelLabel.toLowerCase()} with an overall score of ${Number.isFinite(score) ? score : "unknown"} out of 100. ${activeAgents} agents are online versus ${minHealthy} recommended for comfortable load. Automated execution is ${circuit ? "paused by the circuit breaker" : "available"}. Recent consecutive failures: ${failures}.`,
+    `Fleet status is ${health}${Number.isFinite(score) ? ` (${score} out of 100)` : ""}. ${activeAgents} agents are online versus ${minHealthy} recommended for comfortable load. Automated execution is ${circuit ? "paused by the circuit breaker" : "available"}. Recent consecutive failures: ${failures}.`,
   );
 
   const thinking = proseClean(
@@ -418,21 +461,22 @@ function buildRiskReport(intent: TaskIntent | string, data: Record<string, unkno
   return {
     role: "RISK_MGMT",
     intent,
-    headline: `Fleet risk: ${levelLabel}`,
+    headline: `Fleet risk: ${health.charAt(0).toUpperCase()}${health.slice(1)}`,
     summary,
     thinking,
     recommendation,
-    sections: [
-      {
-        title: "Health signals",
-        lines: [
-          proseClean(`Execution gate: ${circuit ? "paused" : "open"}`),
-          proseClean(`Agents online: ${activeAgents} (recommended minimum ${minHealthy})`),
-          proseClean(`Consecutive failures: ${failures}`),
-          ...factorLines,
+    sections: isPortfolioBriefing(intent)
+      ? []
+      : [
+          {
+            title: "Health signals",
+            lines: [
+              proseClean(`Execution gate: ${circuit ? "paused" : "open"}`),
+              proseClean(`Agents online: ${activeAgents} (recommended minimum ${minHealthy})`),
+              proseClean(`Consecutive failures: ${failures}`),
+            ],
+          },
         ],
-      },
-    ],
     metrics: {
       compositeScore: score,
       riskLevel: level,
