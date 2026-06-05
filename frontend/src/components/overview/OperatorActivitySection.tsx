@@ -347,7 +347,6 @@ export function OperatorActivitySection({
               <MetricTop>
                 <div>
                   <MetricValue>{stakeSummary.headline}</MetricValue>
-                  <MetricLabel>stt on tasks</MetricLabel>
                 </div>
                 <IconRing>
                   <IconVault size={ICON_MD} />
