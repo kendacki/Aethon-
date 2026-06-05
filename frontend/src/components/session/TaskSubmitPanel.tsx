@@ -159,16 +159,6 @@ const ExampleChip = styled("button", {
   "&:disabled": { opacity: 0.45, cursor: "not-allowed" },
 });
 
-const Preview = styled("div", {
-  marginTop: "$4",
-  padding: "$4",
-  borderRadius: "$md",
-  border: "1px solid rgba(255,255,255,0.1)",
-  background: "rgba(0,0,0,0.28)",
-  fontSize: "0.8125rem",
-  lineHeight: 1.55,
-});
-
 const FieldGrid = styled("div", {
   display: "grid",
   gap: "$4",
@@ -313,15 +303,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
       setSubmitting(false);
     }
   };
-
-  const previewBody = (
-    <>
-      <p style={{ margin: 0, opacity: 0.9 }}>{catalog.description}</p>
-      <p style={{ margin: "0.75rem 0 0", opacity: 0.8 }}>
-        <strong>Agents:</strong> {catalog.agentWork}
-      </p>
-    </>
-  );
 
   if (variant === "chat") {
     return (
