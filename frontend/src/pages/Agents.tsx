@@ -11,15 +11,9 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, Grid, PageWrap } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
 import { GlassFilterPill, GlassPageBand } from "../components/GlassPanel";
-import { FLEET_ROLE_META } from "../config/fleetRoles";
-import type { AgentType } from "../task/payload";
+import { fleetRoleLabel } from "../config/fleetRoles";
 
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"] as const;
-
-function roleLabel(type: string): string {
-  if (!type) return "all roles";
-  return FLEET_ROLE_META[type as AgentType]?.label ?? type;
-}
 
 function GuestFleetGrid() {
   const [page, setPage] = useState(0);
@@ -34,7 +28,7 @@ function GuestFleetGrid() {
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "$6", flexWrap: "wrap" }}>
         {TYPES.map((t) => (
           <GlassFilterPill key={t || "all"} type="button" active={type === t} onClick={() => { setType(t); setPage(0); }}>
-            {roleLabel(t)}
+            {fleetRoleLabel(t)}
           </GlassFilterPill>
         ))}
       </div>
@@ -57,7 +51,7 @@ function GuestFleetGrid() {
                   <IconAgent size={ICON_LG} />
                   <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "online" : "offline"}</Badge>
                 </div>
-                <div style={{ fontWeight: 700, marginTop: "1rem" }}>{roleLabel(agent.agentType)}</div>
+                <div style={{ fontWeight: 700, marginTop: "1rem" }}>{fleetRoleLabel(agent.agentType)}</div>
                 <div style={{ fontSize: "0.875rem", opacity: 0.65, fontFamily: "monospace", marginTop: 4 }}>{shortAddr(agent.address)}</div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.25rem", fontSize: "0.875rem" }}>
                   <span>

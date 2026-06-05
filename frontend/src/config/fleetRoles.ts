@@ -35,6 +35,11 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
   },
 };
 
+export function fleetRoleLabel(type: string): string {
+  if (!type) return "all roles";
+  return FLEET_ROLE_META[type as AgentType]?.label ?? type.replace(/_/g, " ").toLowerCase();
+}
+
 export function sortAgentsByRole<T extends { agentType: string }>(agents: T[]): T[] {
   return [...agents].sort(
     (a, b) =>

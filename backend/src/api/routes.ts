@@ -435,8 +435,11 @@ export const leaderboardRouter = Router();
 
 leaderboardRouter.get("/", async (req, res, next) => {
   try {
+    await syncFleetFromChain().catch((err) => {
+      console.warn("[leaderboard] chain sync failed:", err instanceof Error ? err.message : err);
+    });
     const { page, pageSize } = parsePagination(req);
-    const result = await repo.listAgents({ page, pageSize });
+    const result = await repo.listLeaderboard({ page, pageSize });
     res.json(result);
   } catch (err) {
     next(err);

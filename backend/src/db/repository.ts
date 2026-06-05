@@ -65,6 +65,21 @@ export const repo = {
     return paginate(r.rows.map(rowToAgent), page, pageSize, total);
   },
 
+  /** Ranked list: highest reputation first, then stake, then address for stable ties. */
+  async listLeaderboard(opts: PaginationParams): Promise<PaginatedResult<AgentRecord>> {
+    const page = opts.page ?? 0;
+    const pageSize = opts.pageSize ?? 20;
+    const countR = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM agents`);
+    const total = Number(countR.rows[0]?.count ?? 0);
+    const r = await query(
+      `SELECT * FROM agents
+       ORDER BY reputation DESC, stake::numeric DESC, address ASC
+       LIMIT $1 OFFSET $2`,
+      [pageSize, page * pageSize]
+    );
+    return paginate(r.rows.map(rowToAgent), page, pageSize, total);
+  },
+
   async upsertTask(task: TaskRecord): Promise<void> {
     await query(
       `INSERT INTO tasks (id, submitter, task_hash, reward, complexity, deadline, status,

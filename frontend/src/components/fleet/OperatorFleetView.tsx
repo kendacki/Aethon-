@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { api, formatEth, shortAddr, type Agent, type AgentFleetHealth, type FleetHealth } from "../../api/client";
+import { api, formatEth, shortAddr } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { fleetStatusLabel } from "../../lib/formatText";
+import { countOperationalAgents, healthByRoleMap, isAgentOperational, workerBadgeStatus } from "../../lib/fleetAgentStatus";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
@@ -168,37 +169,6 @@ const TYPES: { value: string; label: string }[] = [
   ...ALL_AGENT_TYPES.map((t) => ({ value: t, label: FLEET_ROLE_META[t].label })),
 ];
 
-function healthByRoleMap(fleet: FleetHealth | null): Map<string, AgentFleetHealth> {
-  const map = new Map<string, AgentFleetHealth>();
-  fleet?.agents.forEach((a) => map.set(a.role, a));
-  return map;
-}
-
-function workerVaultOnlyDegraded(worker: AgentFleetHealth | undefined): boolean {
-  const checks = worker?.snapshot?.checks ?? [];
-  if (!checks.length) return false;
-  const failed = checks.filter((c) => !c.ok);
-  return failed.length > 0 && failed.every((c) => c.name === "vault_reserve");
-}
-
-function isAgentOperational(agent: Agent, worker: AgentFleetHealth | undefined): boolean {
-  if (agent.online) return true;
-  if (worker?.online) return true;
-  if (worker?.status === "HEALTHY" || worker?.status === "STARTING") return true;
-  if (worker?.status === "DEGRADED" && workerVaultOnlyDegraded(worker)) return true;
-  return false;
-}
-
-function workerBadgeStatus(
-  agent: Agent,
-  worker: AgentFleetHealth | undefined,
-): "online" | "offline" | undefined {
-  if (!isAgentOperational(agent, worker)) return "offline";
-  if (worker?.status === "HEALTHY") return "online";
-  if (worker?.status === "HALTED") return "offline";
-  return undefined;
-}
-
 export function OperatorFleetView() {
   const [typeFilter, setTypeFilter] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
@@ -223,10 +193,10 @@ export function OperatorFleetView() {
     return list;
   }, [data?.data, onlineOnly, healthMap]);
 
-  const onlineCount = useMemo(() => {
-    const agents = data?.data ?? [];
-    return agents.filter((a) => isAgentOperational(a, healthMap.get(a.agentType))).length;
-  }, [data?.data, healthMap]);
+  const onlineCount = useMemo(
+    () => countOperationalAgents(data?.data ?? [], healthMap),
+    [data?.data, healthMap],
+  );
   const totalAgents = data?.pagination.total ?? data?.data.length ?? 0;
   const totalStake = useMemo(() => {
     if (fleetHealth?.totalStakedWei) return formatEth(fleetHealth.totalStakedWei);
