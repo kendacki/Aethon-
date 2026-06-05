@@ -113,13 +113,13 @@ Details: [docs/SOMNIA_INTEGRATION.md](docs/SOMNIA_INTEGRATION.md)
 
 | Contract | Address |
 |----------|---------|
-| AgentRegistry | [`0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F`](https://shannon-explorer.somnia.network/address/0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F) |
-| TaskMarket | [`0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc`](https://shannon-explorer.somnia.network/address/0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc) |
-| CoalitionManager | [`0x55B189B30980c95Bfb2936de0ed11e54fC590648`](https://shannon-explorer.somnia.network/address/0x55B189B30980c95Bfb2936de0ed11e54fC590648) |
-| ReputationEngine | [`0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91`](https://shannon-explorer.somnia.network/address/0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91) |
-| CircuitBreaker | [`0x4Eed8B20f302b8A28f375F5b7FE33E2296803893`](https://shannon-explorer.somnia.network/address/0x4Eed8B20f302b8A28f375F5b7FE33E2296803893) |
+| AgentRegistry | [`0xd5F9C2BaDf583181416Fa42dcF21413c7E29FC88`](https://shannon-explorer.somnia.network/address/0xd5F9C2BaDf583181416Fa42dcF21413c7E29FC88) |
+| TaskMarket | [`0x26fFf2529F76B23AD04863AcAFf7e926c16d2D60`](https://shannon-explorer.somnia.network/address/0x26fFf2529F76B23AD04863AcAFf7e926c16d2D60) |
+| CoalitionManager | [`0x3199def700569334B4fCc13C3CF6f0dFf0BEdC99`](https://shannon-explorer.somnia.network/address/0x3199def700569334B4fCc13C3CF6f0dFf0BEdC99) |
+| ReputationEngine | [`0x31945318720129a63b400afd98AE66970399F55e`](https://shannon-explorer.somnia.network/address/0x31945318720129a63b400afd98AE66970399F55e) |
+| CircuitBreaker | [`0xC3989534379C8DEb993DD8DA2a3c356a218c63CB`](https://shannon-explorer.somnia.network/address/0xC3989534379C8DEb993DD8DA2a3c356a218c63CB) |
 | SomniaAgentConsumer | [`0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353`](https://shannon-explorer.somnia.network/address/0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353) |
-| AethonFleetVault | [`0x71bb54c9507387B716199D72858a1F4DEB8FfE1b`](https://shannon-explorer.somnia.network/address/0x71bb54c9507387B716199D72858a1F4DEB8FfE1b) |
+| AethonFleetVault | [`0x6325Cdc86b8103eB31B55934Ce73A52B38198Abb`](https://shannon-explorer.somnia.network/address/0x6325Cdc86b8103eB31B55934Ce73A52B38198Abb) |
 
 Full deployment record: [`backend/deployments/somniaTestnet-50312.json`](backend/deployments/somniaTestnet-50312.json)
 
@@ -177,7 +177,7 @@ VITE_SOMNIA_CHAIN_ID=50312
 
 Never commit private keys or production secrets.
 
-## API quick reference
+**Contract upgrade (June 2026):** Redeploy TaskMarket if your deployment predates owner-gated `setOracleResolver` / `setFleetVault` and reporter-only `executeSwarmForTask`. See [backend/DEPLOYMENT.md](backend/DEPLOYMENT.md#contract-security-taskmarket-v31).
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|

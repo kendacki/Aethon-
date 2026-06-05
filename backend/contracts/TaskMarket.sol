@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IAgentRegistry.sol";
 import "./interfaces/ICoalitionManager.sol";
@@ -13,7 +14,11 @@ interface IOracleResolver {
     function isResolved(uint256 taskId) external view returns (bool);
 }
 
-contract TaskMarket is ReentrancyGuard {
+interface IAethonFleetVault {
+    function executeSwarmConsensus(address target, bytes calldata payload) external;
+}
+
+contract TaskMarket is ReentrancyGuard, Ownable {
     using ECDSA for bytes32;
 
     enum TaskStatus { PENDING, ASSIGNED, COMPLETED, FAILED, EXPIRED }
@@ -43,11 +48,11 @@ contract TaskMarket is ReentrancyGuard {
     uint256 public taskCounter;
     mapping(uint256 => Task) public tasks;
 
-    function setOracleResolver(address _resolver) external {
+    function setOracleResolver(address _resolver) external onlyOwner {
         oracleResolver = _resolver;
     }
 
-    function setFleetVault(address _vault) external {
+    function setFleetVault(address _vault) external onlyOwner {
         fleetVault = _vault;
     }
 
@@ -78,6 +83,10 @@ contract TaskMarket is ReentrancyGuard {
 
     address public fleetVault;
 
+    mapping(uint256 => bool) public swarmExecutionDone;
+
+    event SwarmExecutionRequested(uint256 indexed taskId, address target, bytes payload);
+
     modifier onlyRegisteredAgent() {
         require(registry.isAgentActive(msg.sender), "Not active agent");
         _;
@@ -88,7 +97,7 @@ contract TaskMarket is ReentrancyGuard {
         _;
     }
 
-    constructor(address _registry, address _coalMgr, address _cb, address _treasury) {
+    constructor(address _registry, address _coalMgr, address _cb, address _treasury) Ownable() {
         registry = IAgentRegistry(_registry);
         coalitionMgr = ICoalitionManager(_coalMgr);
         circuitBreaker = ICircuitBreaker(_cb);
@@ -253,6 +262,20 @@ contract TaskMarket is ReentrancyGuard {
         r.submitted = true;
         uint256 payout = t.reward - t.platformFee;
         emit TaskCompletedWithPayload(_taskId, _targetContract, _executionPayload, payout, t.platformFee);
+    }
+
+    /// @notice Executes anchored swarm calldata via fleet vault (reporter-only, one-shot per task).
+    function executeSwarmForTask(uint256 _taskId) external nonReentrant {
+        Task storage t = tasks[_taskId];
+        require(t.status == TaskStatus.COMPLETED, "Not completed");
+        require(msg.sender == t.authorizedReporter, "Not authorized reporter");
+        require(fleetVault != address(0), "Vault not set");
+        TaskExecutionResult storage r = taskExecutionResults[_taskId];
+        require(r.submitted, "No execution payload");
+        require(!swarmExecutionDone[_taskId], "Already executed");
+        swarmExecutionDone[_taskId] = true;
+        IAethonFleetVault(fleetVault).executeSwarmConsensus(r.targetContract, r.executionPayload);
+        emit SwarmExecutionRequested(_taskId, r.targetContract, r.executionPayload);
     }
 
     function expireTask(uint256 _taskId) external nonReentrant {

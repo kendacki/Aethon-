@@ -47,3 +47,32 @@ export function verifySkillResultSignature(
     return false;
   }
 }
+
+export function executionDigest(
+  taskId: number,
+  agentAddress: string,
+  targetContract: string,
+  executionPayload: string,
+): string {
+  const payloadHash = ethers.keccak256(executionPayload.startsWith("0x") ? executionPayload : `0x${executionPayload}`);
+  return ethers.solidityPackedKeccak256(
+    ["uint256", "address", "address", "bytes32"],
+    [taskId, agentAddress, targetContract, payloadHash],
+  );
+}
+
+export function verifyExecutionSignature(
+  taskId: number,
+  agentAddress: string,
+  targetContract: string,
+  executionPayload: string,
+  signature: string,
+): boolean {
+  const digest = executionDigest(taskId, agentAddress, targetContract, executionPayload);
+  try {
+    const recovered = ethers.verifyMessage(ethers.getBytes(digest), signature);
+    return recovered.toLowerCase() === agentAddress.toLowerCase();
+  } catch {
+    return false;
+  }
+}

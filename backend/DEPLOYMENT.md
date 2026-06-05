@@ -81,6 +81,27 @@ After redeploying contracts (`npm run deploy:testnet`):
 
 Swarm task payouts are split equally across coalition members and credited to each agent’s **registry stake** (visible in fleet total staked). Failed or stale tasks refund the signed submitter; the API also forwards legacy relayer refunds when needed.
 
+### Contract security (TaskMarket v3.1+)
+
+Redeploy **TaskMarket** when upgrading from builds before June 2026:
+
+- `setOracleResolver` and `setFleetVault` are **`onlyOwner`** (deployer / governance). Random callers can no longer repoint oracle or vault wiring.
+- `executeSwarmForTask(taskId)` lets the **authorized reporter** run anchored swarm calldata **once** via `AethonFleetVault.executeSwarmConsensus`. The vault still rejects non–TaskMarket callers.
+- `AethonFleetVault.executeSwarmConsensus` remains restricted to TaskMarket, fleet operator, or owner.
+
+**Redeploy checklist**
+
+```bash
+cd backend
+# Ensure DEPLOYER_PK is funded on Somnia testnet
+npm run deploy:testnet
+node scripts/print-railway-env.cjs   # copy new TASK_MARKET_ADDR into Railway
+```
+
+After deploy: update Railway API + all agent services with new `TASK_MARKET_ADDR`, bump `INDEXER_START_BLOCK` to the new deployment block, redeploy API/agents, verify `/v1/health`.
+
+**API:** `POST /v1/tasks/:id/execution` now requires a **reporter wallet signature** over `(taskId, agent, target, payloadHash)` and only accepts payloads from the task’s authorized reporter after completion.
+
 ### Autonomous execution (additive)
 
 After redeploying contracts with `submitTaskResult` + vault `executeSwarmConsensus`:

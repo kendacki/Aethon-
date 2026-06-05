@@ -73,7 +73,12 @@ export class AgentApiClient {
 
   async postTaskExecution(
     taskId: number,
-    body: { targetContract: string; executionPayload: string },
+    body: {
+      address: string;
+      targetContract: string;
+      executionPayload: string;
+      signature: string;
+    },
   ): Promise<void> {
     const res = await fetch(`${this.base()}/tasks/${taskId}/execution`, {
       method: "POST",

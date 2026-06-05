@@ -1,44 +1,20 @@
 {
   "network": "somniaTestnet",
   "chainId": 50312,
-  "deployedAt": "2026-06-04T23:29:40.414Z",
+  "deployedAt": "2026-06-05T23:18:17.727Z",
   "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
-  "deploymentBlock": 400735331,
+  "deploymentBlock": 401587367,
   "roles": {
     "guardian": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
     "treasury": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
     "slashMultisig": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6"
   },
   "addresses": {
-    "ReputationEngine": "0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91",
-    "CircuitBreaker": "0x4Eed8B20f302b8A28f375F5b7FE33E2296803893",
-    "AgentRegistry": "0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F",
-    "CoalitionManager": "0x55B189B30980c95Bfb2936de0ed11e54fC590648",
-    "TaskMarket": "0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc",
-    "AethonFleetVault": "0x71bb54c9507387B716199D72858a1F4DEB8FfE1b",
-    "SomniaAgentsPlatform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
-    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353"
-  },
-  "somniaConsumer": {
-    "network": "somniaTestnet",
-    "chainId": 50312,
-    "platform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
-    "SomniaAgentConsumer": "0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353",
-    "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
-    "note": "Unchanged — not redeployed with v3 stack"
-  },
-  "aethonVault": {
-    "network": "somniaTestnet",
-    "chainId": 50312,
-    "AethonFleetVault": "0x71bb54c9507387B716199D72858a1F4DEB8FfE1b",
-    "deployer": "0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6",
-    "deployedAt": "2026-06-04T23:29:40.414Z",
-    "wiredToTaskMarket": true
-  },
-  "previous": {
-    "TaskMarket": "0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8",
-    "AgentRegistry": "0xA2BAdcce7612cC5729B6df596c660A738b94b60e",
-    "AethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3",
-    "retiredAt": "2026-06-04T23:29:40.414Z"
+    "ReputationEngine": "0x31945318720129a63b400afd98AE66970399F55e",
+    "CircuitBreaker": "0xC3989534379C8DEb993DD8DA2a3c356a218c63CB",
+    "AgentRegistry": "0xd5F9C2BaDf583181416Fa42dcF21413c7E29FC88",
+    "CoalitionManager": "0x3199def700569334B4fCc13C3CF6f0dFf0BEdC99",
+    "TaskMarket": "0x26fFf2529F76B23AD04863AcAFf7e926c16d2D60",
+    "AethonFleetVault": "0x6325Cdc86b8103eB31B55934Ce73A52B38198Abb"
   }
 }

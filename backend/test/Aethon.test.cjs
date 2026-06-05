@@ -182,6 +182,110 @@ describe("AETHON v3.0 contracts", () => {
     expect(balAfter).to.be.gt(balBefore);
   });
 
+  it("rejects unauthorized TaskMarket admin setters and vault swarm execution", async () => {
+    const [admin, submitter, agent, treasury, attacker] = await ethers.getSigners();
+
+    const RepEngine = await ethers.getContractFactory("ReputationEngine");
+    const repEngine = await RepEngine.deploy(admin.address);
+    const CB = await ethers.getContractFactory("CircuitBreaker");
+    const cb = await CB.deploy(admin.address, admin.address, []);
+    const Registry = await ethers.getContractFactory("AgentRegistry");
+    const registry = await Registry.deploy(await repEngine.getAddress(), await cb.getAddress(), admin.address);
+    const CoalMgr = await ethers.getContractFactory("CoalitionManager");
+    const coalMgr = await CoalMgr.deploy(
+      await registry.getAddress(),
+      await repEngine.getAddress(),
+      await cb.getAddress(),
+    );
+    const Market = await ethers.getContractFactory("TaskMarket");
+    const market = await Market.deploy(
+      await registry.getAddress(),
+      await coalMgr.getAddress(),
+      await cb.getAddress(),
+      treasury.address,
+    );
+    const Vault = await ethers.getContractFactory("AethonFleetVault");
+    const vault = await Vault.deploy();
+    const marketAddr = await market.getAddress();
+    const vaultAddr = await vault.getAddress();
+
+    await vault.setTaskMarket(marketAddr);
+    await market.setFleetVault(vaultAddr);
+
+    await expect(market.connect(attacker).setOracleResolver(attacker.address)).to.be.revertedWith(
+      "Ownable: caller is not the owner",
+    );
+    await expect(market.connect(attacker).setFleetVault(attacker.address)).to.be.revertedWith(
+      "Ownable: caller is not the owner",
+    );
+    await expect(
+      vault.connect(attacker).executeSwarmConsensus(treasury.address, "0x"),
+    ).to.be.revertedWith("Not authorized");
+  });
+
+  it("executes swarm via TaskMarket only after anchored reporter payload", async () => {
+    const [admin, submitter, agent, treasury] = await ethers.getSigners();
+
+    const RepEngine = await ethers.getContractFactory("ReputationEngine");
+    const repEngine = await RepEngine.deploy(admin.address);
+    const CB = await ethers.getContractFactory("CircuitBreaker");
+    const cb = await CB.deploy(admin.address, admin.address, []);
+    const Registry = await ethers.getContractFactory("AgentRegistry");
+    const registry = await Registry.deploy(await repEngine.getAddress(), await cb.getAddress(), admin.address);
+    const CoalMgr = await ethers.getContractFactory("CoalitionManager");
+    const coalMgr = await CoalMgr.deploy(
+      await registry.getAddress(),
+      await repEngine.getAddress(),
+      await cb.getAddress(),
+    );
+    const Market = await ethers.getContractFactory("TaskMarket");
+    const market = await Market.deploy(
+      await registry.getAddress(),
+      await coalMgr.getAddress(),
+      await cb.getAddress(),
+      treasury.address,
+    );
+    const Vault = await ethers.getContractFactory("AethonFleetVault");
+    const vault = await Vault.deploy();
+    await vault.setTaskMarket(await market.getAddress());
+    await market.setFleetVault(await vault.getAddress());
+
+    const CALLER_ROLE = ethers.id("CALLER_ROLE");
+    const REPORTER_ROLE = ethers.id("REPORTER_ROLE");
+    await repEngine.grantRole(CALLER_ROLE, await registry.getAddress());
+    await repEngine.grantRole(CALLER_ROLE, await coalMgr.getAddress());
+    await repEngine.grantRole(CALLER_ROLE, await market.getAddress());
+    await cb.grantRole(REPORTER_ROLE, await market.getAddress());
+    await registry.setCoalitionManager(await coalMgr.getAddress());
+    await registry.connect(agent).register(0, "meta", { value: ethers.parseEther("0.5") });
+
+    const MockTarget = await ethers.getContractFactory("MockCallTarget");
+    const mockTarget = await MockTarget.deploy();
+    const mockAddr = await mockTarget.getAddress();
+
+    await market.connect(submitter).submitTask(ethers.id("swarm-exec"), 1, {
+      value: ethers.parseEther("0.1"),
+    });
+    const members = [agent.address];
+    const taskId = 1n;
+    const msgHash = ethers.solidityPackedKeccak256(["address[]", "uint256"], [members, taskId]);
+    const sig = await agent.signMessage(ethers.getBytes(msgHash));
+    const coalitionAddr = await coalMgr.formCoalition.staticCall(members, taskId, [sig]);
+    await coalMgr.connect(agent).formCoalition(members, taskId, [sig]);
+    await market.connect(agent).assignToCoalition(1, coalitionAddr);
+    await market.connect(agent).reportCompletion(1, true, "");
+
+    const executionPayload = "0x" + "ab".repeat(4);
+    await market.connect(agent).submitTaskResult(1, mockAddr, executionPayload);
+
+    await expect(market.connect(submitter).executeSwarmForTask(1)).to.be.revertedWith(
+      "Not authorized reporter",
+    );
+
+    await expect(market.connect(agent).executeSwarmForTask(1)).to.emit(vault, "SwarmConsensusExecuted");
+    await expect(market.connect(agent).executeSwarmForTask(1)).to.be.revertedWith("Already executed");
+  });
+
   it("allows re-register after deregister without re-initializing reputation", async () => {
     const [admin, agent] = await ethers.getSigners();
 

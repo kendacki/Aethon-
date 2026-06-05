@@ -10,6 +10,7 @@ import type { TaskStatus } from "../services/types.js";
 import {
   verifyCoalitionSignature,
   verifySkillResultSignature,
+  verifyExecutionSignature,
 } from "../services/coalitionVerify.js";
 import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
 import { syncFleetFromChain } from "../services/fleetSync.js";
@@ -295,8 +296,10 @@ tasksRouter.get("/:id/detail", async (req, res, next) => {
 });
 
 const taskExecutionSchema = z.object({
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   targetContract: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   executionPayload: z.string().regex(/^0x[a-fA-F0-9]*$/),
+  signature: z.string().regex(/^0x[a-fA-F0-9]+$/),
 });
 
 tasksRouter.post("/:id/execution", async (req, res, next) => {
@@ -305,8 +308,28 @@ tasksRouter.post("/:id/execution", async (req, res, next) => {
     if (!Number.isFinite(taskId)) return res.status(400).json({ error: "Invalid task id" });
     const parsed = taskExecutionSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-    await repo.saveTaskExecution(taskId, parsed.data.targetContract, parsed.data.executionPayload);
-    res.status(201).json({ data: { taskId, ...parsed.data } });
+
+    const { address, targetContract, executionPayload, signature } = parsed.data;
+    if (
+      !verifyExecutionSignature(taskId, address, targetContract, executionPayload, signature)
+    ) {
+      return res.status(401).json({ error: "Invalid execution signature" });
+    }
+
+    const task = await repo.getTask(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+    if (task.status !== "COMPLETED") {
+      return res.status(409).json({ error: "Task must be completed before anchoring execution" });
+    }
+    if (
+      task.authorizedReporter &&
+      task.authorizedReporter.toLowerCase() !== address.toLowerCase()
+    ) {
+      return res.status(403).json({ error: "Only the task reporter may anchor execution" });
+    }
+
+    await repo.saveTaskExecution(taskId, targetContract, executionPayload);
+    res.status(201).json({ data: { taskId, targetContract, executionPayload } });
   } catch (err) {
     next(err);
   }

@@ -8,7 +8,7 @@ import { NonceMgr } from "./NonceMgr.js";
 import { executeSkill } from "./skills/index.js";
 import type { SkillContext, SkillResult } from "./skills/types.js";
 import { evaluateTaskOutcome } from "../shared/taskEvaluation.js";
-import { skillResultDigest } from "../services/coalitionVerify.js";
+import { skillResultDigest, executionDigest } from "../services/coalitionVerify.js";
 import type { AgentHealthMonitor } from "./health/AgentHealthMonitor.js";
 import { SomniaAgentsClient } from "../somnia/SomniaAgentsClient.js";
 import { withRetry } from "./utils/retry.js";
@@ -312,9 +312,21 @@ export class TaskExecutor {
 
         if (allOk && executionConsensus) {
           try {
+            const execSig = await this.wallet.signMessage(
+              ethers.getBytes(
+                executionDigest(
+                  taskId,
+                  this.wallet.address,
+                  executionConsensus.targetContract,
+                  executionConsensus.executionPayload,
+                ),
+              ),
+            );
             await this.api.postTaskExecution(taskId, {
+              address: this.wallet.address,
               targetContract: executionConsensus.targetContract,
               executionPayload: executionConsensus.executionPayload,
+              signature: execSig,
             });
           } catch (err) {
             console.warn(`[TaskExecutor] API execution persist failed for #${taskId}:`, err);
