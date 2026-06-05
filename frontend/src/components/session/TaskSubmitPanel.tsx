@@ -274,6 +274,12 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
     if (!intentManual) setIntent(inferIntentFromQuery(value));
   };
 
+  const onIntentSelect = (next: TaskIntent) => {
+    setIntent(next);
+    setUserQuery(INTENT_CATALOG[next].exampleQuery);
+    setIntentManual(true);
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || !address || !signer) {
       toast.error(blockReason ?? "Cannot submit right now.");
@@ -371,10 +377,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                 <MetaSelect
                   value={intent}
                   disabled={!signedIn}
-                  onChange={(e) => {
-                    setIntent(e.target.value as TaskIntent);
-                    setIntentManual(true);
-                  }}
+                  onChange={(e) => onIntentSelect(e.target.value as TaskIntent)}
                   aria-label="Request type"
                 >
                   {Object.values(INTENT_CATALOG).map((c) => (
@@ -414,11 +417,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                 key={ex.intent}
                 type="button"
                 disabled={!signedIn}
-                onClick={() => {
-                  setUserQuery(ex.query);
-                  setIntent(ex.intent);
-                  setIntentManual(true);
-                }}
+                onClick={() => onIntentSelect(ex.intent)}
               >
                 {INTENT_CATALOG[ex.intent].label}
               </ExampleChip>
@@ -464,11 +463,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
               key={ex.intent}
               type="button"
               disabled={!signedIn}
-              onClick={() => {
-                setUserQuery(ex.query);
-                setIntent(ex.intent);
-                setIntentManual(true);
-              }}
+              onClick={() => onIntentSelect(ex.intent)}
             >
               {INTENT_CATALOG[ex.intent].label}
             </ExampleChip>
@@ -481,10 +476,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
             <GlassSelect
               value={intent}
               disabled={!signedIn}
-              onChange={(e) => {
-                setIntent(e.target.value as TaskIntent);
-                setIntentManual(true);
-              }}
+              onChange={(e) => onIntentSelect(e.target.value as TaskIntent)}
             >
               {Object.values(INTENT_CATALOG).map((c) => (
                 <option key={c.intent} value={c.intent}>
