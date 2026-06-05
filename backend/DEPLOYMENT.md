@@ -13,6 +13,17 @@ AETHON backend runs on **Railway** (API + five agent workers + Postgres). The fr
 
 ## Database
 
+Migrations run as a **separate CI/CD step**, not on every API container boot (avoids race conditions when scaling horizontally).
+
+| When | Command |
+|------|---------|
+| Railway deploy (API service) | `preDeployCommand`: `npm run db:migrate` in `railway.toml` |
+| GitHub CI | `npm run db:migrate` in `.github/workflows/ci.yml` |
+| Local / one-off | `cd backend && npm run db:migrate` |
+| Local dev only | Set `RUN_MIGRATIONS_ON_BOOT=true` on the API service |
+
+The migration runner uses a PostgreSQL **advisory lock** so concurrent `db:migrate` invocations serialize safely. Knowledge catalog seeding is **idempotent** (UPSERT on `agent_role` + `title`).
+
 In the **API service** (and any service that talks to Postgres):
 
 ```env

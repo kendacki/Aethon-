@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS task_skill_results (
 CREATE INDEX IF NOT EXISTS idx_coalition_intents_task ON task_coalition_intents(task_id);
 CREATE INDEX IF NOT EXISTS idx_skill_results_task ON task_skill_results(task_id);
 
--- Agent knowledge base (RAG via PostgreSQL full-text search)
+-- Agent knowledge base (RAG: weighted full-text search; optional pgvector via migrate)
 CREATE TABLE IF NOT EXISTS agent_knowledge (
   id SERIAL PRIMARY KEY,
   agent_role TEXT NOT NULL,

@@ -24,8 +24,8 @@ import { writeRouter } from "./writeRoutes.js";
 import { authRouter } from "./auth.js";
 import { globalLimiter, strictLimiter } from "./rateLimiter.js";
 import { attachWebSocket } from "./websocket.js";
-import { migrate } from "../db/migrate.js";
-import { pool } from "../db/client.js";
+import { checkDb, pool } from "../db/client.js";
+import { runMigrations } from "../db/migrate.js";
 import { indexer } from "../services/indexer.js";
 import { relayer } from "../services/relayer.js";
 import { taskPromoter } from "../services/taskPromoter.js";
@@ -108,7 +108,17 @@ const server = createServer(app);
 attachWebSocket(server);
 
 async function bootstrap(): Promise<void> {
-  await migrate();
+  if (process.env.RUN_MIGRATIONS_ON_BOOT === "true") {
+    console.warn(
+      "[AETHON API] RUN_MIGRATIONS_ON_BOOT=true — running migrations on this instance only (not for horizontal scale)",
+    );
+    await runMigrations();
+  } else {
+    const dbOk = await checkDb();
+    if (!dbOk) {
+      throw new Error("Database unreachable. Run `npm run db:migrate` in CI/CD or set RUN_MIGRATIONS_ON_BOOT=true for local dev.");
+    }
+  }
   await new Promise<void>((resolve) => {
     server.listen(port, () => {
       console.log(`[AETHON API] http://localhost:${port}/v1`);
