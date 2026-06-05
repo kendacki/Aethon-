@@ -1,5 +1,6 @@
 import type { AgentType, TaskPayload } from "../../shared/taskPayload.js";
 import type { KnowledgeChunk } from "../../knowledge/types.js";
+import { proseClean } from "../../shared/skillReport.js";
 import type { SkillContext, SkillExecutor, SkillResult } from "../skills/types.js";
 import {
   recoveryGuidance,
@@ -166,6 +167,7 @@ export async function runAgentLoop(
   }
 
   if (brainSummary) {
+    brainSummary = proseClean(brainSummary);
     result.data.summary = brainSummary;
     const report = result.data.report as { summary?: string } | undefined;
     if (report && typeof report === "object") {

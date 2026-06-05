@@ -116,7 +116,7 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
       <ResponseCard>
         {showStatus && (
           <StatusLine>
-            {output.thinking || "Working on your question..."}
+            {output.thinking || "Analyzing your question with live market and fleet data."}
             <PendingDots aria-hidden>···</PendingDots>
           </StatusLine>
         )}
@@ -124,7 +124,10 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
         {output.body ? <Body>{output.body}</Body> : null}
 
         {output.recommendation ? (
-          <NextStep>{output.recommendation}</NextStep>
+          <NextStep>
+            <strong style={{ fontWeight: 600, opacity: 0.9 }}>Recommended next step. </strong>
+            {output.recommendation}
+          </NextStep>
         ) : null}
 
         {error ? <ErrorText>{error}</ErrorText> : null}

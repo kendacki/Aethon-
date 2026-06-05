@@ -1,5 +1,6 @@
 import { Contract, JsonRpcProvider } from "ethers";
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { proseClean } from "../../shared/skillReport.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
@@ -71,19 +72,21 @@ export const executeRiskMgmt: SkillExecutor = async (payload, ctx) => {
     );
 
     let riskLevel: "LOW" | "MEDIUM" | "HIGH" = "LOW";
-    let recommendation = "Proceed — protocol within safe parameters";
+    let recommendation = proseClean("Proceed. Protocol is within safe parameters.");
 
     if (circuitPaused || compositeScore < 40) {
       riskLevel = "HIGH";
       recommendation = circuitPaused
-        ? "HALT — circuit breaker is paused"
-        : "HALT — composite risk score critical";
+        ? proseClean("Stop. The circuit breaker is paused.")
+        : proseClean("Stop. Composite risk score is critical.");
     } else if (activeAgents > 0 && activeAgents < minHealthy) {
       riskLevel = "HIGH";
-      recommendation = `HALT — only ${activeAgents}/${minHealthy} healthy agents online`;
+      recommendation = proseClean(
+        `Stop. Only ${activeAgents} of ${minHealthy} required healthy agents are online.`,
+      );
     } else if (consecutiveFailures >= maxFailures || compositeScore < 70) {
       riskLevel = "MEDIUM";
-      recommendation = "CAUTION — elevated protocol stress detected";
+      recommendation = proseClean("Caution. Elevated protocol stress detected.");
     }
 
     const criteriaMet = !circuitPaused && compositeScore >= 70 && activeAgents >= minHealthy;
@@ -105,7 +108,9 @@ export const executeRiskMgmt: SkillExecutor = async (payload, ctx) => {
           recommendation,
           confidence: Number((compositeScore / 100).toFixed(2)),
           proceed: criteriaMet,
-          summary: `Fleet risk ${riskLevel} (score ${compositeScore}/100) — ${recommendation}`,
+          summary: proseClean(
+            `Fleet risk ${riskLevel} with score ${compositeScore} out of 100. ${recommendation}`,
+          ),
         },
         criteriaMet,
       ),

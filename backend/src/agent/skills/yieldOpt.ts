@@ -1,6 +1,7 @@
 import type { Provider } from "ethers";
 import { JsonRpcProvider } from "ethers";
 import type { TaskPayload } from "../../shared/taskPayload.js";
+import { proseClean } from "../../shared/skillReport.js";
 import { fetchLiveVaults } from "../tools/defiLlamaYields.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
@@ -85,7 +86,9 @@ export const executeYieldOpt: SkillExecutor = async (payload, _ctx) => {
     allocation.reduce((s, a) => s + (a.apyBps * a.pct) / 100, 0),
   );
   const expectedYieldEth = (amountEth * blendedApyBps) / 10_000 / 365;
-  const recommendation = `Route ${amountEth} ETH → ${allocation.map((a) => `${a.pct}% ${a.project} (${a.chain})`).join(", ")}`;
+  const recommendation = proseClean(
+    `Route ${amountEth} ETH into ${allocation.map((a) => `${a.pct}% ${a.project} on ${a.chain}`).join(", ")}.`,
+  );
 
   return skillOk(
     "YIELD_OPT",
@@ -113,7 +116,9 @@ export const executeYieldOpt: SkillExecutor = async (payload, _ctx) => {
         dataSource: "defillama",
         poolsAnalyzed: vaults.length,
         recommendation,
-        summary: `Blended APY ${(blendedApyBps / 100).toFixed(2)}% on ${amountEth} ETH (${tolerance} risk) from live DefiLlama pools.`,
+        summary: proseClean(
+          `Blended APY ${(blendedApyBps / 100).toFixed(2)}% on ${amountEth} ETH with ${tolerance} risk from live DefiLlama pools.`,
+        ),
       },
       true,
     ),

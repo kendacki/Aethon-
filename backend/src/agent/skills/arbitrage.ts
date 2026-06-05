@@ -5,6 +5,7 @@ import { fetchDexScreenerPairs } from "../tools/dexScreener.js";
 import { estimateSwapGasCost } from "../tools/liveGas.js";
 import { fetchSpotQuote } from "./http.js";
 import { fetchDexReserves, impliedPriceUsdFromReserves, spreadBpsBetween } from "./dexPool.js";
+import { proseClean } from "../../shared/skillReport.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
 
@@ -112,8 +113,12 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
     const proceed = profitable;
 
     const recommendation = profitable
-      ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after live gas)`
-      : `Hold — spread ${spreadBps} bps below threshold or gas-adjusted PnL negative`;
+      ? proseClean(
+          `Execute from ${bestBuy.id} to ${bestSell.id} at ${spreadBps} basis points net positive after live gas.`,
+        )
+      : proseClean(
+          `Hold. Spread is ${spreadBps} basis points, below your threshold or gas adjusted profit is negative.`,
+        );
 
     const criteriaMet = profitable && spreadBps >= minSpreadBps;
 
@@ -156,7 +161,9 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
           gasEstimateWei: gas.totalCostWei.toString(),
           gasSource: gas.source,
           recommendation,
-          summary: `${asset} spread ${spreadBps} bps across ${venues.length} live venues — ${profitable ? "opportunity" : "no trade"}.`,
+          summary: proseClean(
+            `${asset} spread ${spreadBps} basis points across ${venues.length} live venues. ${profitable ? "Actionable opportunity after gas." : "No trade recommended."}`,
+          ),
         },
         criteriaMet,
       ),

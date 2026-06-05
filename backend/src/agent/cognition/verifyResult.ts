@@ -1,4 +1,5 @@
 import type { AgentType } from "../../shared/taskPayload.js";
+import { proseClean } from "../../shared/skillReport.js";
 
 export type PlanStep = {
   phase: "retrieve" | "execute" | "verify" | "synthesize" | "recover";
@@ -60,23 +61,23 @@ export function recoveryGuidance(role: AgentType, error?: string): string {
     RISK_MGMT:
       "Fleet health signals are incomplete. Check fleet status on the dashboard, then retry the risk check.",
   };
-  if (error) return `${base[role]} (${error})`;
-  return base[role];
+  if (error) return proseClean(`${base[role]} Detail: ${error}`);
+  return proseClean(base[role]);
 }
 
 export function userHappyPathHint(role: AgentType, success: boolean): string | undefined {
   if (success) return undefined;
   switch (role) {
     case "ORACLE":
-      return "Try: What is the current ETH price in USD?";
+      return "What is the current ETH price in USD?";
     case "ARBITRAGE":
-      return "Try: Scan Ethereum for DEX arbitrage above 15 bps with 1 ETH notional.";
+      return "Scan Ethereum for DEX arbitrage above 15 bps with 1 ETH notional.";
     case "YIELD_OPT":
-      return "Try: Allocate 1 ETH across vaults with moderate risk tolerance.";
+      return "Allocate 1 ETH across vaults with moderate risk tolerance.";
     case "GOVERNANCE":
-      return "Try: Analyze AIP-12: 15 STT for, 4 STT against, quorum 10 STT.";
+      return "Analyze AIP 12 with 15 STT for, 4 STT against, and quorum 10 STT.";
     case "RISK_MGMT":
-      return "Try: Is the Aethon agent fleet healthy enough to run production tasks?";
+      return "Is the Aethon agent fleet healthy enough to run production tasks?";
     default:
       return undefined;
   }
