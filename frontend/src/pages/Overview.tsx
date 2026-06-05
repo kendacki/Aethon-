@@ -149,14 +149,14 @@ const GuideCard = styled(GlassElevatedCard, {
 
 const DEMO_OVERVIEW_STATS = {
   tasks: 10,
-  stakeLabel: "50 STT",
+  stakeLabel: "50 stt",
 } as const;
 
 const OVERVIEW_STAT_DEFS = [
   { key: "agents", label: "Registered agents", icon: IconAgent, fixedValue: "5" },
   { key: "tasks", label: "Your tasks", icon: IconTask },
   { key: "roles", label: "Agent roles", icon: IconCoalition, fixedValue: "5" },
-  { key: "stake", label: "STT staked", icon: IconShield },
+  { key: "stake", label: "stt staked", icon: IconShield },
 ] as const;
 
 const OPERATOR_QUICK_LINKS = [

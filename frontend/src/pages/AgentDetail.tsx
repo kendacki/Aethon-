@@ -50,7 +50,7 @@ export default function AgentDetailPage() {
           <HeroItem>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
               <Badge accent>{roleLabel}</Badge>
-              <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+              <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "online" : "offline"}</Badge>
               {health && health.status !== "UNKNOWN" && (
                 <Badge
                   status={health.status === "HEALTHY" ? "online" : health.status === "DEGRADED" ? undefined : "offline"}

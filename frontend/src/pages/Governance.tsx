@@ -131,13 +131,13 @@ export default function GovernancePage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
                     <div>
-                      <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "Paused" : "Running"}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "paused" : "running"}</div>
                       <div style={{ opacity: 0.65, fontSize: "0.875rem", marginTop: 4 }}>
                         {cb.paused ? "Waiting for guardian reset." : "All contracts are active."}
                       </div>
                     </div>
                     <Badge status={cb.paused ? "offline" : "online"} style={{ marginLeft: "auto" }}>
-                      {cb.paused ? "Halted" : "Active"}
+                      {cb.paused ? "halted" : "active"}
                     </Badge>
                   </div>
                 </Card>

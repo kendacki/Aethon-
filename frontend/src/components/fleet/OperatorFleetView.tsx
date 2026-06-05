@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api, formatEth, shortAddr, type Agent, type AgentFleetHealth, type FleetHealth } from "../../api/client";
 import { useFetch } from "../../api/hooks";
+import { fleetStatusLabel } from "../../lib/formatText";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
@@ -65,8 +66,8 @@ const SummaryValue = styled("div", {
 const SummaryLabel = styled("div", {
   fontSize: "0.6875rem",
   fontWeight: 600,
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
+  textTransform: "none",
+  letterSpacing: "0.02em",
   opacity: 0.6,
   marginTop: "$1",
 });
@@ -136,8 +137,8 @@ const StatBlock = styled("div", {});
 const StatLabel = styled("div", {
   fontSize: "0.625rem",
   fontWeight: 700,
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
+  textTransform: "none",
+  letterSpacing: "0.02em",
   opacity: 0.55,
 });
 
@@ -163,7 +164,7 @@ const LiveDot = styled("span", {
 });
 
 const TYPES: { value: string; label: string }[] = [
-  { value: "", label: "All roles" },
+  { value: "", label: "all roles" },
   ...ALL_AGENT_TYPES.map((t) => ({ value: t, label: FLEET_ROLE_META[t].label })),
 ];
 
@@ -230,7 +231,7 @@ export function OperatorFleetView() {
   const totalStake = useMemo(() => {
     if (fleetHealth?.totalStakedWei) return formatEth(fleetHealth.totalStakedWei);
     if (stats?.tvl) return formatEth(stats.tvl);
-    return "0 STT";
+    return "0 stt";
   }, [fleetHealth?.totalStakedWei, stats?.tvl]);
 
   const handleRefresh = useCallback(() => {
@@ -252,10 +253,10 @@ export function OperatorFleetView() {
         </div>
         <HeaderActions>
           <Button variant="outline" size="sm" as={Link} to="/tasks" style={{ width: "auto" }}>
-            New task <IconArrowRight size={14} />
+            new task <IconArrowRight size={14} />
           </Button>
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={busy} style={{ width: "auto" }}>
-            {busy ? "Updating..." : "Refresh"}
+            {busy ? "updating..." : "refresh"}
           </Button>
         </HeaderActions>
       </Header>
@@ -267,22 +268,22 @@ export function OperatorFleetView() {
           <SummaryValue>
             {onlineCount}/{totalAgents || 5}
           </SummaryValue>
-          <SummaryLabel>Agents online</SummaryLabel>
+          <SummaryLabel>agents online</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
           <SummaryValue>{totalStake}</SummaryValue>
-          <SummaryLabel>Total STT staked</SummaryLabel>
+          <SummaryLabel>Total stt staked</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
-          <SummaryValue>{stats?.completedTasks?.toLocaleString() ?? "N/A"}</SummaryValue>
-          <SummaryLabel>Tasks completed</SummaryLabel>
+          <SummaryValue>{stats?.completedTasks?.toLocaleString() ?? "n/a"}</SummaryValue>
+          <SummaryLabel>tasks completed</SummaryLabel>
         </SummaryCell>
         <SummaryCell>
           <SummaryValue style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {fleetHealth?.status ?? "N/A"}
+            {fleetStatusLabel(fleetHealth?.status)}
             {fleetHealth?.status === "HEALTHY" && <LiveDot aria-hidden />}
           </SummaryValue>
-          <SummaryLabel>Fleet readiness</SummaryLabel>
+          <SummaryLabel>fleet readiness</SummaryLabel>
         </SummaryCell>
       </SummaryGrid>
 
@@ -299,7 +300,7 @@ export function OperatorFleetView() {
           ))}
         </div>
         <FilterPill active={onlineOnly} onClick={() => setOnlineOnly((v) => !v)}>
-          Online only
+          online only
         </FilterPill>
       </Toolbar>
 
@@ -335,7 +336,7 @@ export function OperatorFleetView() {
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "$2" }}>
                 <Badge status={isAgentOperational(agent, worker) ? "online" : "offline"}>
-                  {isAgentOperational(agent, worker) ? "Online" : "Offline"}
+                  {isAgentOperational(agent, worker) ? "online" : "offline"}
                 </Badge>
                 {worker && worker.status !== "UNKNOWN" && (
                   <Badge
@@ -366,10 +367,10 @@ export function OperatorFleetView() {
 
               <CardActions>
                 <Button variant="outline" size="sm" as={Link} to={`/agents/${agent.address}`}>
-                  Details
+                  details
                 </Button>
                 <Button variant="ghost" size="sm" as={Link} to="/tasks">
-                  <IconTask size={16} /> Tasks
+                  <IconTask size={16} /> tasks
                 </Button>
               </CardActions>
             </AgentCard>

@@ -45,14 +45,14 @@ export function sortAgentsByRole<T extends { agentType: string }>(agents: T[]): 
 export function workerStatusLabel(status: string | undefined): string {
   switch (status) {
     case "HEALTHY":
-      return "Healthy";
+      return "healthy";
     case "DEGRADED":
-      return "Degraded";
+      return "degraded";
     case "HALTED":
-      return "Halted";
+      return "halted";
     case "STARTING":
-      return "Starting";
+      return "starting";
     default:
-      return "Unknown";
+      return "unknown";
   }
 }

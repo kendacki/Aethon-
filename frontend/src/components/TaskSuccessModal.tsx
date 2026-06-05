@@ -64,8 +64,8 @@ const DetailItem = styled("div", {});
 const DetailLabel = styled("dt", {
   fontSize: "0.625rem",
   fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   opacity: 0.55,
   marginBottom: "$1",
 });
@@ -139,7 +139,7 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
             transition={spring}
             onClick={(e) => e.stopPropagation()}
           >
-            <Badge status="online">Submitted</Badge>
+            <Badge status="online">submitted</Badge>
             <Title id="task-success-title">Task submitted</Title>
             <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", opacity: 0.78, lineHeight: 1.55, fontFamily: "$secondary" }}>
               Your request was accepted. Agents will finish on-chain when checks pass.

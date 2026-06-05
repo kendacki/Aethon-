@@ -280,7 +280,7 @@ export type TaskDetailResponse = {
 export function formatEth(wei: string): string {
   try {
     const v = BigInt(wei) / BigInt(10 ** 15);
-    return `${Number(v) / 1000} STT`;
+    return `${Number(v) / 1000} stt`;
   } catch {
     return wei;
   }

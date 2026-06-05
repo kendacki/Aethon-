@@ -335,15 +335,15 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                     </option>
                   ))}
                 </MetaSelect>
-                <MetaPill>{rewardEth} STT</MetaPill>
-                <MetaPill>{effectiveMode === "swarm" ? "Swarm" : "Single"}</MetaPill>
+                <MetaPill>{rewardEth} stt</MetaPill>
+                <MetaPill>{effectiveMode === "swarm" ? "swarm" : "single"}</MetaPill>
               </ComposerMeta>
               <SendButton
                 type="button"
                 disabled={!canSubmit || submitting}
                 onClick={() => void handleSubmit()}
-                aria-label={submitting ? "Submitting task" : "Run Task"}
-                title={submitting ? "Submitting..." : "Run Task"}
+                aria-label={submitting ? "submitting task" : "run task"}
+                title={submitting ? "submitting..." : "run task"}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path
@@ -429,14 +429,14 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
             </GlassSelect>
           </GlassField>
           <GlassField>
-            Amount (STT)
+            Amount (stt)
             <GlassInput type="text" value={rewardEth} disabled readOnly aria-readonly />
           </GlassField>
         </FieldGrid>
 
         <Actions>
           <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
-            {submitting ? "Submitting..." : "Run Task"}
+            {submitting ? "submitting..." : "run task"}
           </Button>
           {blockReason && <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>{blockReason}</span>}
         </Actions>

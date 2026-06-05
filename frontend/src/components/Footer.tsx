@@ -28,8 +28,8 @@ const Inner = styled("div", {
 const ColTitle = styled("div", {
   fontSize: "$xs",
   fontWeight: "$semibold",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
+  textTransform: "none",
+  letterSpacing: "0.02em",
   opacity: 0.72,
   marginBottom: "$4",
 });

@@ -34,7 +34,7 @@ export default function LeaderboardPage() {
 
         <AnimatedSection style={{ paddingTop: "$8", paddingBottom: "$16" }}>
           <PageContentWide>
-            {loading && <p style={{ opacity: 0.65 }}>Loading...</p>}
+            {loading && <p style={{ opacity: 0.65 }}>loading...</p>}
 
             <motion.div
               style={{ marginTop: loading ? 0 : "0.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}
@@ -62,7 +62,7 @@ export default function LeaderboardPage() {
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>{agent.reputation}</div>
                           <Badge status={agent.online ? "online" : "offline"} style={{ marginTop: 4 }}>
-                            {agent.online ? "Online" : "Offline"}
+                            {agent.online ? "online" : "offline"}
                           </Badge>
                         </div>
                       </Card>
@@ -75,11 +75,11 @@ export default function LeaderboardPage() {
             {data && data.pagination.total > 20 && (
               <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
                 <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
-                  Previous
+                  previous
                 </button>
                 <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
                 <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>
-                  Next
+                  next
                 </button>
               </div>
             )}

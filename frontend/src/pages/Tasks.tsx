@@ -20,8 +20,16 @@ import { useToast } from "../components/ToastProvider";
 import { spring, styled } from "../stitches.config";
 import { GlassFilterPill } from "../components/GlassPanel";
 import { GLASS } from "../theme/glass";
+import { taskStatusLabel } from "../lib/formatText";
 
-const STATUSES = ["", "PENDING", "ASSIGNED", "COMPLETED", "FAILED", "EXPIRED"];
+const STATUSES: Array<{ value: string; label: string }> = [
+  { value: "", label: "all" },
+  { value: "PENDING", label: "pending" },
+  { value: "ASSIGNED", label: "assigned" },
+  { value: "COMPLETED", label: "completed" },
+  { value: "FAILED", label: "failed" },
+  { value: "EXPIRED", label: "expired" },
+];
 
 const SectionDivider = styled("div", {
   margin: "$12 0 $8",
@@ -173,8 +181,8 @@ const EmptyHistory = styled("div", {
 const BubbleLabel = styled("div", {
   fontSize: "0.6875rem",
   fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   opacity: 0.5,
   marginBottom: 6,
 });
@@ -269,7 +277,7 @@ export default function TasksPage() {
 
             {selectedId != null && selectedLabel && (
               <UserBubble aria-label="Selected question">
-                <BubbleLabel>Your question</BubbleLabel>
+                <BubbleLabel>your question</BubbleLabel>
                 {selectedLabel}
               </UserBubble>
             )}
@@ -283,26 +291,26 @@ export default function TasksPage() {
             <SectionDivider id="task-list" ref={historyRef} />
 
             <SectionHeading>
-              <SectionHeadingTitle>History</SectionHeadingTitle>
+              <SectionHeadingTitle>history</SectionHeadingTitle>
             </SectionHeading>
 
             <FilterRow>
               {STATUSES.map((s) => (
                 <GlassFilterPill
-                  key={s || "all"}
+                  key={s.value || "all"}
                   type="button"
-                  active={status === s}
+                  active={status === s.value}
                   onClick={() => {
-                    setStatus(s);
+                    setStatus(s.value);
                     setPage(0);
                   }}
                 >
-                  {s || "All"}
+                  {s.label}
                 </GlassFilterPill>
               ))}
             </FilterRow>
 
-            {loading && tasks.length === 0 && <p style={{ opacity: 0.65, fontSize: "0.875rem" }}>Loading...</p>}
+            {loading && tasks.length === 0 && <p style={{ opacity: 0.65, fontSize: "0.875rem" }}>loading...</p>}
 
             <HistoryList>
               <AnimatePresence mode="popLayout">
@@ -320,7 +328,7 @@ export default function TasksPage() {
                             <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
                             <span>{shortAddr(task.submitter)}</span>
                             <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
-                            <span>{task.complexity >= 5 ? "Swarm" : "Single"}</span>
+                            <span>{task.complexity >= 5 ? "swarm" : "single"}</span>
                             {task.coalitionAddr ? (
                               <>
                                 <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
@@ -331,7 +339,7 @@ export default function TasksPage() {
                         </HistoryMain>
                         <HistoryAside>
                           <HistoryStatusSlot>
-                            <Badge status={statusColor[task.status]}>{task.status}</Badge>
+                            <Badge status={statusColor[task.status]}>{taskStatusLabel(task.status)}</Badge>
                           </HistoryStatusSlot>
                           <HistoryAmount>{formatEth(task.reward)}</HistoryAmount>
                         </HistoryAside>
@@ -354,11 +362,11 @@ export default function TasksPage() {
             {data && data.pagination.total > 20 && (
               <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
                 <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
-                  Previous
+                  previous
                 </button>
                 <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
                 <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>
-                  Next
+                  next
                 </button>
               </div>
             )}

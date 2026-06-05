@@ -46,8 +46,8 @@ export const SectionHeadingTitle = styled("h2", {
   margin: 0,
   fontSize: "0.75rem",
   fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   opacity: 0.55,
   fontFamily: "$secondary",
 });

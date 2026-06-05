@@ -49,8 +49,8 @@ const LivePill = styled("span", {
   gap: "$2",
   fontSize: "0.6875rem",
   fontWeight: 700,
-  letterSpacing: "0.06em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   padding: "$1 $3",
   borderRadius: "$pill",
   border: `1px solid ${GLASS.accentBorderStrong}`,
@@ -283,15 +283,15 @@ export function OperatorActivitySection({
       <GlassContent>
         <Header>
         <TitleBlock>
-          <Title>Your activity</Title>
+          <Title>your activity</Title>
         </TitleBlock>
         <HeaderActions>
           <LivePill>
             <LiveDot aria-hidden />
-            Live
+            live
           </LivePill>
           <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={loading}>
-            {loading ? "Updating..." : "Refresh"}
+            {loading ? "updating..." : "refresh"}
           </Button>
         </HeaderActions>
       </Header>
@@ -345,7 +345,7 @@ export function OperatorActivitySection({
               <MetricTop>
                 <div>
                   <MetricValue>{stakeSummary.headline}</MetricValue>
-                  <MetricLabel>STT on tasks</MetricLabel>
+                  <MetricLabel>stt on tasks</MetricLabel>
                 </div>
                 <IconRing>
                   <IconVault size={ICON_MD} />
@@ -415,9 +415,9 @@ export function OperatorActivitySection({
                   <span style={{ fontFamily: "monospace", fontSize: "0.75rem", opacity: 0.8 }}>#{task.id}</span>
                   <span style={{ fontSize: "0.8125rem", opacity: 0.85 }}>
                     {formatEth(task.reward)}
-                    {task.complexity >= 5 ? " · Swarm" : " · Single role"}
+                    {task.complexity >= 5 ? " · swarm" : " · single role"}
                   </span>
-                  <Badge status={statusBadgeVariant(task.status)} style={{ textTransform: "capitalize", letterSpacing: 0 }}>
+                  <Badge status={statusBadgeVariant(task.status)}>
                     {task.status.toLowerCase()}
                   </Badge>
                 </TaskRow>

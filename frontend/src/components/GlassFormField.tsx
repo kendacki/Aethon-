@@ -50,8 +50,8 @@ export const GlassField = styled("label", {
   fontSize: "$xs",
   fontWeight: 600,
   fontFamily: "$secondary",
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   color: "rgba(255, 255, 255, 0.78)",
 });
 

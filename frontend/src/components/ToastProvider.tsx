@@ -74,16 +74,16 @@ const ToastCard = styled(motion.div, {
 const ToastLabel = styled("div", {
   fontSize: "0.625rem",
   fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
+  textTransform: "none",
   opacity: 0.65,
   marginBottom: "$1",
 });
 
 function variantLabel(v: ToastVariant): string {
-  if (v === "success") return "Success";
-  if (v === "error") return "Error";
-  return "Notice";
+  if (v === "success") return "success";
+  if (v === "error") return "error";
+  return "notice";
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {

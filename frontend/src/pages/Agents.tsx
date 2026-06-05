@@ -17,7 +17,7 @@ import type { AgentType } from "../task/payload";
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"] as const;
 
 function roleLabel(type: string): string {
-  if (!type) return "All roles";
+  if (!type) return "all roles";
   return FLEET_ROLE_META[type as AgentType]?.label ?? type;
 }
 
@@ -39,7 +39,7 @@ function GuestFleetGrid() {
         ))}
       </div>
 
-      {loading && <p style={{ marginTop: "2rem", opacity: 0.65 }}>Loading...</p>}
+      {loading && <p style={{ marginTop: "2rem", opacity: 0.65 }}>loading...</p>}
 
       <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
         {(data?.data.length ? data.data : (fleetHealth?.agents ?? []).map((a) => ({
@@ -55,7 +55,7 @@ function GuestFleetGrid() {
               <Card style={{ cursor: "pointer", height: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                   <IconAgent size={ICON_LG} />
-                  <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "Online" : "Offline"}</Badge>
+                  <Badge status={agent.online ? "online" : "offline"}>{agent.online ? "online" : "offline"}</Badge>
                 </div>
                 <div style={{ fontWeight: 700, marginTop: "1rem" }}>{roleLabel(agent.agentType)}</div>
                 <div style={{ fontSize: "0.875rem", opacity: 0.65, fontFamily: "monospace", marginTop: 4 }}>{shortAddr(agent.address)}</div>
@@ -74,7 +74,7 @@ function GuestFleetGrid() {
       {data && data.pagination.total > 20 && (
         <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
           <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
-            Previous
+            previous
           </button>
           <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
           <button
@@ -82,7 +82,7 @@ function GuestFleetGrid() {
             onClick={() => setPage((p) => p + 1)}
             style={{ opacity: (page + 1) * 20 >= data.pagination.total ? 0.3 : 1 }}
           >
-            Next
+            next
           </button>
         </div>
       )}
