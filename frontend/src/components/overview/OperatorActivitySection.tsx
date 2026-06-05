@@ -5,7 +5,8 @@ import { api, formatEth, type Task, type WalletTaskStats } from "../../api/clien
 import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
 import { GlassOverviewBand, GlassElevatedCard, GlassContent, GlassSurface, GLASS } from "../GlassPanel";
-import { IconAgent, IconArrowRight, IconCoalition, IconTask, ICON_MD } from "../icons";
+import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
+import { summarizeWalletStake } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
 
@@ -100,15 +101,17 @@ const IconRing = styled(GlassSurface, {
 });
 
 const MetricValue = styled("div", {
-  fontSize: "clamp(2rem, 4vw, 2.5rem)",
-  fontWeight: "$extrabold",
-  letterSpacing: "-0.03em",
-  lineHeight: 1,
+  fontSize: "1.375rem",
+  fontWeight: 700,
+  letterSpacing: "-0.02em",
+  lineHeight: 1.2,
 });
 
 const MetricLabel = styled("div", {
-  fontWeight: 700,
-  fontSize: "$sm",
+  fontWeight: 600,
+  fontSize: "$xs",
+  opacity: 0.72,
+  marginTop: "$1",
 });
 
 const MetricHint = styled("p", {
@@ -116,6 +119,24 @@ const MetricHint = styled("p", {
   fontSize: "$xs",
   opacity: 0.65,
   lineHeight: 1.5,
+});
+
+const StakeBreakdown = styled("ul", {
+  listStyle: "none",
+  margin: "$3 0 0",
+  padding: "$3 0 0",
+  borderTop: `1px solid ${GLASS.divider}`,
+  display: "grid",
+  gap: "$2",
+});
+
+const StakeRow = styled("li", {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "$3",
+  fontSize: "0.6875rem",
+  lineHeight: 1.45,
+  opacity: 0.75,
 });
 
 const MetricFooter = styled(Link, {
@@ -246,6 +267,7 @@ export function OperatorActivitySection({
   const recentTasks = recentPage?.data ?? [];
 
   const taskCount = walletStats?.taskCount ?? 0;
+  const stakeSummary = summarizeWalletStake(walletStats, taskCount);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -283,7 +305,7 @@ export function OperatorActivitySection({
           {loading ? (
             <>
               <Skeleton css={{ height: 44, width: 44 }} />
-              <Skeleton css={{ height: 40, width: "40%" }} />
+              <Skeleton css={{ height: 28, width: "40%" }} />
               <Skeleton css={{ height: 14, width: "70%" }} />
             </>
           ) : (
@@ -317,7 +339,7 @@ export function OperatorActivitySection({
           {loading ? (
             <>
               <Skeleton css={{ height: 44, width: 44 }} />
-              <Skeleton css={{ height: 40, width: "50%" }} />
+              <Skeleton css={{ height: 28, width: "50%" }} />
               <Skeleton css={{ height: 14, width: "60%" }} />
             </>
           ) : (
@@ -325,6 +347,7 @@ export function OperatorActivitySection({
               <MetricTop>
                 <div>
                   <MetricValue>{stakeSummary.headline}</MetricValue>
+                  <MetricLabel>stt on tasks</MetricLabel>
                 </div>
                 <IconRing>
                   <IconVault size={ICON_MD} />
