@@ -108,7 +108,7 @@ export default function GovernancePage() {
                 </Badge>
               }
               title="Protocol status"
-              lead="Sign in to view live data."
+              lead={signedIn ? undefined : "Sign in to view live data."}
             />
           </HeroItem>
         </AnimatedPageHero>
