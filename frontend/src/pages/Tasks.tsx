@@ -6,7 +6,14 @@ import { api, formatEth, shortAddr, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
-import { Badge, PageWrap, Heading } from "../components/ui";
+import {
+  PageContent,
+  SectionHeading,
+  SectionHeadingMeta,
+  SectionHeadingTitle,
+  SubpageHero,
+} from "../components/layout/SubpageLayout";
+import { Badge, PageWrap } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
 import { TaskDetailPanel } from "../components/tasks/TaskDetailPanel";
@@ -17,37 +24,13 @@ import { GLASS } from "../theme/glass";
 
 const STATUSES = ["", "PENDING", "ASSIGNED", "COMPLETED", "FAILED", "EXPIRED"];
 
-const ChatPage = styled("div", {
-  width: "100%",
-  maxWidth: "52rem",
-  margin: "0 auto",
-});
-
 const SectionDivider = styled("div", {
   margin: "$12 0 $8",
   borderTop: `1px solid ${GLASS.divider}`,
 });
 
-const SectionLabel = styled("div", {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  flexWrap: "wrap",
-  gap: "$3",
-  marginBottom: "$4",
-});
-
-const SectionTitle = styled("h2", {
-  margin: 0,
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  opacity: 0.55,
-  fontFamily: "$secondary",
-});
-
 const UserBubble = styled("div", {
+  marginTop: "$6",
   marginBottom: "$4",
   padding: "$4 $5",
   borderRadius: "$lg",
@@ -125,12 +108,21 @@ const FilterRow = styled("div", {
 });
 
 const EmptyHistory = styled("div", {
-  padding: "$6",
+  padding: "$8",
   textAlign: "center",
   borderRadius: "$md",
   border: `1px dashed ${GLASS.borderSoft}`,
-  opacity: 0.75,
+  opacity: 0.7,
   fontSize: "0.875rem",
+});
+
+const BubbleLabel = styled("div", {
+  fontSize: "0.6875rem",
+  fontWeight: 700,
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  opacity: 0.5,
+  marginBottom: 6,
 });
 
 export default function TasksPage() {
@@ -207,68 +199,43 @@ export default function TasksPage() {
       <PageMotion>
         <AnimatedPageHero>
           <HeroItem>
-            <Badge accent>Task Market</Badge>
+            <SubpageHero
+              badge={<Badge accent>Tasks</Badge>}
+              title="Ask the swarm"
+              lead={signedIn ? undefined : "Sign in to submit a question."}
+            />
           </HeroItem>
-          <HeroItem>
-            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.25rem)", marginTop: "1rem", textAlign: "center" }}>
-              Ask the swarm
-            </Heading>
-          </HeroItem>
-          {!signedIn && (
-            <HeroItem>
-              <p
-                style={{
-                  marginTop: "0.75rem",
-                  opacity: 0.72,
-                  maxWidth: 420,
-                  lineHeight: 1.6,
-                  textAlign: "center",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                }}
-              >
-                Sign in to submit a task.
-              </p>
-            </HeroItem>
-          )}
         </AnimatedPageHero>
 
-        <AnimatedSection style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+        <AnimatedSection style={{ paddingTop: "$8", paddingBottom: "$20" }}>
           <ErrorBanner message={error} onRetry={reload} />
 
-          <ChatPage>
-            <TaskSubmitPanel
-              variant="chat"
-              onSubmitted={() => {
-                reload();
-              }}
-            />
+          <PageContent>
+            <TaskSubmitPanel variant="chat" onSubmitted={reload} />
 
             {selectedId != null && selectedLabel && (
-              <UserBubble aria-label="Selected task query">
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.06em", opacity: 0.5, marginBottom: 6 }}>
-                  Your query
-                </div>
+              <UserBubble aria-label="Selected question">
+                <BubbleLabel>Your question</BubbleLabel>
                 {selectedLabel}
               </UserBubble>
             )}
 
             {selectedId != null && (
-              <div style={{ marginBottom: "0.5rem" }}>
+              <div style={{ marginBottom: "$4" }}>
                 <TaskDetailPanel taskId={selectedId} onClose={() => setSelectedId(null)} />
               </div>
             )}
 
             <SectionDivider id="task-list" ref={historyRef} />
 
-            <SectionLabel>
-              <SectionTitle>History</SectionTitle>
+            <SectionHeading>
+              <SectionHeadingTitle>History</SectionHeadingTitle>
               {data && (
-                <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>
+                <SectionHeadingMeta>
                   {data.pagination.total} task{data.pagination.total === 1 ? "" : "s"}
-                </span>
+                </SectionHeadingMeta>
               )}
-            </SectionLabel>
+            </SectionHeading>
 
             <FilterRow>
               {STATUSES.map((s) => (
@@ -286,14 +253,12 @@ export default function TasksPage() {
               ))}
             </FilterRow>
 
-            {loading && tasks.length === 0 && <p style={{ opacity: 0.72, fontSize: "0.875rem" }}>Loading history...</p>}
+            {loading && tasks.length === 0 && <p style={{ opacity: 0.65, fontSize: "0.875rem" }}>Loading...</p>}
 
             <HistoryList>
               <AnimatePresence mode="popLayout">
                 {tasks.map((task) => {
-                  const query =
-                    labels[task.id] ??
-                    `Task #${task.id}`;
+                  const query = labels[task.id] ?? `Task #${task.id}`;
                   const truncated = query.length > 120 ? `${query.slice(0, 117)}…` : query;
 
                   return (
@@ -311,7 +276,7 @@ export default function TasksPage() {
                           <HistoryMeta>
                             #{task.id} · {shortAddr(task.submitter)}
                             {task.complexity >= 5 ? " · Swarm" : " · Single"}
-                            {task.coalitionAddr ? " · Coalition" : ""}
+                            {task.coalitionAddr ? " · Team" : ""}
                           </HistoryMeta>
                         </div>
                         <HistoryAside>
@@ -324,13 +289,13 @@ export default function TasksPage() {
                           to={`/coalitions/${task.coalitionAddr}`}
                           style={{
                             fontSize: "0.75rem",
-                            opacity: 0.82,
+                            opacity: 0.75,
                             textDecoration: "underline",
                             margin: "0.25rem 0 0.5rem 0.75rem",
                             display: "inline-block",
                           }}
                         >
-                          View coalition
+                          View team
                         </Link>
                       )}
                     </motion.div>
@@ -341,22 +306,22 @@ export default function TasksPage() {
 
             {!loading && tasks.length === 0 && (
               <EmptyHistory>
-                <p style={{ margin: 0 }}>No tasks yet. Ask the swarm above.</p>
+                <p style={{ margin: 0 }}>No tasks yet.</p>
               </EmptyHistory>
             )}
 
             {data && data.pagination.total > 20 && (
-              <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center" }}>
+              <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
                 <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
-                  Prev
+                  Previous
                 </button>
-                <span style={{ opacity: 0.72 }}>Page {page + 1}</span>
+                <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
                 <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>
                   Next
                 </button>
               </div>
             )}
-          </ChatPage>
+          </PageContent>
         </AnimatedSection>
       </PageMotion>
     </PageWrap>

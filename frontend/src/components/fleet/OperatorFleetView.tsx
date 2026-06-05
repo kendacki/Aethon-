@@ -255,7 +255,7 @@ export function OperatorFleetView() {
             New task <IconArrowRight size={14} />
           </Button>
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={busy} style={{ width: "auto" }}>
-            {busy ? "Updating…" : "Refresh"}
+            {busy ? "Updating..." : "Refresh"}
           </Button>
         </HeaderActions>
       </Header>
@@ -304,7 +304,7 @@ export function OperatorFleetView() {
       </Toolbar>
 
       {busy && agents.length === 0 && (
-        <p style={{ opacity: 0.72, margin: 0 }}>Loading fleet…</p>
+        <p style={{ opacity: 0.72, margin: 0 }}>Loading fleet...</p>
       )}
 
       {!busy && agents.length === 0 && (
@@ -316,7 +316,7 @@ export function OperatorFleetView() {
           const meta = FLEET_ROLE_META[agent.agentType as AgentType];
           const worker = healthMap.get(agent.agentType);
           const roleLabel = meta?.label ?? agent.agentType;
-          const roleDesc = meta?.description ?? "Registered swarm specialist.";
+          const roleDesc = meta?.description ?? "Registered fleet agent.";
 
           return (
             <AgentCard
@@ -336,14 +336,14 @@ export function OperatorFleetView() {
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "$2" }}>
                 <Badge status={isAgentOperational(agent, worker) ? "online" : "offline"}>
-                  {isAgentOperational(agent, worker) ? "On-chain" : "Offline"}
+                  {isAgentOperational(agent, worker) ? "Online" : "Offline"}
                 </Badge>
                 {worker && worker.status !== "UNKNOWN" && (
                   <Badge
                     status={workerBadgeStatus(agent, worker)}
                     accent={worker.status === "DEGRADED"}
                   >
-                    Worker {workerStatusLabel(worker.status).toLowerCase()}
+                    {workerStatusLabel(worker.status)}
                   </Badge>
                 )}
               </div>
@@ -362,7 +362,7 @@ export function OperatorFleetView() {
               </StatRow>
 
               <div style={{ fontSize: "0.6875rem", opacity: 0.55 }}>
-                Heartbeat {new Date(agent.lastHeartbeat).toLocaleString()}
+                Last check in {new Date(agent.lastHeartbeat).toLocaleString()}
               </div>
 
               <CardActions>

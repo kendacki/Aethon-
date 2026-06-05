@@ -159,7 +159,7 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
               )}
               <DetailItem>
                 <DetailLabel>Routing</DetailLabel>
-                <DetailValue>{data.mode === "swarm" ? "Full swarm" : "Single agent"}</DetailValue>
+                <DetailValue>{data.mode === "swarm" ? "Full team" : "Single agent"}</DetailValue>
               </DetailItem>
               {data.role && (
                 <DetailItem>
@@ -168,7 +168,7 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
                 </DetailItem>
               )}
               <DetailItem>
-                <DetailLabel>Reward</DetailLabel>
+                <DetailLabel>Amount</DetailLabel>
                 <DetailValue>{data.rewardDisplay}</DetailValue>
               </DetailItem>
             </DetailGrid>
@@ -178,7 +178,7 @@ export function TaskSuccessModal({ open, data, onClose, onSubmitAnother }: TaskS
                 View tasks <IconArrowRight size={16} />
               </Button>
               <Button variant="outline" size="sm" onClick={onSubmitAnother}>
-                Submit another task
+                Ask another question
               </Button>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 Close

@@ -291,7 +291,7 @@ export function OperatorActivitySection({
             Live
           </LivePill>
           <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={loading}>
-            {loading ? "Updating…" : "Refresh"}
+            {loading ? "Updating..." : "Refresh"}
           </Button>
         </HeaderActions>
       </Header>
@@ -318,7 +318,7 @@ export function OperatorActivitySection({
                 </IconRing>
               </MetricTop>
               <MetricHint>
-                {emptyTasks ? "Submit your first task to the swarm." : `${taskCount} task${taskCount === 1 ? "" : "s"} for this wallet.`}
+                {emptyTasks ? "Ask your first question to the fleet." : `${taskCount} task${taskCount === 1 ? "" : "s"} for this wallet.`}
               </MetricHint>
               {emptyTasks ? (
                 <Button variant="primary" size="sm" as={Link} to="/tasks" style={{ marginTop: "0.25rem", alignSelf: "flex-start" }}>

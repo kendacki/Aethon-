@@ -110,7 +110,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: "1.0625rem" }}>Task #{taskId}</div>
-          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Query and results</p>
+            <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Your request and results</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           Close
@@ -137,12 +137,12 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           <Section>
             <h4>Agent work</h4>
             <p style={{ margin: 0, fontSize: "0.8125rem", lineHeight: 1.55, opacity: 0.88 }}>
-              {detail.catalog?.agentWork ?? "Fleet agents run the signed payload and post skill results."}
+              {detail.catalog?.agentWork ?? "Fleet agents run your signed request and post results."}
             </p>
           </Section>
 
           <Section>
-            <h4>Data sources</h4>
+            <h4>Sources</h4>
             <SourceList>
               {(detail.catalog?.sources ?? []).map((s) => (
                 <li key={s}>{s}</li>
@@ -151,7 +151,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           </Section>
 
           <Section>
-            <h4>Success checks</h4>
+            <h4>Checks</h4>
             {(detail.evaluation.criteria.length > 0 ? detail.evaluation.criteria : []).map((c) => (
               <CriteriaRow key={c.id}>
                 <span style={{ color: c.met ? "#4ade80" : "#f87171" }}>{c.met ? "✓" : "○"}</span>
@@ -164,11 +164,11 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
             <p style={{ marginTop: "0.75rem", fontSize: "0.8125rem", opacity: 0.8 }}>{detail.evaluation.summary}</p>
             {detail.task.status === "COMPLETED" || detail.task.status === "FAILED" ? (
               <p style={{ marginTop: "0.5rem", fontWeight: 600, fontSize: "0.8125rem" }}>
-                On-chain outcome: {detail.evaluation.overallSuccess ? "Criteria met" : "Criteria not fully met"}
+                On-chain result: {detail.evaluation.overallSuccess ? "Passed" : "Not fully passed"}
               </p>
             ) : (
               <p style={{ marginTop: "0.5rem", fontSize: "0.75rem", opacity: 0.65 }}>
-                Results update as agents report. On-chain completion follows coalition aggregation.
+                Results update as agents report. On-chain completion follows team review.
               </p>
             )}
           </Section>
@@ -222,7 +222,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           {detail.task.coalitionAddr && (
             <div style={{ marginTop: "$5" }}>
               <Link to={`/coalitions/${detail.task.coalitionAddr}`} style={{ fontSize: "0.8125rem", textDecoration: "underline" }}>
-                View coalition
+                View team
               </Link>
             </div>
           )}

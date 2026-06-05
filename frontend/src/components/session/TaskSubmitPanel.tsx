@@ -332,7 +332,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
         taskId,
       });
 
-      toast.success("Task accepted. Agents are working on your request.");
+      toast.success("Task accepted. Agents are working on it.");
       onSubmitted?.();
     } catch (err) {
       if (!isCorrectChain) {
@@ -360,18 +360,18 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
       </p>
       {effectiveMode === "single" && (
         <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>
-          Dispatch: <strong>{FLEET_ROLE_META[role].label}</strong> specialist
+          Dispatch: <strong>{FLEET_ROLE_META[role].label}</strong>
         </p>
       )}
       {effectiveMode === "swarm" && (
-        <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>Dispatch: all five fleet roles in parallel</p>
+        <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>Routing: all five agents in parallel</p>
       )}
     </>
   );
 
   const dispatchOptions = (
     <Advanced>
-      <summary>Dispatch options (optional)</summary>
+      <summary>Routing (optional)</summary>
       <FieldGrid>
         <GlassField>
           Routing
@@ -478,7 +478,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
           </ExampleRow>
 
           <ChatPreview>
-            <summary>What agents will do</summary>
+            <summary>What happens next</summary>
             <div style={{ marginTop: "0.75rem" }}>{previewBody}</div>
           </ChatPreview>
 
@@ -499,7 +499,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
     <>
       <Panel>
         <div style={{ marginBottom: "1rem" }}>
-          <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Ask the swarm</div>
+          <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Ask a question</div>
         </div>
 
         <GlassField>

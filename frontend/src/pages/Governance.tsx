@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { AnimatedPageHero, HeroItem, PageMotion } from "../components/motion/PageMotion";
-import { Badge, Card, Grid, PageWrap, Heading, StatValue } from "../components/ui";
+import { PageContentWide, SubpageHero } from "../components/layout/SubpageLayout";
+import { Badge, Card, Grid, PageWrap, StatValue } from "../components/ui";
 import {
   IconAlert,
   IconAudit,
@@ -26,19 +27,17 @@ import { GlassSurface, GLASS } from "../components/GlassPanel";
 import { useEffect } from "react";
 
 const SECURITY_ITEMS = [
-  { label: "Audit findings resolved", icon: IconAudit },
-  { label: "Attack simulations blocked", icon: IconShield },
-  { label: "Reputation updates are authorized", icon: IconLock },
-  { label: "Coalition dissolve is restricted", icon: IconCoalition },
-  { label: "Fees go to treasury", icon: IconVault },
+  { label: "Audits complete", icon: IconAudit },
+  { label: "Simulations blocked", icon: IconShield },
+  { label: "Reputation is gated", icon: IconLock },
+  { label: "Teams are protected", icon: IconCoalition },
+  { label: "Fees to treasury", icon: IconVault },
 ] as const;
 
 const SecurityGrid = styled("div", {
   display: "grid",
   gap: "$3",
-  "@md": {
-    gridTemplateColumns: "1fr 1fr",
-  },
+  "@md": { gridTemplateColumns: "1fr 1fr" },
 });
 
 const SecurityItem = styled(motion(GlassSurface), {
@@ -46,7 +45,7 @@ const SecurityItem = styled(motion(GlassSurface), {
   alignItems: "center",
   gap: "$4",
   padding: "$4 $5",
-  minHeight: "4.5rem",
+  minHeight: "4rem",
 });
 
 const ItemIcon = styled("div", {
@@ -101,91 +100,91 @@ export default function GovernancePage() {
       <PageMotion>
         <AnimatedPageHero>
           <HeroItem>
-            <Badge accent>
-              <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
-              Governance
-            </Badge>
-          </HeroItem>
-          <HeroItem>
-            <Heading style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", marginTop: "1rem" }}>Safety</Heading>
-          </HeroItem>
-          <HeroItem>
-            <p style={{ marginTop: "0.75rem", maxWidth: 420, opacity: 0.72, lineHeight: 1.6 }}>
-              Circuit breaker and protocol security. Sign in for live data.
-            </p>
+            <SubpageHero
+              badge={
+                <Badge accent>
+                  <IconShield size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
+                  Safety
+                </Badge>
+              }
+              title="Protocol status"
+              lead="Sign in to view live data."
+            />
           </HeroItem>
         </AnimatedPageHero>
 
         <SignedInShell title="Safety">
-        <ErrorBanner message={error} onRetry={reload} />
+          <PageContentWide>
+            <ErrorBanner message={error} onRetry={reload} />
 
-        {loading && <p style={{ marginTop: "1rem", opacity: 0.72 }}>Loading safety status…</p>}
+            {loading && <p style={{ marginTop: "1rem", opacity: 0.65 }}>Loading...</p>}
 
-        {!loading && !cb && !error && (
-          <Card style={{ marginTop: "1.5rem" }}>
-            <p style={{ margin: 0, opacity: 0.75 }}>Safety data unavailable. Try again shortly.</p>
-          </Card>
-        )}
+            {!loading && !cb && !error && (
+              <Card style={{ marginTop: "1.5rem" }}>
+                <p style={{ margin: 0, opacity: 0.7 }}>Data unavailable. Try again soon.</p>
+              </Card>
+            )}
 
-        {cb && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
-            <Card style={{ marginTop: "1.5rem", borderColor: cb.paused ? GLASS.borderHover : GLASS.accentBorderCard }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
-                <div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "System paused" : "System running"}</div>
-                  <div style={{ opacity: 0.72, fontSize: "0.875rem" }}>
-                    {cb.paused ? "Waiting for a guardian reset." : "All contracts are active."}
+            {cb && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
+                <Card style={{ marginTop: "1.5rem", borderColor: cb.paused ? GLASS.borderHover : GLASS.accentBorderCard }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    {cb.paused ? <IconAlert size={ICON_XL} /> : <IconShield size={ICON_XL} />}
+                    <div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{cb.paused ? "Paused" : "Running"}</div>
+                      <div style={{ opacity: 0.65, fontSize: "0.875rem", marginTop: 4 }}>
+                        {cb.paused ? "Waiting for guardian reset." : "All contracts are active."}
+                      </div>
+                    </div>
+                    <Badge status={cb.paused ? "offline" : "online"} style={{ marginLeft: "auto" }}>
+                      {cb.paused ? "Halted" : "Active"}
+                    </Badge>
                   </div>
-                </div>
-                <Badge status={cb.paused ? "offline" : "online"} style={{ marginLeft: "auto" }}>
-                  {cb.paused ? "Halted" : "Active"}
-                </Badge>
-              </div>
-            </Card>
+                </Card>
 
-            <Grid cols={2} style={{ marginTop: "2rem" }}>
-              <Card>
-                <StatValue style={{ fontSize: "2rem" }}>
-                  {cb.consecutiveFailures}/{cb.threshold}
-                </StatValue>
-                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 8 }}>Failed tasks</div>
-              </Card>
-              <Card>
-                <IconClock size={ICON_LG} style={{ marginBottom: 8 }} />
-                <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
-                <div style={{ opacity: 0.72, fontSize: "0.875rem", marginTop: 4 }}>Reset wait time</div>
-              </Card>
-            </Grid>
+                <Grid cols={2} style={{ marginTop: "2rem" }}>
+                  <Card>
+                    <StatValue style={{ fontSize: "2rem" }}>
+                      {cb.consecutiveFailures}/{cb.threshold}
+                    </StatValue>
+                    <div style={{ opacity: 0.65, fontSize: "0.875rem", marginTop: 8 }}>Recent failures</div>
+                  </Card>
+                  <Card>
+                    <IconClock size={ICON_LG} style={{ marginBottom: 8 }} />
+                    <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>{cb.resetTimelockSeconds / 3600}h</div>
+                    <div style={{ opacity: 0.65, fontSize: "0.875rem", marginTop: 4 }}>Reset wait</div>
+                  </Card>
+                </Grid>
 
-            <Card style={{ marginTop: "2rem" }}>
-              <SecurityHeader>
-                <IconShield size={ICON_MD} />
-                <h3 style={{ fontWeight: 800, fontSize: "1.125rem", margin: 0 }}>Security</h3>
-              </SecurityHeader>
-              <SecurityGrid>
-                {SECURITY_ITEMS.map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <SecurityItem
-                      key={item.label}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: i * 0.05 }}
-                    >
-                      <ItemIcon>
-                        <Icon size={ICON_MD} />
-                      </ItemIcon>
-                      <ItemLabel>{item.label}</ItemLabel>
-                      <IconCheck size={ICON_SM} aria-hidden />
-                    </SecurityItem>
-                  );
-                })}
-              </SecurityGrid>
-            </Card>
-          </motion.div>
-        )}
-      </SignedInShell>
+                <Card style={{ marginTop: "2rem" }}>
+                  <SecurityHeader>
+                    <IconShield size={ICON_MD} />
+                    <h3 style={{ fontWeight: 800, fontSize: "1.125rem", margin: 0 }}>Security</h3>
+                  </SecurityHeader>
+                  <SecurityGrid>
+                    {SECURITY_ITEMS.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <SecurityItem
+                          key={item.label}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ ...spring, delay: i * 0.05 }}
+                        >
+                          <ItemIcon>
+                            <Icon size={ICON_MD} />
+                          </ItemIcon>
+                          <ItemLabel>{item.label}</ItemLabel>
+                          <IconCheck size={ICON_SM} aria-hidden />
+                        </SecurityItem>
+                      );
+                    })}
+                  </SecurityGrid>
+                </Card>
+              </motion.div>
+            )}
+          </PageContentWide>
+        </SignedInShell>
       </PageMotion>
     </PageWrap>
   );
