@@ -6,7 +6,7 @@ import { useFetch } from "../../api/hooks";
 import { ErrorBanner } from "../ErrorBanner";
 import { GlassOverviewBand, GlassElevatedCard, GlassContent, GlassSurface, GLASS } from "../GlassPanel";
 import { IconAgent, IconArrowRight, IconCoalition, IconTask, IconVault, ICON_MD } from "../icons";
-import { summarizeWalletStake } from "../../lib/walletStake";
+import { summarizeWalletStake, type StakeSummary } from "../../lib/walletStake";
 import { Badge, Button } from "../ui";
 import { spring, styled, keyframes } from "../../stitches.config";
 
@@ -355,7 +355,7 @@ export function OperatorActivitySection({
               </MetricTop>
               <MetricHint>{stakeSummary.detail}</MetricHint>
               <StakeBreakdown>
-                {stakeSummary.breakdown.map((row) => (
+                {stakeSummary.breakdown.map((row: StakeSummary["breakdown"][number]) => (
                   <StakeRow key={row.label}>
                     <span>{row.label}</span>
                     <span style={{ fontWeight: 600, opacity: 1 }}>{row.value}</span>
