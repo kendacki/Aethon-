@@ -71,13 +71,11 @@ function buildOracleReport(intent: TaskIntent | string, data: Record<string, unk
   const source = String(data.source ?? "market data");
   const confPct = Number.isFinite(confidence) ? Math.round(confidence * 100) : null;
 
-  const summary =
-    String(data.summary) ||
-    (Number.isFinite(price)
-      ? stale
-        ? `${asset} last traded at ${fmtUsd(price)}, but the quote is no longer fresh.`
-        : `${asset} is ${fmtUsd(price)}${confPct != null ? ` (${confPct}% confidence, ${source})` : ""}.`
-      : "We could not retrieve a reliable price for this asset.");
+  const summary = Number.isFinite(price)
+    ? stale
+      ? `${asset} last traded at ${fmtUsd(price)}, but the quote is no longer fresh.`
+      : `${asset} is ${fmtUsd(price)}${confPct != null ? ` (${confPct}% confidence, ${source})` : ""}.`
+    : "We could not retrieve a reliable price for this asset.";
 
   const thinking = "Checking the latest market price.";
 
@@ -120,11 +118,9 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
   const asset = titleCaseAsset(String(data.asset ?? "asset"));
   const agentRec = String(data.recommendation ?? "").trim();
 
-  const summary =
-    agentRec ||
-    (profitable
-      ? `${asset} shows a ${Number.isFinite(spreadBps) ? spreadBps : "—"} basis-point spread — a potential trade exists.`
-      : `${asset} shows no worthwhile spread right now.`);
+  const summary = profitable
+    ? `${asset} shows a ${Number.isFinite(spreadBps) ? spreadBps : "—"} basis-point spread — a potential trade exists.`
+    : `${asset} shows no worthwhile spread right now.`;
 
   const thinking = "Comparing prices across venues.";
 
@@ -170,12 +166,9 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
     ? allocation.map((a) => `${a.pct}% in ${a.vaultId}`).join(", ")
     : "";
 
-  const summary =
-    String(data.summary) ||
-    agentRec ||
-    (allocation.length
-      ? `For ${amountEth} ETH (${tolerance} risk), allocate ${allocationText}. Blended yield: ${fmtPctFromBps(data.expectedApyBps)}.`
-      : `No suitable vault allocation was found for ${amountEth} ETH.`);
+  const summary = allocation.length
+    ? `For ${amountEth} ETH (${tolerance} risk), allocate ${allocationText}. Blended yield: ${fmtPctFromBps(data.expectedApyBps)}.`
+    : `No suitable vault allocation was found for ${amountEth} ETH.`;
 
   const thinking = "Reviewing vault options and expected yield.";
 
@@ -217,8 +210,9 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
   const proposalId = String(data.proposalId ?? "this proposal");
   const supportPct = Math.round(Number(data.supportRatio ?? 0) * 100);
 
+  const llmSummary = typeof data.llmSummary === "string" ? data.llmSummary.trim() : "";
   const summary =
-    String(data.summary) ||
+    llmSummary ||
     (quorumReached
       ? `${proposalId}: quorum is met with ${supportPct}% support. A ${vote} vote is recommended.`
       : `${proposalId}: quorum has not been reached yet.`);
@@ -259,9 +253,7 @@ function buildRiskReport(intent: TaskIntent | string, data: Record<string, unkno
   const agentRec = String(data.recommendation ?? "").trim();
   const levelLabel = level.charAt(0) + level.slice(1).toLowerCase();
 
-  const summary =
-    String(data.summary) ||
-    `Fleet health is ${levelLabel.toLowerCase()} (score ${score}/100).`;
+  const summary = `Fleet health is ${levelLabel.toLowerCase()} (score ${score}/100).`;
 
   const thinking = "Checking fleet health and circuit-breaker status.";
 

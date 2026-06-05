@@ -72,9 +72,6 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
             : 0.75;
 
     const criteriaMet = !stale && confidence >= 0.7;
-    const summary = stale
-      ? `${asset.toUpperCase()} price $${quote.price} (${quote.source}) — stale (${ageSec}s)`
-      : `${asset.toUpperCase()} spot $${quote.price} USD via ${quote.source} (confidence ${(confidence * 100).toFixed(0)}%)`;
 
     return skillOk(
       "ORACLE",
@@ -92,7 +89,6 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
             : quote.source === "coingecko"
               ? "PRIMARY"
               : "FALLBACK",
-        summary,
       }, criteriaMet),
     );
   } catch (err) {

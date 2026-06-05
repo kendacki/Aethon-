@@ -7,7 +7,7 @@ import { Button, Grid, Muted } from "../components/ui";
 import { GlassPageBand, GlassOverviewBand, GlassElevatedCard, GlassContent } from "../components/GlassPanel";
 import { HomePageHero } from "../components/HomePageHero";
 import { OperatorActivitySection } from "../components/overview/OperatorActivitySection";
-import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
+import { TaskChatWorkspace } from "../components/tasks/TaskChatWorkspace";
 import { SectionHeader } from "../components/session/SessionUI";
 import { useToast } from "../components/ToastProvider";
 import { IconAgent, IconArrowRight, IconCoalition, IconShield, IconTask, ICON_LG } from "../components/icons";
@@ -23,7 +23,7 @@ import {
   statValue,
   viewportOnce,
 } from "../motion/overview";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PageMotion, HeroActions, HeroItem } from "../components/motion/PageMotion";
 import { styled } from "../stitches.config";
 
@@ -250,6 +250,8 @@ function OperatorOverview({
   onRetry,
   onRefreshStats,
 }: OperatorOverviewProps) {
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
+
   return (
     <PageMotion motionKey="operator-overview">
       <HomePageHero>
@@ -313,7 +315,12 @@ function OperatorOverview({
             </Grid>
 
             <WorkspaceGrid as={motion.div} variants={protocolItem} initial="hidden" whileInView="show" viewport={viewportOnce}>
-              <TaskSubmitPanel onSubmitted={onRefreshStats} />
+              <TaskChatWorkspace
+                activeTaskId={activeTaskId}
+                onTaskCreated={({ taskId }) => setActiveTaskId(taskId)}
+                onDismiss={() => setActiveTaskId(null)}
+                onSubmitted={onRefreshStats}
+              />
               <GuideCard>
                 <CardTitle>How it works</CardTitle>
                 {SWARM_STEPS.map((step, i) => (

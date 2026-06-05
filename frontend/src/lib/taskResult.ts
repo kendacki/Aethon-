@@ -15,12 +15,38 @@ export type TaskResultOutput = {
   isFailed: boolean;
 };
 
-function cleanCopy(text: string): string {
+function titleCaseAsset(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower === "ethereum" || lower === "eth") return "Ethereum";
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+}
+
+/** Normalize older agent summaries stored before copy polish. */
+function polishLegacySummary(text: string): string {
+  const oracleMatch = text.match(
+    /^(\w+)\s+spot\s+\$([\d,.]+)\s+USD\s+via\s+(\w+)\s+\(confidence\s+(\d+)%\)/i,
+  );
+  if (oracleMatch) {
+    const [, asset, price, source, conf] = oracleMatch;
+    return `${titleCaseAsset(asset)} is $${price} (${conf}% confidence, ${source}).`;
+  }
+
+  const staleMatch = text.match(/^(\w+)\s+price\s+\$([\d,.]+)\s+\((\w+)\)\s+—\s+stale/i);
+  if (staleMatch) {
+    const [, asset, price] = staleMatch;
+    return `${titleCaseAsset(asset)} last traded at $${price}, but the quote is no longer fresh.`;
+  }
+
   return text
-    .replace(/\s+/g, " ")
     .replace(/\bETHEREUM\b/g, "Ethereum")
-    .replace(/\bETH\b/g, "ETH")
+    .replace(/\s+via\s+/gi, " from ")
+    .replace(/\(confidence\s+(\d+)%\)/gi, "($1% confidence)")
+    .replace(/\s+—\s+/g, ". ")
     .trim();
+}
+
+function cleanCopy(text: string): string {
+  return polishLegacySummary(text.replace(/\s+/g, " ").trim());
 }
 
 function extractReport(data: Record<string, unknown>, error?: string): {
@@ -28,9 +54,7 @@ function extractReport(data: Record<string, unknown>, error?: string): {
   recommendation: string;
 } {
   const report = data.report as SkillReportView | undefined;
-  const body = cleanCopy(
-    String(report?.summary ?? data.summary ?? error ?? ""),
-  );
+  const body = cleanCopy(String(report?.summary ?? data.summary ?? error ?? ""));
 
   const recommendation = cleanCopy(
     String(
@@ -85,7 +109,7 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
         : isFailed
           ? "This request could not be completed. Please try again."
           : "No answer was returned for this request.",
-      recommendation: isFailed ? "Submit the question again or try a simpler phrasing." : "",
+      recommendation: isFailed ? "Try asking again with a shorter, more specific question." : "",
       isPending,
       isFailed,
     };

@@ -13,8 +13,7 @@ import {
 } from "../components/layout/SubpageLayout";
 import { Badge, PageWrap } from "../components/ui";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { TaskSubmitPanel } from "../components/session/TaskSubmitPanel";
-import { TaskDetailPanel } from "../components/tasks/TaskDetailPanel";
+import { TaskChatWorkspace } from "../components/tasks/TaskChatWorkspace";
 import { useToast } from "../components/ToastProvider";
 import { spring, styled } from "../stitches.config";
 import { GlassFilterPill } from "../components/GlassPanel";
@@ -143,19 +142,6 @@ const EmptyHistory = styled("div", {
   border: `1px dashed ${GLASS.borderSoft}`,
   opacity: 0.7,
   fontSize: "0.875rem",
-});
-
-const NewQuestionLink = styled("button", {
-  marginTop: "$4",
-  background: "none",
-  border: "none",
-  color: "inherit",
-  font: "inherit",
-  fontSize: "0.8125rem",
-  opacity: 0.55,
-  cursor: "pointer",
-  textDecoration: "underline",
-  "&:hover": { opacity: 0.85 },
 });
 
 function HistorySection({
@@ -355,20 +341,12 @@ export default function TasksPage() {
           <PageContent>
             <Workspace session={sessionActive}>
               <MainColumn>
-                <TaskSubmitPanel
-                  variant="chat"
-                  onSubmitted={reload}
+                <TaskChatWorkspace
+                  activeTaskId={selectedId}
                   onTaskCreated={handleTaskCreated}
+                  onDismiss={handleEndSession}
+                  onSubmitted={reload}
                 />
-
-                {selectedId != null && (
-                  <>
-                    <TaskDetailPanel taskId={selectedId} onClose={handleEndSession} />
-                    <NewQuestionLink type="button" onClick={handleEndSession}>
-                      new question
-                    </NewQuestionLink>
-                  </>
-                )}
 
                 {!sessionActive && (
                   <InlineHistoryBlock id="task-list" ref={historyRef}>
