@@ -6,7 +6,7 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, s
 import { PageContentWide, SectionHeading, SectionHeadingMeta, SectionHeadingTitle, SubpageHero } from "../components/layout/SubpageLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, PageWrap } from "../components/ui";
-import { IconMedal, IconTrophy, ICON_LG, ICON_SM } from "../components/icons";
+import { IconMedal, ICON_LG } from "../components/icons";
 import { motion } from "framer-motion";
 import { fleetRoleLabel } from "../config/fleetRoles";
 import { healthByRoleMap, isAgentOperational } from "../lib/fleetAgentStatus";
@@ -180,15 +180,7 @@ export default function LeaderboardPage() {
       <PageMotion>
         <AnimatedPageHero>
           <HeroItem>
-            <SubpageHero
-              badge={
-                <Badge accent>
-                  <IconTrophy size={ICON_SM} style={{ display: "inline", marginRight: 4 }} />
-                  Rankings
-                </Badge>
-              }
-              title="Leaderboard"
-            />
+            <SubpageHero title="Leaderboard" />
           </HeroItem>
         </AnimatedPageHero>
 
