@@ -7,7 +7,7 @@ import { useWallet } from "../../wallet/WalletContext";
 import { useToast } from "../ToastProvider";
 import { TaskSuccessModal, type TaskSubmitSuccess } from "../TaskSuccessModal";
 import { api, formatEth } from "../../api/client";
-import { Button, Badge } from "../ui";
+import { Button } from "../ui";
 import { GlassCard } from "../GlassPanel";
 import { GLASS } from "../../theme/glass";
 import {
@@ -437,7 +437,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                 </MetaSelect>
                 <MetaPill>{rewardEth} STT</MetaPill>
                 <MetaPill>{effectiveMode === "swarm" ? "Swarm" : "Single"}</MetaPill>
-                {signedIn && <Badge status="online">Operator</Badge>}
               </ComposerMeta>
               <SendButton
                 type="button"
@@ -501,11 +500,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
       <Panel>
         <div style={{ marginBottom: "1rem" }}>
           <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Ask the swarm</div>
-          {signedIn && (
-            <div style={{ marginTop: "0.75rem" }}>
-              <Badge status="online">Operator</Badge>
-            </div>
-          )}
         </div>
 
         <GlassField>
