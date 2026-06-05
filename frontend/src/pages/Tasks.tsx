@@ -49,11 +49,12 @@ const HistoryList = styled("div", {
 const HistoryItem = styled("button", {
   width: "100%",
   textAlign: "left",
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: "$4",
-  padding: "$3 $4",
+  columnGap: "$5",
+  rowGap: "$2",
+  padding: "$4",
   borderRadius: "$md",
   border: "1px solid transparent",
   background: "rgba(0,0,0,0.22)",
@@ -75,6 +76,13 @@ const HistoryItem = styled("button", {
   },
 });
 
+const HistoryMain = styled("div", {
+  minWidth: 0,
+  display: "flex",
+  flexDirection: "column",
+  gap: "$1",
+});
+
 const HistoryQuery = styled("div", {
   fontSize: "0.875rem",
   fontWeight: 600,
@@ -89,22 +97,65 @@ const HistoryQuery = styled("div", {
 const HistoryMeta = styled("div", {
   fontSize: "0.6875rem",
   opacity: 0.62,
-  marginTop: "$1",
+  lineHeight: 1.45,
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  columnGap: "0.35rem",
+  rowGap: "0.15rem",
+});
+
+const HistoryMetaSep = styled("span", {
+  opacity: 0.45,
+  userSelect: "none",
 });
 
 const HistoryAside = styled("div", {
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-end",
+  justifyContent: "center",
   gap: "$2",
+  minWidth: "5.75rem",
   flexShrink: 0,
+});
+
+const HistoryStatusSlot = styled("div", {
+  width: "100%",
+  display: "flex",
+  justifyContent: "flex-end",
+});
+
+const HistoryAmount = styled("span", {
+  fontWeight: 600,
+  fontSize: "0.8125rem",
+  lineHeight: 1.2,
+  fontVariantNumeric: "tabular-nums",
+  whiteSpace: "nowrap",
+  opacity: 0.9,
+  letterSpacing: "0.01em",
+});
+
+const HistoryRowWrap = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+});
+
+const HistoryTeamLink = styled(Link, {
+  fontSize: "0.75rem",
+  opacity: 0.75,
+  textDecoration: "underline",
+  margin: "0 0 $2",
+  paddingLeft: "$4",
+  alignSelf: "flex-start",
 });
 
 const FilterRow = styled("div", {
   display: "flex",
-  gap: "0.5rem",
-  marginBottom: "$4",
+  gap: "$2",
+  marginBottom: "$5",
   flexWrap: "wrap",
+  alignItems: "center",
 });
 
 const EmptyHistory = styled("div", {
@@ -262,43 +313,35 @@ export default function TasksPage() {
                   const truncated = query.length > 120 ? `${query.slice(0, 117)}…` : query;
 
                   return (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={spring}
-                    >
+                    <HistoryRowWrap key={task.id} as={motion.div} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring}>
                       <HistoryItem type="button" active={selectedId === task.id} onClick={() => setSelectedId(task.id)}>
-                        <div style={{ minWidth: 0, flex: 1 }}>
+                        <HistoryMain>
                           <HistoryQuery>{truncated}</HistoryQuery>
                           <HistoryMeta>
-                            #{task.id} · {shortAddr(task.submitter)}
-                            {task.complexity >= 5 ? " · Swarm" : " · Single"}
-                            {task.coalitionAddr ? " · Team" : ""}
+                            <span>#{task.id}</span>
+                            <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
+                            <span>{shortAddr(task.submitter)}</span>
+                            <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
+                            <span>{task.complexity >= 5 ? "Swarm" : "Single"}</span>
+                            {task.coalitionAddr ? (
+                              <>
+                                <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
+                                <span>Team</span>
+                              </>
+                            ) : null}
                           </HistoryMeta>
-                        </div>
+                        </HistoryMain>
                         <HistoryAside>
-                          <Badge status={statusColor[task.status]}>{task.status}</Badge>
-                          <span style={{ fontWeight: 600, fontSize: "0.8125rem" }}>{formatEth(task.reward)}</span>
+                          <HistoryStatusSlot>
+                            <Badge status={statusColor[task.status]}>{task.status}</Badge>
+                          </HistoryStatusSlot>
+                          <HistoryAmount>{formatEth(task.reward)}</HistoryAmount>
                         </HistoryAside>
                       </HistoryItem>
                       {task.coalitionAddr && selectedId === task.id && (
-                        <Link
-                          to={`/coalitions/${task.coalitionAddr}`}
-                          style={{
-                            fontSize: "0.75rem",
-                            opacity: 0.75,
-                            textDecoration: "underline",
-                            margin: "0.25rem 0 0.5rem 0.75rem",
-                            display: "inline-block",
-                          }}
-                        >
-                          View team
-                        </Link>
+                        <HistoryTeamLink to={`/coalitions/${task.coalitionAddr}`}>View team</HistoryTeamLink>
                       )}
-                    </motion.div>
+                    </HistoryRowWrap>
                   );
                 })}
               </AnimatePresence>
