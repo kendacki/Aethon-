@@ -1,4 +1,5 @@
 import type { TaskIntent } from "./taskIntents.js";
+import { INTENT_CATALOG } from "./taskIntents.js";
 import type { TaskPayload } from "./taskPayload.js";
 
 export type SkillResultLike = {
@@ -30,6 +31,45 @@ function dataStr(data: Record<string, unknown>, key: string): string {
   return v != null ? String(v) : "";
 }
 
+function reportSummary(data: Record<string, unknown>): string {
+  const report = data.report as { summary?: string; headline?: string } | undefined;
+  if (report?.summary) return report.summary;
+  if (report?.headline) return report.headline;
+  return dataStr(data, "summary") || dataStr(data, "recommendation") || "";
+}
+
+function buildEvaluationSummary(
+  intent: TaskIntent | string,
+  overallSuccess: boolean,
+  criteria: CriterionResult[],
+  roleSummaries: Array<{ role: string; success: boolean; summary: string }>,
+): string {
+  const entry = intent in INTENT_CATALOG ? INTENT_CATALOG[intent as TaskIntent] : null;
+  const met = criteria.filter((c) => c.met).length;
+  const total = criteria.length;
+
+  if (intent === "PORTFOLIO_BRIEFING") {
+    const okRoles = roleSummaries.filter((r) => r.success).map((r) => r.role);
+    if (overallSuccess) {
+      return `Portfolio briefing complete. All specialists reported (${okRoles.length}/5 roles). Review each section below for price, spreads, yield, governance, and risk.`;
+    }
+    return `Portfolio briefing partial. ${okRoles.length} of 5 specialists succeeded. Check failed roles before acting on the briefing.`;
+  }
+
+  if (overallSuccess && entry) {
+    return `${entry.label} completed successfully. ${met}/${total || 1} checks passed.`;
+  }
+
+  const failed = criteria.filter((c) => !c.met).map((c) => c.label);
+  if (failed.length) {
+    return `${entry?.label ?? "Task"} needs attention: ${failed.join(", ")} not satisfied.`;
+  }
+
+  return roleSummaries.some((r) => !r.success)
+    ? "One or more agents could not complete the request."
+    : "Task finished with mixed signals. Review agent reports below.";
+}
+
 export function evaluateTaskOutcome(
   payload: TaskPayload | null,
   skillResults: SkillResultLike[],
@@ -41,7 +81,7 @@ export function evaluateTaskOutcome(
   const roleSummaries = skillResults.map((r) => ({
     role: r.agentType,
     success: r.result.success !== false,
-    summary: dataStr(r.result.data ?? {}, "summary") || dataStr(r.result.data ?? {}, "recommendation") || r.result.error || "—",
+    summary: reportSummary(r.result.data ?? {}) || r.result.error || "No report available.",
   }));
 
   const criteria: CriterionResult[] = criteriaDefs.map((c) => {
@@ -57,9 +97,7 @@ export function evaluateTaskOutcome(
           criteria.filter((c) => c.id !== "majority_success" && c.id !== "all_roles_reported").every((c) => c.met))
       : skillResults.length > 0 && skillResults.every((r) => r.result.success !== false);
 
-  const summary = overallSuccess
-    ? `Task met ${criteria.filter((c) => c.met).length}/${criteria.length || skillResults.length} success criteria.`
-    : `Task incomplete: ${criteria.filter((c) => !c.met).map((c) => c.label).join(", ") || "one or more skills failed"}.`;
+  const summary = buildEvaluationSummary(intent, overallSuccess, criteria, roleSummaries);
 
   return { intent, overallSuccess, summary, criteria, roleSummaries };
 }
@@ -90,7 +128,7 @@ function evaluateCriterion(
     case "allocation_plan":
       return Array.isArray(yieldR.allocation) && (yieldR.allocation as unknown[]).length > 0;
     case "risk_respected":
-      return yieldR.success !== false;
+      return yieldR.criteriaMet !== false && yieldR.success !== false;
     case "vote_recommendation":
       return ["FOR", "AGAINST", "ABSTAIN"].includes(String(gov.recommendedVote));
     case "quorum_status":

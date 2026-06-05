@@ -73,6 +73,8 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
       ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after gas)`
       : `Hold — spread ${spreadBps} bps below threshold or gas-adjusted PnL negative`;
 
+    const criteriaMet = profitable && spreadBps >= minSpreadBps;
+
     return skillOk(
       "ARBITRAGE",
       payload.action,
@@ -106,7 +108,7 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
           recommendation,
           summary: `${asset} spread ${spreadBps} bps — ${profitable ? "opportunity" : "no trade"}.`,
         },
-        true,
+        criteriaMet,
       ),
     );
   } catch (err) {

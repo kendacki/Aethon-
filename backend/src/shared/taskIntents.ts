@@ -1,5 +1,13 @@
 import type { AgentType, TaskPayload } from "./taskPayload.js";
 import { ALL_AGENT_TYPES } from "./taskPayload.js";
+import {
+  parseAssetFromQuery,
+  parseEthAmountFromQuery,
+  parseGovernanceStakes,
+  parseMinSpreadBpsFromQuery,
+  parseProposalFromQuery,
+  parseRiskToleranceFromQuery,
+} from "./queryParsing.js";
 
 export type TaskIntent =
   | "MARKET_PRICE"
@@ -131,49 +139,14 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
   },
 };
 
-const ASSET_ALIASES: Record<string, string> = {
-  eth: "ethereum",
-  ethereum: "ethereum",
-  btc: "bitcoin",
-  bitcoin: "bitcoin",
-  sol: "solana",
-  solana: "solana",
-  somnia: "somnia",
-  stt: "somnia",
-  usdc: "usd-coin",
-  usdt: "tether",
-};
-
-export function parseAssetFromQuery(query: string): string {
-  const q = query.toLowerCase();
-  for (const [alias, id] of Object.entries(ASSET_ALIASES)) {
-    if (new RegExp(`\\b${alias}\\b`).test(q)) return id;
-  }
-  return "ethereum";
-}
-
-export function parseEthAmountFromQuery(query: string, fallback = 1): number {
-  const m = query.match(/(\d+(?:\.\d+)?)\s*(?:eth|stt)\b/i);
-  if (!m) return fallback;
-  const n = Number(m[1]);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
-export function parseProposalFromQuery(query: string): string {
-  const m = query.match(/\b(AIP[-_]?\w+)\b/i);
-  return m ? m[1].toUpperCase().replace("_", "-") : "AIP-1";
-}
-
-export function parseGovernanceStakes(query: string): { support: number; against: number; quorum: number } {
-  const support = query.match(/(\d+(?:\.\d+)?)\s*stt\s+for\b/i);
-  const against = query.match(/(\d+(?:\.\d+)?)\s*stt\s+against\b/i);
-  const quorum = query.match(/quorum\s+(\d+(?:\.\d+)?)/i);
-  return {
-    support: support ? Number(support[1]) : 12,
-    against: against ? Number(against[1]) : 4,
-    quorum: quorum ? Number(quorum[1]) : 10,
-  };
-}
+export {
+  parseAssetFromQuery,
+  parseEthAmountFromQuery,
+  parseGovernanceStakes,
+  parseMinSpreadBpsFromQuery,
+  parseProposalFromQuery,
+  parseRiskToleranceFromQuery,
+} from "./queryParsing.js";
 
 export function inferIntentFromQuery(query: string): TaskIntent {
   const q = query.toLowerCase();
@@ -211,20 +184,15 @@ export function buildTaskPayload(opts: {
       break;
     case "ARBITRAGE_SCAN":
       Object.assign(baseParams, {
-        minSpreadBps: 15,
+        minSpreadBps: parseMinSpreadBpsFromQuery(query, 15),
         slippageBps: 30,
         notionalEth: parseEthAmountFromQuery(query, 1),
       });
       break;
     case "YIELD_STRATEGY": {
-      const tol = /\baggressive\b/i.test(query)
-        ? "aggressive"
-        : /\bconservative\b/i.test(query)
-          ? "conservative"
-          : "moderate";
       Object.assign(baseParams, {
         amountEth: parseEthAmountFromQuery(query, 1),
-        riskTolerance: tol,
+        riskTolerance: parseRiskToleranceFromQuery(query),
         diversify: true,
       });
       break;
@@ -257,7 +225,7 @@ export function buildTaskPayload(opts: {
         supportStakeEth: stakes.support,
         againstStakeEth: stakes.against,
         quorumEth: stakes.quorum,
-        minSpreadBps: 15,
+        minSpreadBps: parseMinSpreadBpsFromQuery(query, 15),
         maxStalenessSec: 120,
       });
       break;

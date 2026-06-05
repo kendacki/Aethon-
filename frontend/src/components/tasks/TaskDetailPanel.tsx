@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { styled } from "../../stitches.config";
 import { api, formatEth, shortAddr, type Task } from "../../api/client";
@@ -78,6 +78,38 @@ const CriteriaRow = styled("div", {
   marginTop: "$2",
   lineHeight: 1.45,
 });
+
+type SkillReportView = {
+  headline?: string;
+  summary?: string;
+  sections?: Array<{ title: string; lines: string[] }>;
+};
+
+function renderSkillBody(data: Record<string, unknown>, error?: string): ReactNode {
+  const report = data.report as SkillReportView | undefined;
+  const summary = report?.summary ?? data.summary ?? error ?? "Not available";
+
+  return (
+    <>
+      {report?.headline && (
+        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", fontWeight: 700, opacity: 0.85 }}>{report.headline}</p>
+      )}
+      <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.9 }}>{String(summary)}</p>
+      {report?.sections?.map((section) => (
+        <div key={section.title} style={{ marginTop: "0.65rem" }}>
+          <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", opacity: 0.5 }}>
+            {section.title}
+          </div>
+          <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem", fontSize: "0.75rem", lineHeight: 1.5, opacity: 0.82 }}>
+            {section.lines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </>
+  );
+}
 
 type TaskDetailPanelProps = {
   taskId: number | null;
@@ -191,7 +223,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
                     </Badge>
                   </div>
                   <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.9 }}>
-                    {String(data.summary ?? row.result.error ?? "Not available")}
+                    {renderSkillBody(data, row.result.error)}
                   </p>
                   {sources.length > 0 && (
                     <p style={{ margin: "0.35rem 0 0", fontSize: "0.6875rem", opacity: 0.6 }}>
