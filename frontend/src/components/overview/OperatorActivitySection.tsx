@@ -317,9 +317,9 @@ export function OperatorActivitySection({
                   <IconTask size={ICON_MD} />
                 </IconRing>
               </MetricTop>
-              <MetricHint>
-                {emptyTasks ? "Ask your first question to the fleet." : `${taskCount} task${taskCount === 1 ? "" : "s"} for this wallet.`}
-              </MetricHint>
+              {emptyTasks ? (
+                <MetricHint>Ask your first question to the fleet.</MetricHint>
+              ) : null}
               {emptyTasks ? (
                 <Button variant="primary" size="sm" as={Link} to="/tasks" style={{ marginTop: "0.25rem", alignSelf: "flex-start" }}>
                   New task
