@@ -15,6 +15,8 @@ import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth
 import { syncFleetFromChain } from "../services/fleetSync.js";
 import { validateTaskPayload } from "../shared/taskPayload.js";
 import { getSomniaCompatibilityReport } from "../services/somniaCompat.js";
+import { searchKnowledge, storeObservation } from "../knowledge/repository.js";
+import type { AgentType } from "../shared/taskPayload.js";
 
 export const healthRouter = Router();
 
@@ -463,6 +465,47 @@ somniaRouter.get("/agents", async (_req, res, next) => {
         ...report,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export const knowledgeRouter = Router();
+
+const AGENT_ROLES = ["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"] as const;
+
+knowledgeRouter.get("/:role", async (req, res, next) => {
+  try {
+    const role = req.params.role.toUpperCase();
+    if (!AGENT_ROLES.includes(role as (typeof AGENT_ROLES)[number])) {
+      return res.status(400).json({ error: "Invalid agent role" });
+    }
+    const q = String(req.query.q ?? "");
+    const limit = Math.min(10, Math.max(1, Number(req.query.limit ?? 5)));
+    const data = await searchKnowledge(role as AgentType, q, limit);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+knowledgeRouter.post("/observations", async (req, res, next) => {
+  try {
+    const schema = z.object({
+      role: z.enum(["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"]),
+      taskId: z.number().int().optional(),
+      observationType: z.string().optional(),
+      payload: z.record(z.unknown()),
+    });
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid observation payload" });
+    await storeObservation({
+      role: parsed.data.role,
+      taskId: parsed.data.taskId,
+      observationType: parsed.data.observationType ?? "skill_outcome",
+      payload: parsed.data.payload,
+    });
+    res.json({ data: { ok: true } });
   } catch (err) {
     next(err);
   }

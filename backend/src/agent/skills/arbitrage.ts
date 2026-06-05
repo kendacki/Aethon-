@@ -1,18 +1,12 @@
 import type { TaskPayload } from "../../shared/taskPayload.js";
 import { JsonRpcProvider } from "ethers";
+import { fetchExchangeVenues } from "../tools/exchangeVenues.js";
+import { fetchDexScreenerPairs } from "../tools/dexScreener.js";
+import { estimateSwapGasCost } from "../tools/liveGas.js";
 import { fetchSpotQuote } from "./http.js";
 import { fetchDexReserves, impliedPriceUsdFromReserves, spreadBpsBetween } from "./dexPool.js";
 import { enrichSkillData } from "./meta.js";
 import { skillFail, skillOk, type SkillExecutor } from "./types.js";
-
-const VENUE_SEEDS = [7, 19, 31, 43];
-
-function simulatedDexPrice(referenceUsd: number, venueSeed: number, slippageBps: number): number {
-  const spreadBps = 8 + (venueSeed % 28);
-  const direction = venueSeed % 2 === 0 ? 1 : -1;
-  const raw = referenceUsd * (1 + (direction * spreadBps) / 10_000);
-  return raw * (1 - slippageBps / 10_000);
-}
 
 function confidenceFromSpread(spreadBps: number, minSpreadBps: number): number {
   if (spreadBps < minSpreadBps) return 0.2;
@@ -33,35 +27,83 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
 
     const quote = await fetchSpotQuote(asset);
     const provider = new JsonRpcProvider(ctx.rpcUrl);
+    const gas = await estimateSwapGasCost(provider);
+
     const onChainReserves = await fetchDexReserves(provider);
     let dexImpliedUsd = 0;
-    let spreadBps = 0;
-    let dexSource = "simulated_venues";
+    let dexSource = "none";
 
     if (onChainReserves) {
       dexImpliedUsd = impliedPriceUsdFromReserves(onChainReserves);
-      spreadBps = spreadBpsBetween(quote.price, dexImpliedUsd);
-      dexSource = `uniswap_v2_pair:${onChainReserves.pairAddress}`;
+      dexSource = `on_chain_pair:${onChainReserves.pairAddress}`;
     }
 
-    const venues = VENUE_SEEDS.map((seed, i) => ({
-      id: onChainReserves ? `pair_${onChainReserves.pairAddress.slice(0, 8)}` : `venue_${String.fromCharCode(65 + i)}`,
-      priceUsd: onChainReserves
-        ? dexImpliedUsd * (1 + ((seed % 2 === 0 ? 1 : -1) * (8 + (seed % 28))) / 10_000)
-        : simulatedDexPrice(quote.price, seed, slippageBps),
-    }));
-
-    if (!onChainReserves) {
-      const prices = venues.map((v) => v.priceUsd);
-      const maxPrice = Math.max(...prices);
-      const minPrice = Math.min(...prices);
-      spreadBps = Math.round(((maxPrice - minPrice) / quote.price) * 10_000);
+    let exchangeVenues: Awaited<ReturnType<typeof fetchExchangeVenues>> = [];
+    try {
+      exchangeVenues = await fetchExchangeVenues(asset, 8);
+    } catch (err) {
+      console.warn("[ARBITRAGE] Exchange tickers unavailable:", err instanceof Error ? err.message : err);
     }
 
-    const gasWei = 380_000n * 22_000_000_000n;
+    let dexPairs: Awaited<ReturnType<typeof fetchDexScreenerPairs>> = [];
+    if (exchangeVenues.length === 0 && !onChainReserves) {
+      try {
+        dexPairs = await fetchDexScreenerPairs(asset === "ethereum" ? "WETH" : asset, 6);
+      } catch (err) {
+        console.warn("[ARBITRAGE] DexScreener fallback unavailable:", err instanceof Error ? err.message : err);
+      }
+    }
+
+    type VenueRow = { id: string; priceUsd: number; source: string; exchange?: string };
+    const venues: VenueRow[] = [];
+
+    if (onChainReserves && dexImpliedUsd > 0) {
+      venues.push({
+        id: `dex_${onChainReserves.pairAddress.slice(0, 10)}`,
+        priceUsd: dexImpliedUsd,
+        source: dexSource,
+      });
+    }
+
+    for (const v of exchangeVenues) {
+      venues.push({
+        id: v.id,
+        priceUsd: v.priceUsd * (1 - slippageBps / 10_000),
+        source: "coingecko_tickers",
+        exchange: v.exchange,
+      });
+    }
+
+    for (const p of dexPairs) {
+      venues.push({
+        id: p.id,
+        priceUsd: p.priceUsd * (1 - slippageBps / 10_000),
+        source: "dexscreener",
+        exchange: p.dexId,
+      });
+    }
+
+    if (venues.length === 0) {
+      return skillFail(
+        "ARBITRAGE",
+        payload.action,
+        "No live venue prices available (configure SOMNIA_DEX_PAIR_ADDR or retry when exchange APIs respond)",
+      );
+    }
+
+    const prices = venues.map((v) => v.priceUsd);
+    const maxPrice = Math.max(...prices);
+    const minPrice = Math.min(...prices);
+    let spreadBps = Math.round(((maxPrice - minPrice) / quote.price) * 10_000);
+
+    if (onChainReserves && dexImpliedUsd > 0) {
+      const dexSpread = spreadBpsBetween(quote.price, dexImpliedUsd);
+      spreadBps = Math.max(spreadBps, dexSpread);
+    }
+
     const notionalWei = BigInt(Math.floor(notionalEth * 1e18));
     const grossWei = (notionalWei * BigInt(spreadBps)) / 10_000n;
-    const netWei = grossWei > gasWei ? grossWei - gasWei : 0n;
+    const netWei = grossWei > gas.totalCostWei ? grossWei - gas.totalCostWei : 0n;
     const profitable = spreadBps >= minSpreadBps && netWei > 0n;
     const confidence = confidenceFromSpread(spreadBps, minSpreadBps);
 
@@ -70,7 +112,7 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
     const proceed = profitable;
 
     const recommendation = profitable
-      ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after gas)`
+      ? `Execute ${bestBuy.id}→${bestSell.id} (${spreadBps} bps net-positive after live gas)`
       : `Hold — spread ${spreadBps} bps below threshold or gas-adjusted PnL negative`;
 
     const criteriaMet = profitable && spreadBps >= minSpreadBps;
@@ -94,7 +136,13 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
                 impliedUsd: dexImpliedUsd,
               }
             : undefined,
-          venues,
+          venues: venues.map((v) => ({
+            id: v.id,
+            priceUsd: v.priceUsd,
+            source: v.source,
+            exchange: v.exchange,
+          })),
+          venueCount: venues.length,
           bestBuyVenue: bestBuy.id,
           bestSellVenue: bestSell.id,
           spreadBps,
@@ -105,8 +153,10 @@ export const executeArbitrage: SkillExecutor = async (payload, ctx) => {
           proceed,
           confidence: Number(confidence.toFixed(2)),
           estimatedProfitWei: netWei.toString(),
+          gasEstimateWei: gas.totalCostWei.toString(),
+          gasSource: gas.source,
           recommendation,
-          summary: `${asset} spread ${spreadBps} bps — ${profitable ? "opportunity" : "no trade"}.`,
+          summary: `${asset} spread ${spreadBps} bps across ${venues.length} live venues — ${profitable ? "opportunity" : "no trade"}.`,
         },
         criteriaMet,
       ),

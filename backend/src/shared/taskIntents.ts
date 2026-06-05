@@ -62,7 +62,7 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     primaryRole: "ARBITRAGE",
     action: "check_spread",
     agentWork: "Arbitrage agent loads a reference price, simulates venue quotes, and recommends execute or hold.",
-    sources: ["CoinGecko reference price", "Simulated Somnia DEX venue book"],
+    sources: ["CoinGecko reference price", "CoinGecko exchange tickers", "DexScreener", "On-chain DEX pair"],
     successCriteria: [
       { id: "spread_computed", label: "Spread computed", description: "Best buy/sell venues and spread bps are reported." },
       { id: "recommendation", label: "Recommendation", description: "Clear execute or hold recommendation is returned." },
@@ -77,7 +77,7 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     primaryRole: "YIELD_OPT",
     action: "optimize_yield",
     agentWork: "Yield agent scores vaults by risk-adjusted APY and returns an allocation plan.",
-    sources: ["Aethon vault registry (on-chain catalog)", "Internal APY/risk model"],
+    sources: ["DefiLlama live yield pools", "Agent knowledge base"],
     successCriteria: [
       { id: "allocation_plan", label: "Allocation plan", description: "At least one vault allocation with expected APY." },
       { id: "risk_respected", label: "Risk respected", description: "Vaults match the stated risk tolerance." },

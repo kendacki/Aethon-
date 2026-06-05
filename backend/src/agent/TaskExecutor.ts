@@ -51,15 +51,36 @@ export class TaskExecutor {
     this.somniaClient = SomniaAgentsClient.fromEnv(wallet, provider);
   }
 
-  private skillContext(): SkillContext {
+  private skillContext(taskId?: number): SkillContext {
     return {
       agentAddress: this.wallet.address,
       rpcUrl: this.config.rpcUrl,
       apiBaseUrl: this.config.apiBaseUrl,
       circuitBreakerAddr: this.config.circuitBreakerAddr,
       agentRegistryAddr: this.config.agentRegistryAddr,
+      taskId,
       signMessage: (message: string) => this.wallet.signMessage(message),
       somnia: this.somniaClient ?? undefined,
+      fetchKnowledge: async (role, queryText, limit) => {
+        const chunks = await this.api.fetchKnowledge(role, queryText, limit);
+        return chunks.map((c) => ({
+          id: c.id,
+          role: c.role as import("../shared/taskPayload.js").AgentType,
+          title: c.title,
+          content: c.content,
+          sourceUrl: c.sourceUrl,
+          tags: c.tags,
+          score: c.score,
+        }));
+      },
+      storeObservation: async (obs) => {
+        await this.api.storeObservation({
+          role: obs.role,
+          taskId: obs.taskId,
+          observationType: obs.observationType,
+          payload: obs.payload,
+        });
+      },
     };
   }
 
@@ -224,7 +245,7 @@ export class TaskExecutor {
       await sleep(2000);
     }
 
-    const result = await executeSkill(myRole, payload, this.skillContext());
+    const result = await executeSkill(myRole, payload, this.skillContext(taskId));
     const resultJson = JSON.stringify(result);
     const sig = await this.wallet.signMessage(
       ethers.getBytes(skillResultDigest(taskId, this.wallet.address, myRole, resultJson)),

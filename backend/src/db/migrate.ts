@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { query } from "./client.js";
+import { seedKnowledgeIfEmpty } from "../knowledge/repository.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,5 +17,7 @@ export async function migrate(): Promise<void> {
      ON CONFLICT (id) DO NOTHING`,
     [Number(process.env.INDEXER_START_BLOCK ?? 0)]
   );
+  const seeded = await seedKnowledgeIfEmpty();
+  if (seeded > 0) console.log(`[DB] Seeded ${seeded} agent knowledge entries`);
   console.log("[DB] Migrations applied");
 }

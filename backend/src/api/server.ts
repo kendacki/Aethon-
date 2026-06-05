@@ -13,6 +13,7 @@ import {
   circuitBreakerRouter,
   coalitionsRouter,
   healthRouter,
+  knowledgeRouter,
   leaderboardRouter,
   reputationRouter,
   somniaRouter,
@@ -92,6 +93,7 @@ v1.use("/coalitions", coalitionsRouter);
 v1.use("/circuit-breaker", circuitBreakerRouter);
 v1.use("/stats", statsRouter);
 v1.use("/leaderboard", leaderboardRouter);
+v1.use("/knowledge", knowledgeRouter);
 v1.use("/somnia", somniaRouter);
 v1.use("/", writeRouter);
 

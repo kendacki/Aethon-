@@ -101,3 +101,32 @@ CREATE TABLE IF NOT EXISTS task_skill_results (
 
 CREATE INDEX IF NOT EXISTS idx_coalition_intents_task ON task_coalition_intents(task_id);
 CREATE INDEX IF NOT EXISTS idx_skill_results_task ON task_skill_results(task_id);
+
+-- Agent knowledge base (RAG via PostgreSQL full-text search)
+CREATE TABLE IF NOT EXISTS agent_knowledge (
+  id SERIAL PRIMARY KEY,
+  agent_role TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  source_url TEXT,
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  search_vector tsvector,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_knowledge_role ON agent_knowledge(agent_role);
+CREATE INDEX IF NOT EXISTS idx_agent_knowledge_search ON agent_knowledge USING GIN(search_vector);
+
+-- Warm memory: observations from completed skills (used for retrieval context)
+CREATE TABLE IF NOT EXISTS agent_observations (
+  id SERIAL PRIMARY KEY,
+  agent_role TEXT NOT NULL,
+  task_id BIGINT,
+  observation_type TEXT NOT NULL DEFAULT 'skill_outcome',
+  payload JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_observations_role ON agent_observations(agent_role, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_observations_task ON agent_observations(task_id);

@@ -1,4 +1,5 @@
 import type { AgentType, TaskPayload } from "../../shared/taskPayload.js";
+import { runAgentLoop } from "../cognition/AgentLoop.js";
 import { executeArbitrage } from "./arbitrage.js";
 import { executeGovernance } from "./governance.js";
 import { executeOracle } from "./oracle.js";
@@ -45,7 +46,7 @@ export async function executeSkill(
   }
 
   const sanitized: TaskPayload = { ...payload, params: validation.sanitized };
-  return executor(sanitized, ctx);
+  return runAgentLoop(role, sanitized, ctx, EXECUTORS[role]);
 }
 
 export async function executeSwarmPipeline(

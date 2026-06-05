@@ -82,4 +82,32 @@ export class AgentApiClient {
     });
     if (!res.ok) throw new Error(`Task execution persist failed: ${res.status}`);
   }
+
+  async fetchKnowledge(role: string, queryText: string, limit = 5): Promise<
+    Array<{ id: number; role: string; title: string; content: string; sourceUrl?: string; tags: string[]; score: number }>
+  > {
+    const q = encodeURIComponent(queryText);
+    const res = await fetch(`${this.base()}/knowledge/${encodeURIComponent(role)}?q=${q}&limit=${limit}`);
+    if (!res.ok) return [];
+    const body = (await res.json()) as {
+      data: Array<{ id: number; role: string; title: string; content: string; sourceUrl?: string; tags: string[]; score: number }>;
+    };
+    return body.data ?? [];
+  }
+
+  async storeObservation(body: {
+    role: string;
+    taskId?: number;
+    observationType?: string;
+    payload: Record<string, unknown>;
+  }): Promise<void> {
+    const res = await fetch(`${this.base()}/knowledge/observations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      console.warn(`[AgentApiClient] observation store failed: ${res.status}`);
+    }
+  }
 }

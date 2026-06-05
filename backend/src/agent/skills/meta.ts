@@ -9,10 +9,10 @@ export function skillSourcesForRole(role: AgentType, payload: TaskPayload): stri
     return INTENT_CATALOG[intent].sources;
   }
   const roleSources: Record<AgentType, string[]> = {
-    ARBITRAGE: ["CoinGecko reference", "Simulated DEX venues"],
+    ARBITRAGE: ["CoinGecko reference", "CoinGecko exchange tickers", "DexScreener", "On-chain DEX pair"],
     ORACLE: ["CoinGecko", "Somnia JSON oracle", "Fallback table"],
-    YIELD_OPT: ["Aethon vault registry"],
-    GOVERNANCE: ["Payload vote params", "Somnia LLM (optional)"],
+    YIELD_OPT: ["DefiLlama live yield pools"],
+    GOVERNANCE: ["Payload vote params", "Somnia LLM (optional)", "Agent knowledge base"],
     RISK_MGMT: ["CircuitBreaker", "Aethon stats API", "Somnia RPC"],
   };
   return roleSources[role];

@@ -68,6 +68,13 @@ export const executeGovernance: SkillExecutor = async (payload, ctx) => {
 
   if (ctx.somnia && payload.params.llmSummary !== false) {
     try {
+      const citeBlock =
+        ctx.knowledgeCitations?.length ?
+          ctx.knowledgeCitations
+            .slice(0, 2)
+            .map((c) => c.content.slice(0, 200))
+            .join("\n")
+        : "";
       const prompt = [
         `Proposal ID: ${proposalId}`,
         `Support stake: ${support} STT`,
@@ -75,8 +82,11 @@ export const executeGovernance: SkillExecutor = async (payload, ctx) => {
         `Quorum: ${quorum} STT (${quorumReached ? "met" : "not met"})`,
         `Recommended vote: ${recommendedVote}`,
         `Flags: ${flags.join(", ") || "none"}`,
+        citeBlock ? `Policy context:\n${citeBlock}` : "",
         "Write a 2-sentence plain-language summary for token holders.",
-      ].join("\n");
+      ]
+        .filter(Boolean)
+        .join("\n");
       llmSummary = await ctx.somnia.inferString(
         prompt,
         "You are a DeFi governance analyst on Somnia Agentic L1. Be concise and factual.",
