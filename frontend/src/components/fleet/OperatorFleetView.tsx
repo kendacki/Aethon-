@@ -327,8 +327,7 @@ export function OperatorFleetView() {
             >
               <CardTop>
                 <div>
-                  <Badge accent>{meta?.shortLabel ?? agent.agentType}</Badge>
-                  <RoleTitle style={{ marginTop: "0.5rem" }}>{roleLabel}</RoleTitle>
+                  <RoleTitle>{roleLabel}</RoleTitle>
                   <RoleDesc>{roleDesc}</RoleDesc>
                 </div>
                 <IconAgent size={ICON_MD} style={{ opacity: 0.9, flexShrink: 0 }} />

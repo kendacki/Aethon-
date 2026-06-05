@@ -4,7 +4,6 @@ import { ALL_AGENT_TYPES } from "../task/payload";
 export type FleetRoleMeta = {
   type: AgentType;
   label: string;
-  shortLabel: string;
   description: string;
 };
 
@@ -12,31 +11,26 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
   ARBITRAGE: {
     type: "ARBITRAGE",
     label: "Arbitrage",
-    shortLabel: "ARB",
     description: "Compares DEX prices to a live reference and recommends trade or hold.",
   },
   ORACLE: {
     type: "ORACLE",
     label: "Oracle",
-    shortLabel: "ORC",
     description: "Fetches USD prices, checks freshness, and signs an attestation.",
   },
   YIELD_OPT: {
     type: "YIELD_OPT",
     label: "Yield optimizer",
-    shortLabel: "YLD",
     description: "Builds vault allocation from the on-chain catalog.",
   },
   GOVERNANCE: {
     type: "GOVERNANCE",
     label: "Governance",
-    shortLabel: "GOV",
     description: "Evaluates quorum and vote ratio.",
   },
   RISK_MGMT: {
     type: "RISK_MGMT",
     label: "Risk management",
-    shortLabel: "RSK",
     description: "Scores fleet health from circuit breaker and agent reserves.",
   },
 };
