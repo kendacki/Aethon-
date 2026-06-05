@@ -11,6 +11,8 @@ export type SkillReport = {
   intent: TaskIntent | string;
   headline: string;
   summary: string;
+  thinking: string;
+  recommendation: string;
   sections: ReportSection[];
   metrics: Record<string, string | number | boolean>;
 };
@@ -47,6 +49,8 @@ export function buildSkillReport(
         intent,
         headline: "Agent report",
         summary: String(data.summary ?? "Task completed."),
+        thinking: "Reviewed available signals for your request.",
+        recommendation: String(data.recommendation ?? "No further action required."),
         sections: [],
         metrics: {},
       };
@@ -67,11 +71,23 @@ function buildOracleReport(intent: TaskIntent | string, data: Record<string, unk
       ? `${asset.toUpperCase()} is ${fmtUsd(price)} USD (${String(data.source ?? "oracle")}, confidence ${Number.isFinite(confidence) ? Math.round(confidence * 100) : "—"}%).`
       : "Price lookup did not return a valid quote.");
 
+  const thinking = stale
+    ? "Fetched the latest quote, but it exceeded the allowed staleness window."
+    : "Fetched the live USD spot quote and confirmed it is within the freshness threshold.";
+
+  const recommendation = stale
+    ? "Wait for a fresh attestation before using this price for trades or portfolio sizing."
+    : Number.isFinite(price)
+      ? `Use ${fmtUsd(price)} as the working ETH reference; recheck if the market moves sharply or the quote ages out.`
+      : "Retry the price lookup or switch to a backup oracle source.";
+
   return {
     role: "ORACLE",
     intent,
     headline,
     summary,
+    thinking,
+    recommendation,
     sections: [
       {
         title: "Quote",
@@ -101,11 +117,17 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
     recommendation ||
     `${String(data.asset ?? "asset")} spread ${Number.isFinite(spreadBps) ? spreadBps : "—"} bps.`;
 
+  const thinking = `Compared reference price to simulated venue quotes and measured spread against the ${String(data.minSpreadBps ?? 15)} bps minimum.`;
+
   return {
     role: "ARBITRAGE",
     intent,
     headline,
     summary,
+    thinking,
+    recommendation:
+      recommendation ||
+      (profitable ? "Consider executing when gas and slippage still leave room above the minimum spread." : "Hold off and re-scan when volatility or liquidity improves."),
     sections: [
       {
         title: "Spread analysis",
@@ -139,11 +161,19 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
     String(data.recommendation) ||
     `Blended APY ${fmtPctFromBps(data.expectedApyBps)} on ${String(data.amountEth ?? 1)} ETH.`;
 
+  const thinking = `Mapped ${String(data.amountEth ?? 1)} ETH across the on-chain vault catalog for a ${String(data.riskTolerance ?? "moderate")} risk profile.`;
+
   return {
     role: "YIELD_OPT",
     intent,
     headline,
     summary,
+    thinking,
+    recommendation:
+      String(data.recommendation) ||
+      (allocation.length
+        ? `Deploy using the allocation above; rebalance if APY spreads widen or risk tolerance changes.`
+        : "No vault allocation was produced — review vault availability before depositing."),
     sections: [
       {
         title: "Allocation",
@@ -182,11 +212,19 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
   ];
   if (data.llmSummary) lines.push(String(data.llmSummary));
 
+  const thinking = quorumReached
+    ? "Reviewed quorum, participation, and stake-weighted support for the proposal."
+    : "Checked quorum requirements — participation is below the threshold needed for a binding outcome.";
+
   return {
     role: "GOVERNANCE",
     intent,
     headline,
     summary,
+    thinking,
+    recommendation: quorumReached
+      ? `Cast ${vote} unless your mandate requires otherwise; monitor late votes that could shift the outcome.`
+      : "Wait for more participation before treating the vote as decisive.",
     sections: [{ title: "Proposal analysis", lines }],
     metrics: {
       recommendedVote: vote,
@@ -207,11 +245,19 @@ function buildRiskReport(intent: TaskIntent | string, data: Record<string, unkno
     ? (data.riskFactors as Array<{ name: string; score: number }>).map((f) => `${f.name}: ${f.score}/100`)
     : [];
 
+  const thinking = "Scored fleet health from circuit breaker status, agent reserves, and recent failure signals.";
+
   return {
     role: "RISK_MGMT",
     intent,
     headline,
     summary,
+    thinking,
+    recommendation:
+      String(data.recommendation ?? "") ||
+      (level === "LOW" || level === "MEDIUM"
+        ? "Fleet risk is acceptable for routine task submission; keep monitoring breaker status."
+        : "Reduce exposure or pause new tasks until fleet health improves."),
     sections: [
       {
         title: "Signals",

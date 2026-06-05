@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { api, formatEth, shortAddr, type Task } from "../api/client";
+import { api, formatEth, type Task } from "../api/client";
 import { useFetch, useWebSocket } from "../api/hooks";
 import { useSignedIn } from "../auth/useSignedIn";
 import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion } from "../components/motion/PageMotion";
@@ -31,20 +30,44 @@ const STATUSES: Array<{ value: string; label: string }> = [
   { value: "EXPIRED", label: "expired" },
 ];
 
-const SectionDivider = styled("div", {
-  margin: "$12 0 $8",
-  borderTop: `1px solid ${GLASS.divider}`,
+const Workspace = styled("div", {
+  display: "grid",
+  gap: "$6",
+  alignItems: "start",
+  variants: {
+    session: {
+      true: {
+        "@lg": { gridTemplateColumns: "minmax(0, 1fr) minmax(220px, 300px)" },
+      },
+      false: {
+        gridTemplateColumns: "1fr",
+      },
+    },
+  },
 });
 
-const UserBubble = styled("div", {
-  marginTop: "$6",
-  marginBottom: "$4",
-  padding: "$4 $5",
+const MainColumn = styled("div", {
+  minWidth: 0,
+});
+
+const HistoryPanel = styled(motion.aside, {
+  minWidth: 0,
   borderRadius: "$lg",
   border: `1px solid ${GLASS.borderSoft}`,
-  background: "rgba(255,255,255,0.04)",
-  fontSize: "0.9375rem",
-  lineHeight: 1.55,
+  background: "rgba(0,0,0,0.22)",
+  padding: "$4",
+  maxHeight: "calc(100vh - 12rem)",
+  overflowY: "auto",
+  position: "sticky",
+  top: "$6",
+});
+
+const HistoryPanelTitle = styled("div", {
+  fontSize: "0.6875rem",
+  fontWeight: 700,
+  letterSpacing: "0.02em",
+  opacity: 0.55,
+  marginBottom: "$3",
 });
 
 const HistoryList = styled("div", {
@@ -56,12 +79,10 @@ const HistoryList = styled("div", {
 const HistoryItem = styled("button", {
   width: "100%",
   textAlign: "left",
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto",
-  alignItems: "center",
-  columnGap: "$5",
-  rowGap: "$2",
-  padding: "$4",
+  display: "flex",
+  flexDirection: "column",
+  gap: "$2",
+  padding: "$3",
   borderRadius: "$md",
   border: "1px solid transparent",
   background: "rgba(0,0,0,0.22)",
@@ -83,15 +104,8 @@ const HistoryItem = styled("button", {
   },
 });
 
-const HistoryMain = styled("div", {
-  minWidth: 0,
-  display: "flex",
-  flexDirection: "column",
-  gap: "$1",
-});
-
 const HistoryQuery = styled("div", {
-  fontSize: "0.875rem",
+  fontSize: "0.8125rem",
   fontWeight: 600,
   lineHeight: 1.4,
   overflow: "hidden",
@@ -104,61 +118,14 @@ const HistoryQuery = styled("div", {
 const HistoryMeta = styled("div", {
   fontSize: "0.6875rem",
   opacity: 0.62,
-  lineHeight: 1.45,
   display: "flex",
   flexWrap: "wrap",
   alignItems: "center",
-  columnGap: "0.35rem",
-  rowGap: "0.15rem",
+  gap: "0.35rem",
 });
 
-const HistoryMetaSep = styled("span", {
-  opacity: 0.45,
-  userSelect: "none",
-});
-
-const HistoryAside = styled("div", {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "$2",
-  width: "6.25rem",
-  flexShrink: 0,
-});
-
-const HistoryStatusSlot = styled("div", {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "100%",
-});
-
-const HistoryAmount = styled("span", {
-  display: "block",
-  width: "100%",
-  textAlign: "center",
-  fontWeight: 600,
-  fontSize: "0.8125rem",
-  lineHeight: 1.2,
-  fontVariantNumeric: "tabular-nums",
-  whiteSpace: "nowrap",
-  opacity: 0.9,
-  letterSpacing: "0.01em",
-});
-
-const HistoryRowWrap = styled("div", {
-  display: "flex",
-  flexDirection: "column",
-});
-
-const HistoryTeamLink = styled(Link, {
-  fontSize: "0.75rem",
-  opacity: 0.75,
-  textDecoration: "underline",
-  margin: "0 0 $2",
-  paddingLeft: "$4",
-  alignSelf: "flex-start",
+const InlineHistoryBlock = styled("div", {
+  marginTop: "$10",
 });
 
 const FilterRow = styled("div", {
@@ -178,20 +145,107 @@ const EmptyHistory = styled("div", {
   fontSize: "0.875rem",
 });
 
-const BubbleLabel = styled("div", {
-  fontSize: "0.6875rem",
-  fontWeight: 700,
-  letterSpacing: "0.02em",
-  textTransform: "none",
-  opacity: 0.5,
-  marginBottom: 6,
+const NewQuestionLink = styled("button", {
+  marginTop: "$4",
+  background: "none",
+  border: "none",
+  color: "inherit",
+  font: "inherit",
+  fontSize: "0.8125rem",
+  opacity: 0.55,
+  cursor: "pointer",
+  textDecoration: "underline",
+  "&:hover": { opacity: 0.85 },
 });
+
+function HistorySection({
+  tasks,
+  labels,
+  selectedId,
+  loading,
+  status,
+  onStatusChange,
+  onSelect,
+  compact,
+}: {
+  tasks: Task[];
+  labels: Record<number, string>;
+  selectedId: number | null;
+  loading: boolean;
+  status: string;
+  onStatusChange: (status: string) => void;
+  onSelect: (id: number) => void;
+  compact?: boolean;
+}) {
+  return (
+    <>
+      {!compact && (
+        <SectionHeading>
+          <SectionHeadingTitle>history</SectionHeadingTitle>
+        </SectionHeading>
+      )}
+
+      <FilterRow>
+        {STATUSES.map((s) => (
+          <GlassFilterPill
+            key={s.value || "all"}
+            type="button"
+            active={status === s.value}
+            onClick={() => onStatusChange(s.value)}
+          >
+            {s.label}
+          </GlassFilterPill>
+        ))}
+      </FilterRow>
+
+      {loading && tasks.length === 0 && <p style={{ opacity: 0.65, fontSize: "0.875rem" }}>loading...</p>}
+
+      <HistoryList>
+        <AnimatePresence mode="popLayout">
+          {tasks.map((task) => {
+            const query = labels[task.id] ?? `Task #${task.id}`;
+            const truncated = query.length > 120 ? `${query.slice(0, 117)}…` : query;
+
+            return (
+              <HistoryItem
+                key={task.id}
+                type="button"
+                active={selectedId === task.id}
+                onClick={() => onSelect(task.id)}
+                as={motion.button}
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={spring}
+              >
+                <HistoryQuery>{truncated}</HistoryQuery>
+                <HistoryMeta>
+                  <Badge status={statusColor[task.status]}>{taskStatusLabel(task.status)}</Badge>
+                  <span>{formatEth(task.reward)}</span>
+                  {!compact && <span>#{task.id}</span>}
+                </HistoryMeta>
+              </HistoryItem>
+            );
+          })}
+        </AnimatePresence>
+      </HistoryList>
+
+      {!loading && tasks.length === 0 && (
+        <EmptyHistory>
+          <p style={{ margin: 0 }}>No tasks yet.</p>
+        </EmptyHistory>
+      )}
+    </>
+  );
+}
 
 export default function TasksPage() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
   const [labels, setLabels] = useState<Record<number, string>>({});
   const { signedIn } = useSignedIn();
   const toast = useToast();
@@ -214,7 +268,10 @@ export default function TasksPage() {
 
   useEffect(() => {
     const state = location.state as { scrollToTasks?: boolean; openTaskId?: number } | null;
-    if (state?.openTaskId) setSelectedId(state.openTaskId);
+    if (state?.openTaskId) {
+      setSelectedId(state.openTaskId);
+      setSessionActive(true);
+    }
     if (state?.scrollToTasks && historyRef.current) {
       historyRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
       window.history.replaceState({}, document.title);
@@ -251,10 +308,33 @@ export default function TasksPage() {
         status: "PENDING",
       });
       setSelectedId(id);
+      setSessionActive(true);
     }
   }, [lastEvent, prependTask]);
 
-  const selectedLabel = selectedId != null ? labels[selectedId] : null;
+  const handleTaskCreated = useCallback(
+    ({ taskId, userQuery }: { taskId: number; userQuery: string }) => {
+      setSelectedId(taskId);
+      setSessionActive(true);
+      setLabels((prev) => ({ ...prev, [taskId]: userQuery }));
+    },
+    [],
+  );
+
+  const handleSelectTask = useCallback((id: number) => {
+    setSelectedId(id);
+    setSessionActive(true);
+  }, []);
+
+  const handleEndSession = useCallback(() => {
+    setSelectedId(null);
+    setSessionActive(false);
+  }, []);
+
+  const handleStatusChange = useCallback((next: string) => {
+    setStatus(next);
+    setPage(0);
+  }, []);
 
   return (
     <PageWrap css={signedIn ? { paddingTop: 0 } : undefined}>
@@ -273,103 +353,74 @@ export default function TasksPage() {
           <ErrorBanner message={error} onRetry={reload} />
 
           <PageContent>
-            <TaskSubmitPanel variant="chat" onSubmitted={reload} />
+            <Workspace session={sessionActive}>
+              <MainColumn>
+                <TaskSubmitPanel
+                  variant="chat"
+                  onSubmitted={reload}
+                  onTaskCreated={handleTaskCreated}
+                />
 
-            {selectedId != null && selectedLabel && (
-              <UserBubble aria-label="Selected question">
-                <BubbleLabel>your question</BubbleLabel>
-                {selectedLabel}
-              </UserBubble>
-            )}
+                {selectedId != null && (
+                  <>
+                    <TaskDetailPanel taskId={selectedId} onClose={handleEndSession} />
+                    <NewQuestionLink type="button" onClick={handleEndSession}>
+                      new question
+                    </NewQuestionLink>
+                  </>
+                )}
 
-            {selectedId != null && (
-              <div style={{ marginBottom: "$4" }}>
-                <TaskDetailPanel taskId={selectedId} onClose={() => setSelectedId(null)} />
-              </div>
-            )}
+                {!sessionActive && (
+                  <InlineHistoryBlock id="task-list" ref={historyRef}>
+                    <HistorySection
+                      tasks={tasks}
+                      labels={labels}
+                      selectedId={selectedId}
+                      loading={loading}
+                      status={status}
+                      onStatusChange={handleStatusChange}
+                      onSelect={handleSelectTask}
+                    />
 
-            <SectionDivider id="task-list" ref={historyRef} />
+                    {data && data.pagination.total > 20 && (
+                      <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
+                        <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
+                          previous
+                        </button>
+                        <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
+                        <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>
+                          next
+                        </button>
+                      </div>
+                    )}
+                  </InlineHistoryBlock>
+                )}
+              </MainColumn>
 
-            <SectionHeading>
-              <SectionHeadingTitle>history</SectionHeadingTitle>
-            </SectionHeading>
-
-            <FilterRow>
-              {STATUSES.map((s) => (
-                <GlassFilterPill
-                  key={s.value || "all"}
-                  type="button"
-                  active={status === s.value}
-                  onClick={() => {
-                    setStatus(s.value);
-                    setPage(0);
-                  }}
-                >
-                  {s.label}
-                </GlassFilterPill>
-              ))}
-            </FilterRow>
-
-            {loading && tasks.length === 0 && <p style={{ opacity: 0.65, fontSize: "0.875rem" }}>loading...</p>}
-
-            <HistoryList>
-              <AnimatePresence mode="popLayout">
-                {tasks.map((task) => {
-                  const query = labels[task.id] ?? `Task #${task.id}`;
-                  const truncated = query.length > 120 ? `${query.slice(0, 117)}…` : query;
-
-                  return (
-                    <HistoryRowWrap key={task.id} as={motion.div} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring}>
-                      <HistoryItem type="button" active={selectedId === task.id} onClick={() => setSelectedId(task.id)}>
-                        <HistoryMain>
-                          <HistoryQuery>{truncated}</HistoryQuery>
-                          <HistoryMeta>
-                            <span>#{task.id}</span>
-                            <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
-                            <span>{shortAddr(task.submitter)}</span>
-                            <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
-                            <span>{task.complexity >= 5 ? "swarm" : "single"}</span>
-                            {task.coalitionAddr ? (
-                              <>
-                                <HistoryMetaSep aria-hidden>·</HistoryMetaSep>
-                                <span>Team</span>
-                              </>
-                            ) : null}
-                          </HistoryMeta>
-                        </HistoryMain>
-                        <HistoryAside>
-                          <HistoryStatusSlot>
-                            <Badge status={statusColor[task.status]}>{taskStatusLabel(task.status)}</Badge>
-                          </HistoryStatusSlot>
-                          <HistoryAmount>{formatEth(task.reward)}</HistoryAmount>
-                        </HistoryAside>
-                      </HistoryItem>
-                      {task.coalitionAddr && selectedId === task.id && (
-                        <HistoryTeamLink to={`/coalitions/${task.coalitionAddr}`}>View team</HistoryTeamLink>
-                      )}
-                    </HistoryRowWrap>
-                  );
-                })}
+              <AnimatePresence>
+                {sessionActive && (
+                  <HistoryPanel
+                    key="history-sidebar"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 16 }}
+                    transition={spring}
+                  >
+                    <HistoryPanelTitle>history</HistoryPanelTitle>
+                    <HistorySection
+                      tasks={tasks}
+                      labels={labels}
+                      selectedId={selectedId}
+                      loading={loading}
+                      status={status}
+                      onStatusChange={handleStatusChange}
+                      onSelect={handleSelectTask}
+                      compact
+                    />
+                  </HistoryPanel>
+                )}
               </AnimatePresence>
-            </HistoryList>
-
-            {!loading && tasks.length === 0 && (
-              <EmptyHistory>
-                <p style={{ margin: 0 }}>No tasks yet.</p>
-              </EmptyHistory>
-            )}
-
-            {data && data.pagination.total > 20 && (
-              <div style={{ display: "flex", gap: "1rem", marginTop: "2rem", justifyContent: "center", alignItems: "center" }}>
-                <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={{ opacity: page === 0 ? 0.3 : 1 }}>
-                  previous
-                </button>
-                <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>Page {page + 1}</span>
-                <button disabled={(page + 1) * 20 >= data.pagination.total} onClick={() => setPage((p) => p + 1)}>
-                  next
-                </button>
-              </div>
-            )}
+            </Workspace>
           </PageContent>
         </AnimatedSection>
       </PageMotion>

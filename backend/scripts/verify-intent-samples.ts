@@ -52,7 +52,7 @@ for (const intent of SAMPLE_INTENTS) {
 
   for (const role of roles) {
     const report = buildSkillReport(role, intent, mockDataForRole(role));
-    if (!report.headline || !report.summary || !Array.isArray(report.sections)) {
+    if (!report.headline || !report.summary || !report.thinking || !report.recommendation || !Array.isArray(report.sections)) {
       console.error(`[FAIL] ${intent}/${role}: invalid report shape`);
       failed++;
       continue;

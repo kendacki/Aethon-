@@ -1,272 +1,167 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { styled } from "../../stitches.config";
-import { api, formatEth, shortAddr, type Task } from "../../api/client";
-import { FLEET_ROLE_META } from "../../config/fleetRoles";
-import { Badge, Button } from "../ui";
-import { GlassCard } from "../GlassPanel";
-import { taskStatusLabel, displayLabel } from "../../lib/formatText";
-import type { AgentType } from "../../task/payload";
+import { useCallback, useEffect, useState } from "react";
+import { styled, keyframes } from "../../stitches.config";
+import { api, type TaskDetailResponse } from "../../api/client";
+import { formatTaskOutput, isTaskInProgress } from "../../lib/taskResult";
 import { SwarmExecutionButton } from "./SwarmExecutionButton";
 
-type SkillResultRow = {
-  agentType: string;
-  agentAddress: string;
-  result: {
-    success?: boolean;
-    data?: Record<string, unknown>;
-    error?: string;
-  };
-};
-
-type TaskDetail = {
-  task: Task;
-  payload: {
-    userQuery?: string;
-    intent?: string;
-    label?: string;
-    primaryRole?: string;
-    successCriteria?: Array<{ id: string; label: string; description: string }>;
-  } | null;
-  skillResults: SkillResultRow[];
-  evaluation: {
-    overallSuccess: boolean;
-    summary: string;
-    criteria: Array<{ id: string; label: string; met: boolean; detail?: string }>;
-    roleSummaries: Array<{ role: string; success: boolean; summary: string }>;
-  };
-  catalog: { agentWork?: string; sources?: string[]; successCriteria?: Array<{ label: string; description: string }> } | null;
-  execution: { targetContract: string; executionPayload: string } | null;
-};
-
-const Panel = styled(GlassCard, {
-  defaultVariants: { tone: "neutral" },
+const pulse = keyframes({
+  "0%, 100%": { opacity: 0.45 },
+  "50%": { opacity: 1 },
 });
 
-const Section = styled("section", {
-  marginTop: "$5",
-  "& h4": {
-    margin: "0 0 $2",
-    fontSize: "0.6875rem",
-    fontWeight: 700,
-    letterSpacing: "0.02em",
-    textTransform: "none",
-    opacity: 0.55,
-  },
+const ResponseShell = styled("div", {
+  width: "100%",
+  maxWidth: "48rem",
+  margin: "$6 auto 0",
 });
 
-const SourceList = styled("ul", {
-  margin: 0,
-  paddingLeft: "1.1rem",
+const ResponseCard = styled("article", {
+  padding: "$5 $6",
+  borderRadius: "$lg",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(255,255,255,0.03)",
+  fontSize: "0.9375rem",
+  lineHeight: 1.65,
+});
+
+const Thinking = styled("p", {
+  margin: "0 0 $4",
+  paddingLeft: "$3",
+  borderLeft: "2px solid rgba(255,255,255,0.14)",
   fontSize: "0.8125rem",
-  opacity: 0.85,
+  lineHeight: 1.55,
+  opacity: 0.58,
+  fontStyle: "italic",
+});
+
+const Body = styled("div", {
+  color: "rgba(255,255,255,0.92)",
+  whiteSpace: "pre-wrap",
+  "& p": { margin: "0 0 $3" },
+});
+
+const Recommendation = styled("div", {
+  marginTop: "$5",
+  padding: "$4 $4",
+  borderRadius: "$md",
+  background: "rgba(13, 188, 130, 0.08)",
+  border: "1px solid rgba(13, 188, 130, 0.22)",
+  fontSize: "0.875rem",
   lineHeight: 1.55,
 });
 
-const RoleCard = styled("div", {
-  padding: "$3",
-  borderRadius: "$md",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background: "rgba(0,0,0,0.25)",
-  marginTop: "$2",
+const RecommendationLabel = styled("div", {
+  fontSize: "0.6875rem",
+  fontWeight: 700,
+  letterSpacing: "0.02em",
+  opacity: 0.65,
+  marginBottom: "$2",
 });
 
-const CriteriaRow = styled("div", {
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "$2",
-  fontSize: "0.8125rem",
-  marginTop: "$2",
-  lineHeight: 1.45,
+const PendingDots = styled("span", {
+  display: "inline-block",
+  animation: `${pulse} 1.4s ease-in-out infinite`,
 });
 
-type SkillReportView = {
-  headline?: string;
-  summary?: string;
-  sections?: Array<{ title: string; lines: string[] }>;
-};
+const ErrorText = styled("p", {
+  margin: "$4 0 0",
+  color: "#f87171",
+  fontSize: "0.875rem",
+});
 
-function renderSkillBody(data: Record<string, unknown>, error?: string): ReactNode {
-  const report = data.report as SkillReportView | undefined;
-  const summary = report?.summary ?? data.summary ?? error ?? "Not available";
-
-  return (
-    <>
-      {report?.headline && (
-        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", fontWeight: 700, opacity: 0.85 }}>{report.headline}</p>
-      )}
-      <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.9 }}>{String(summary)}</p>
-      {report?.sections?.map((section) => (
-        <div key={section.title} style={{ marginTop: "0.65rem" }}>
-          <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.02em", opacity: 0.5 }}>
-            {displayLabel(section.title)}
-          </div>
-          <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem", fontSize: "0.75rem", lineHeight: 1.5, opacity: 0.82 }}>
-            {section.lines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </>
-  );
-}
+const ExecuteBlock = styled("div", {
+  marginTop: "$5",
+  paddingTop: "$4",
+  borderTop: "1px solid rgba(255,255,255,0.08)",
+});
 
 type TaskDetailPanelProps = {
   taskId: number | null;
-  onClose: () => void;
+  onClose?: () => void;
 };
 
-export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
-  const [detail, setDetail] = useState<TaskDetail | null>(null);
+export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
+  const [detail, setDetail] = useState<TaskDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadDetail = useCallback(async () => {
+    if (taskId == null) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.taskDetail(taskId);
+      setDetail(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load result");
+    } finally {
+      setLoading(false);
+    }
+  }, [taskId]);
 
   useEffect(() => {
     if (taskId == null) {
       setDetail(null);
+      setError(null);
       return;
     }
-    setLoading(true);
-    setError(null);
-    api
-      .taskDetail(taskId)
-      .then(setDetail)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load task"))
-      .finally(() => setLoading(false));
-  }, [taskId]);
+    void loadDetail();
+  }, [taskId, loadDetail]);
+
+  useEffect(() => {
+    if (taskId == null || !detail || !isTaskInProgress(detail.task.status)) return;
+    const timer = window.setInterval(() => {
+      void loadDetail();
+    }, 2500);
+    return () => window.clearInterval(timer);
+  }, [taskId, detail, loadDetail]);
 
   if (taskId == null) return null;
 
+  const output = formatTaskOutput(detail);
+  const showThinking = Boolean(output.thinking) && (output.isPending || Boolean(output.body));
+
   return (
-    <Panel>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: "1.0625rem" }}>task #{taskId}</div>
-            <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>your request and results</p>
-        </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          close
-        </Button>
-      </div>
+    <ResponseShell aria-live="polite" aria-busy={loading || output.isPending}>
+      <ResponseCard>
+        {showThinking && (
+          <Thinking>
+            {output.thinking}
+            {output.isPending && !detail?.skillResults.length ? (
+              <>
+                {" "}
+                <PendingDots>●●●</PendingDots>
+              </>
+            ) : null}
+          </Thinking>
+        )}
 
-      {loading && <p style={{ marginTop: "1rem", opacity: 0.7 }}>Loading task...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "#f87171" }}>{error}</p>}
+        {loading && !detail ? (
+          <Body>
+            <PendingDots>Loading result...</PendingDots>
+          </Body>
+        ) : (
+          <Body>{output.body}</Body>
+        )}
 
-      {detail && (
-        <>
-          <Section>
-            <h4>your request</h4>
-            <p style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.55 }}>
-              {detail.payload?.userQuery ?? detail.payload?.label ?? "Not available"}
-            </p>
-            <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-              <Badge status={statusBadge(detail.task.status)}>{taskStatusLabel(detail.task.status)}</Badge>
-              <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>{formatEth(detail.task.reward)}</span>
-              <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>{shortAddr(detail.task.submitter)}</span>
-            </div>
-          </Section>
+        {output.recommendation ? (
+          <Recommendation>
+            <RecommendationLabel>recommendation</RecommendationLabel>
+            {output.recommendation}
+          </Recommendation>
+        ) : null}
 
-          <Section>
-            <h4>agent work</h4>
-            <p style={{ margin: 0, fontSize: "0.8125rem", lineHeight: 1.55, opacity: 0.88 }}>
-              {detail.catalog?.agentWork ?? "Fleet agents run your signed request and post results."}
-            </p>
-          </Section>
+        {error ? <ErrorText>{error}</ErrorText> : null}
 
-          <Section>
-            <h4>sources</h4>
-            <SourceList>
-              {(detail.catalog?.sources ?? []).map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </SourceList>
-          </Section>
-
-          <Section>
-            <h4>checks</h4>
-            {(detail.evaluation.criteria.length > 0 ? detail.evaluation.criteria : []).map((c) => (
-              <CriteriaRow key={c.id}>
-                <span style={{ color: c.met ? "#4ade80" : "#f87171" }}>{c.met ? "✓" : "○"}</span>
-                <span>
-                  <strong>{c.label}</strong>
-                  {c.detail ? <span style={{ opacity: 0.72 }}>: {c.detail}</span> : null}
-                </span>
-              </CriteriaRow>
-            ))}
-            <p style={{ marginTop: "0.75rem", fontSize: "0.8125rem", opacity: 0.8 }}>{detail.evaluation.summary}</p>
-            {detail.task.status === "COMPLETED" || detail.task.status === "FAILED" ? (
-              <p style={{ marginTop: "0.5rem", fontWeight: 600, fontSize: "0.8125rem" }}>
-                On-chain result: {detail.evaluation.overallSuccess ? "passed" : "not fully passed"}
-              </p>
-            ) : (
-              <p style={{ marginTop: "0.5rem", fontSize: "0.75rem", opacity: 0.65 }}>
-                Results update as agents report. On-chain completion follows team review.
-              </p>
-            )}
-          </Section>
-
-          <Section>
-            <h4>results</h4>
-            {detail.skillResults.length === 0 && (
-              <p style={{ fontSize: "0.8125rem", opacity: 0.7 }}>No results yet. Waiting for agents.</p>
-            )}
-            {detail.skillResults.map((row) => {
-              const meta = FLEET_ROLE_META[row.agentType as AgentType];
-              const data = row.result.data ?? {};
-              const sources = Array.isArray(data.sources) ? (data.sources as string[]) : [];
-              return (
-                <RoleCard key={row.agentAddress}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.8125rem" }}>{meta?.label ?? row.agentType}</span>
-                    <Badge status={row.result.success !== false ? "online" : "offline"}>
-                      {row.result.success !== false ? "ok" : "failed"}
-                    </Badge>
-                  </div>
-                  <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.9 }}>
-                    {renderSkillBody(data, row.result.error)}
-                  </p>
-                  {sources.length > 0 && (
-                    <p style={{ margin: "0.35rem 0 0", fontSize: "0.6875rem", opacity: 0.6 }}>
-                      Sources: {sources.join(" · ")}
-                    </p>
-                  )}
-                </RoleCard>
-              );
-            })}
-          </Section>
-
-          {detail.execution && detail.task.status === "COMPLETED" && (
-            <Section>
-              <h4>execute on-chain</h4>
-              <p style={{ margin: 0, fontSize: "0.8125rem", opacity: 0.85, lineHeight: 1.5 }}>
-                Agents compiled calldata on-chain. Your wallet sends the transaction to{" "}
-                <code style={{ fontSize: "0.75rem" }}>{shortAddr(detail.execution.targetContract)}</code>.
-              </p>
-              <div style={{ marginTop: "0.75rem" }}>
-                <SwarmExecutionButton
-                  targetContract={detail.execution.targetContract}
-                  executionPayload={detail.execution.executionPayload}
-                />
-              </div>
-            </Section>
-          )}
-
-          {detail.task.coalitionAddr && (
-            <div style={{ marginTop: "$5" }}>
-              <Link to={`/coalitions/${detail.task.coalitionAddr}`} style={{ fontSize: "0.8125rem", textDecoration: "underline" }}>
-                View team
-              </Link>
-            </div>
-          )}
-        </>
-      )}
-    </Panel>
+        {detail?.execution && detail.task.status === "COMPLETED" && (
+          <ExecuteBlock>
+            <SwarmExecutionButton
+              targetContract={detail.execution.targetContract}
+              executionPayload={detail.execution.executionPayload}
+            />
+          </ExecuteBlock>
+        )}
+      </ResponseCard>
+    </ResponseShell>
   );
-}
-
-function statusBadge(status: string): "online" | "offline" | undefined {
-  if (status === "COMPLETED") return "online";
-  if (status === "FAILED" || status === "EXPIRED") return "offline";
-  return undefined;
 }

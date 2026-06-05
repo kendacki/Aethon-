@@ -196,10 +196,11 @@ const EXAMPLE_QUERIES: Array<{ intent: TaskIntent; query: string }> = [
 
 type TaskSubmitPanelProps = {
   onSubmitted?: () => void;
+  onTaskCreated?: (task: { taskId: number; userQuery: string }) => void;
   variant?: "panel" | "chat";
 };
 
-export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPanelProps) {
+export function TaskSubmitPanel({ onSubmitted, onTaskCreated, variant = "panel" }: TaskSubmitPanelProps) {
   const { signedIn, phase } = useSignedIn();
   const { address, signer, isCorrectChain, connect } = useWallet();
   const toast = useToast();
@@ -279,16 +280,20 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
           ? Number((res.data as { taskId: number }).taskId)
           : undefined;
 
-      setSuccessModal({
-        label: payload.label ?? "Task",
-        userQuery: payload.userQuery,
-        intent: catalog.label,
-        mode: effectiveMode,
-        role: effectiveMode === "single" ? role : undefined,
-        complexity,
-        rewardDisplay: formatEth(rewardWei),
-        taskId,
-      });
+      if (variant === "chat" && taskId != null) {
+        onTaskCreated?.({ taskId, userQuery: payload.userQuery ?? "" });
+      } else {
+        setSuccessModal({
+          label: payload.label ?? "Task",
+          userQuery: payload.userQuery,
+          intent: catalog.label,
+          mode: effectiveMode,
+          role: effectiveMode === "single" ? role : undefined,
+          complexity,
+          rewardDisplay: formatEth(rewardWei),
+          taskId,
+        });
+      }
 
       toast.success("Task accepted. Agents are working on it.");
       onSubmitted?.();
