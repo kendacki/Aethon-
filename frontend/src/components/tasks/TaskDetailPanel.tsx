@@ -5,7 +5,7 @@ import { formatTaskOutput, isTaskInProgress } from "../../lib/taskResult";
 import { SwarmExecutionButton } from "./SwarmExecutionButton";
 
 const pulse = keyframes({
-  "0%, 100%": { opacity: 0.45 },
+  "0%, 100%": { opacity: 0.4 },
   "50%": { opacity: 1 },
 });
 
@@ -21,50 +21,40 @@ const ResponseCard = styled("article", {
   border: "1px solid rgba(255,255,255,0.08)",
   background: "rgba(255,255,255,0.03)",
   fontSize: "0.9375rem",
-  lineHeight: 1.65,
+  lineHeight: 1.7,
 });
 
-const Thinking = styled("p", {
-  margin: "0 0 $4",
-  paddingLeft: "$3",
-  borderLeft: "2px solid rgba(255,255,255,0.14)",
+const StatusLine = styled("p", {
+  margin: 0,
   fontSize: "0.8125rem",
-  lineHeight: 1.55,
-  opacity: 0.58,
-  fontStyle: "italic",
+  lineHeight: 1.5,
+  opacity: 0.55,
 });
 
 const Body = styled("div", {
-  color: "rgba(255,255,255,0.92)",
+  color: "rgba(255,255,255,0.94)",
   whiteSpace: "pre-wrap",
-  "& p": { margin: "0 0 $3" },
+  fontSize: "0.9375rem",
+  lineHeight: 1.7,
 });
 
-const Recommendation = styled("div", {
-  marginTop: "$5",
-  padding: "$4 $4",
-  borderRadius: "$md",
-  background: "rgba(13, 188, 130, 0.08)",
-  border: "1px solid rgba(13, 188, 130, 0.22)",
+const NextStep = styled("p", {
+  margin: "$4 0 0",
+  paddingTop: "$4",
+  borderTop: "1px solid rgba(255,255,255,0.08)",
   fontSize: "0.875rem",
-  lineHeight: 1.55,
-});
-
-const RecommendationLabel = styled("div", {
-  fontSize: "0.6875rem",
-  fontWeight: 700,
-  letterSpacing: "0.02em",
-  opacity: 0.65,
-  marginBottom: "$2",
+  lineHeight: 1.6,
+  opacity: 0.82,
 });
 
 const PendingDots = styled("span", {
   display: "inline-block",
+  marginLeft: 4,
   animation: `${pulse} 1.4s ease-in-out infinite`,
 });
 
 const ErrorText = styled("p", {
-  margin: "$4 0 0",
+  margin: "$3 0 0",
   color: "#f87171",
   fontSize: "0.875rem",
 });
@@ -93,7 +83,7 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
       const data = await api.taskDetail(taskId);
       setDetail(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load result");
+      setError(e instanceof Error ? e.message : "Could not load the answer.");
     } finally {
       setLoading(false);
     }
@@ -119,36 +109,22 @@ export function TaskDetailPanel({ taskId }: TaskDetailPanelProps) {
   if (taskId == null) return null;
 
   const output = formatTaskOutput(detail);
-  const showThinking = Boolean(output.thinking) && (output.isPending || Boolean(output.body));
+  const showStatus = output.isPending || (loading && !detail);
 
   return (
     <ResponseShell aria-live="polite" aria-busy={loading || output.isPending}>
       <ResponseCard>
-        {showThinking && (
-          <Thinking>
-            {output.thinking}
-            {output.isPending && !detail?.skillResults.length ? (
-              <>
-                {" "}
-                <PendingDots>●●●</PendingDots>
-              </>
-            ) : null}
-          </Thinking>
+        {showStatus && (
+          <StatusLine>
+            {output.thinking || "Working on your question..."}
+            <PendingDots aria-hidden>···</PendingDots>
+          </StatusLine>
         )}
 
-        {loading && !detail ? (
-          <Body>
-            <PendingDots>Loading result...</PendingDots>
-          </Body>
-        ) : (
-          <Body>{output.body}</Body>
-        )}
+        {output.body ? <Body>{output.body}</Body> : null}
 
         {output.recommendation ? (
-          <Recommendation>
-            <RecommendationLabel>recommendation</RecommendationLabel>
-            {output.recommendation}
-          </Recommendation>
+          <NextStep>{output.recommendation}</NextStep>
         ) : null}
 
         {error ? <ErrorText>{error}</ErrorText> : null}

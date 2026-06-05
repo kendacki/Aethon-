@@ -5,7 +5,6 @@ type SkillReportView = {
   summary?: string;
   thinking?: string;
   recommendation?: string;
-  sections?: Array<{ title: string; lines: string[] }>;
 };
 
 export type TaskResultOutput = {
@@ -16,36 +15,57 @@ export type TaskResultOutput = {
   isFailed: boolean;
 };
 
+function cleanCopy(text: string): string {
+  return text
+    .replace(/\s+/g, " ")
+    .replace(/\bETHEREUM\b/g, "Ethereum")
+    .replace(/\bETH\b/g, "ETH")
+    .trim();
+}
+
 function extractReport(data: Record<string, unknown>, error?: string): {
-  thinking: string;
   body: string;
   recommendation: string;
 } {
   const report = data.report as SkillReportView | undefined;
-  const summary = report?.summary ?? data.summary ?? error ?? "";
-  const headline = report?.headline ?? "";
-  const sectionDetail =
-    report?.sections
-      ?.flatMap((s) => s.lines)
-      .filter(Boolean)
-      .join(" ") ?? "";
+  const body = cleanCopy(
+    String(report?.summary ?? data.summary ?? error ?? ""),
+  );
 
-  const body = [headline, summary, sectionDetail].filter(Boolean).join("\n\n");
-
-  return {
-    thinking: report?.thinking ?? "Reviewed live fleet data for your request.",
-    body: body || "No result returned yet.",
-    recommendation:
+  const recommendation = cleanCopy(
+    String(
       report?.recommendation ??
-      (typeof data.recommendation === "string" ? data.recommendation : "") ??
-      "",
-  };
+        (typeof data.recommendation === "string" ? data.recommendation : ""),
+    ),
+  );
+
+  return { body, recommendation };
+}
+
+function uniqueSentences(parts: string[]): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of parts) {
+    const sentence = cleanCopy(part);
+    if (!sentence || seen.has(sentence.toLowerCase())) continue;
+    seen.add(sentence.toLowerCase());
+    out.push(sentence);
+  }
+  return out.join("\n\n");
+}
+
+function recommendationDistinct(body: string, recommendation: string): string {
+  if (!recommendation) return "";
+  const bodyLower = body.toLowerCase();
+  const recLower = recommendation.toLowerCase();
+  if (bodyLower.includes(recLower) || recLower.includes(bodyLower)) return "";
+  return recommendation;
 }
 
 export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultOutput {
   if (!detail) {
     return {
-      thinking: "",
+      thinking: "Working on your question...",
       body: "",
       recommendation: "",
       isPending: true,
@@ -59,13 +79,13 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
 
   if (detail.skillResults.length === 0) {
     return {
-      thinking: isPending ? "Agents are processing your request..." : "",
+      thinking: isPending ? "Working on your question..." : "",
       body: isPending
-        ? "Working on your request. Results will appear here automatically."
+        ? ""
         : isFailed
-          ? "This task did not complete successfully."
-          : "No agent results were recorded for this task.",
-      recommendation: "",
+          ? "This request could not be completed. Please try again."
+          : "No answer was returned for this request.",
+      recommendation: isFailed ? "Submit the question again or try a simpler phrasing." : "",
       isPending,
       isFailed,
     };
@@ -75,15 +95,15 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
     extractReport(row.result.data ?? {}, row.result.error),
   );
 
-  const thinking = parts.map((p) => p.thinking).filter(Boolean).join(" ");
-  const body = parts.map((p) => p.body).filter(Boolean).join("\n\n");
-  const recommendation = parts.map((p) => p.recommendation).filter(Boolean).join(" ");
+  const body = uniqueSentences(parts.map((p) => p.body).filter(Boolean));
+  const rawRecommendation = uniqueSentences(parts.map((p) => p.recommendation).filter(Boolean));
+  const recommendation = recommendationDistinct(body, rawRecommendation);
 
   return {
-    thinking: isPending && !body ? "Agents are processing your request..." : thinking,
-    body: body || (isPending ? "Working on your request. Results will appear here automatically." : "No result returned."),
+    thinking: isPending && !body ? "Working on your question..." : "",
+    body: body || (isPending ? "" : "No answer was returned."),
     recommendation,
-    isPending,
+    isPending: isPending && !body,
     isFailed,
   };
 }

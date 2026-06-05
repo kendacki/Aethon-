@@ -27,6 +27,12 @@ function fmtPctFromBps(bps: unknown): string {
   return Number.isFinite(v) ? `${(v / 100).toFixed(2)}%` : "—";
 }
 
+function titleCaseAsset(asset: string): string {
+  const lower = asset.toLowerCase();
+  if (lower === "ethereum" || lower === "eth") return "Ethereum";
+  return asset.charAt(0).toUpperCase() + asset.slice(1).toLowerCase();
+}
+
 export function buildSkillReport(
   role: AgentType,
   intent: TaskIntent | string,
@@ -47,10 +53,10 @@ export function buildSkillReport(
       return {
         role,
         intent,
-        headline: "Agent report",
-        summary: String(data.summary ?? "Task completed."),
-        thinking: "Reviewed available signals for your request.",
-        recommendation: String(data.recommendation ?? "No further action required."),
+        headline: "Answer",
+        summary: String(data.summary ?? "Your request has been processed."),
+        thinking: "Reviewing your request.",
+        recommendation: String(data.recommendation ?? ""),
         sections: [],
         metrics: {},
       };
@@ -58,33 +64,33 @@ export function buildSkillReport(
 }
 
 function buildOracleReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
-  const asset = String(data.asset ?? "ethereum");
+  const asset = titleCaseAsset(String(data.asset ?? "ethereum"));
   const price = Number(data.price);
   const stale = Boolean(data.stale);
   const confidence = Number(data.confidence);
-  const headline = stale
-    ? `${asset.toUpperCase()} price (stale quote)`
-    : `${asset.toUpperCase()} spot price`;
+  const source = String(data.source ?? "market data");
+  const confPct = Number.isFinite(confidence) ? Math.round(confidence * 100) : null;
+
   const summary =
     String(data.summary) ||
     (Number.isFinite(price)
-      ? `${asset.toUpperCase()} is ${fmtUsd(price)} USD (${String(data.source ?? "oracle")}, confidence ${Number.isFinite(confidence) ? Math.round(confidence * 100) : "—"}%).`
-      : "Price lookup did not return a valid quote.");
+      ? stale
+        ? `${asset} last traded at ${fmtUsd(price)}, but the quote is no longer fresh.`
+        : `${asset} is ${fmtUsd(price)}${confPct != null ? ` (${confPct}% confidence, ${source})` : ""}.`
+      : "We could not retrieve a reliable price for this asset.");
 
-  const thinking = stale
-    ? "Fetched the latest quote, but it exceeded the allowed staleness window."
-    : "Fetched the live USD spot quote and confirmed it is within the freshness threshold.";
+  const thinking = "Checking the latest market price.";
 
   const recommendation = stale
-    ? "Wait for a fresh attestation before using this price for trades or portfolio sizing."
+    ? "Wait for an updated quote before making trading decisions."
     : Number.isFinite(price)
-      ? `Use ${fmtUsd(price)} as the working ETH reference; recheck if the market moves sharply or the quote ages out.`
-      : "Retry the price lookup or switch to a backup oracle source.";
+      ? "Use this figure for planning. Refresh before executing a trade."
+      : "Try again shortly or rephrase the asset name.";
 
   return {
     role: "ORACLE",
     intent,
-    headline,
+    headline: `${asset} price`,
     summary,
     thinking,
     recommendation,
@@ -93,7 +99,7 @@ function buildOracleReport(intent: TaskIntent | string, data: Record<string, unk
         title: "Quote",
         lines: [
           `Spot: ${fmtUsd(price)} USD`,
-          `Source: ${String(data.source ?? "unknown")}`,
+          `Source: ${source}`,
           `Age: ${String(data.ageSec ?? "—")}s (max ${String(data.maxStalenessSec ?? 120)}s)`,
           `Attestation: ${data.signature ? "signed" : "unsigned"}`,
         ],
@@ -111,23 +117,28 @@ function buildOracleReport(intent: TaskIntent | string, data: Record<string, unk
 function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
   const spreadBps = Number(data.spreadBps);
   const profitable = Boolean(data.profitable);
-  const recommendation = String(data.recommendation ?? "");
-  const headline = profitable ? "Arbitrage opportunity" : "No actionable spread";
-  const summary =
-    recommendation ||
-    `${String(data.asset ?? "asset")} spread ${Number.isFinite(spreadBps) ? spreadBps : "—"} bps.`;
+  const asset = titleCaseAsset(String(data.asset ?? "asset"));
+  const agentRec = String(data.recommendation ?? "").trim();
 
-  const thinking = `Compared reference price to simulated venue quotes and measured spread against the ${String(data.minSpreadBps ?? 15)} bps minimum.`;
+  const summary =
+    agentRec ||
+    (profitable
+      ? `${asset} shows a ${Number.isFinite(spreadBps) ? spreadBps : "—"} basis-point spread — a potential trade exists.`
+      : `${asset} shows no worthwhile spread right now.`);
+
+  const thinking = "Comparing prices across venues.";
+
+  const recommendation = profitable
+    ? "Proceed only if fees and slippage still leave room to profit."
+    : "No action needed. Check again when the market moves.";
 
   return {
     role: "ARBITRAGE",
     intent,
-    headline,
+    headline: profitable ? "Trade opportunity" : "No opportunity",
     summary,
     thinking,
-    recommendation:
-      recommendation ||
-      (profitable ? "Consider executing when gas and slippage still leave room above the minimum spread." : "Hold off and re-scan when volatility or liquidity improves."),
+    recommendation: agentRec && agentRec !== summary ? agentRec : recommendation,
     sections: [
       {
         title: "Spread analysis",
@@ -137,10 +148,6 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
           `Buy: ${String(data.bestBuyVenue ?? "—")} · Sell: ${String(data.bestSellVenue ?? "—")}`,
           `Notional: ${String(data.notionalEth ?? 1)} ETH`,
         ],
-      },
-      {
-        title: "Recommendation",
-        lines: [recommendation || (profitable ? "Execute when gas allows." : "Hold and re-scan later.")],
       },
     ],
     metrics: {
@@ -155,25 +162,34 @@ function buildArbitrageReport(intent: TaskIntent | string, data: Record<string, 
 function buildYieldReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
   const allocation = Array.isArray(data.allocation) ? (data.allocation as Array<{ vaultId: string; pct: number; apyBps: number }>) : [];
   const lines = allocation.map((a) => `${a.pct}% → ${a.vaultId} (${fmtPctFromBps(a.apyBps)} APY)`);
-  const headline = "Yield allocation plan";
+  const amountEth = String(data.amountEth ?? 1);
+  const tolerance = String(data.riskTolerance ?? "moderate");
+  const agentRec = String(data.recommendation ?? "").trim();
+
+  const allocationText = allocation.length
+    ? allocation.map((a) => `${a.pct}% in ${a.vaultId}`).join(", ")
+    : "";
+
   const summary =
     String(data.summary) ||
-    String(data.recommendation) ||
-    `Blended APY ${fmtPctFromBps(data.expectedApyBps)} on ${String(data.amountEth ?? 1)} ETH.`;
+    agentRec ||
+    (allocation.length
+      ? `For ${amountEth} ETH (${tolerance} risk), allocate ${allocationText}. Blended yield: ${fmtPctFromBps(data.expectedApyBps)}.`
+      : `No suitable vault allocation was found for ${amountEth} ETH.`);
 
-  const thinking = `Mapped ${String(data.amountEth ?? 1)} ETH across the on-chain vault catalog for a ${String(data.riskTolerance ?? "moderate")} risk profile.`;
+  const thinking = "Reviewing vault options and expected yield.";
+
+  const recommendation = allocation.length
+    ? "Review the split above before depositing. Rebalance if yields shift materially."
+    : "Check vault availability or adjust your amount or risk preference.";
 
   return {
     role: "YIELD_OPT",
     intent,
-    headline,
+    headline: "Yield plan",
     summary,
     thinking,
-    recommendation:
-      String(data.recommendation) ||
-      (allocation.length
-        ? `Deploy using the allocation above; rebalance if APY spreads widen or risk tolerance changes.`
-        : "No vault allocation was produced — review vault availability before depositing."),
+    recommendation: agentRec && agentRec !== summary ? agentRec : recommendation,
     sections: [
       {
         title: "Allocation",
@@ -182,7 +198,7 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
       {
         title: "Risk profile",
         lines: [
-          `Tolerance: ${String(data.riskTolerance ?? "moderate")}`,
+          `Tolerance: ${tolerance}`,
           `Expected daily yield: ${String(data.expectedDailyYieldEth ?? "—")} ETH`,
         ],
       },
@@ -198,34 +214,36 @@ function buildYieldReport(intent: TaskIntent | string, data: Record<string, unkn
 function buildGovernanceReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
   const vote = String(data.recommendedVote ?? "ABSTAIN");
   const quorumReached = Boolean(data.quorumReached);
-  const headline = `Governance: ${String(data.proposalId ?? "proposal")}`;
+  const proposalId = String(data.proposalId ?? "this proposal");
+  const supportPct = Math.round(Number(data.supportRatio ?? 0) * 100);
+
   const summary =
     String(data.summary) ||
     (quorumReached
-      ? `Recommend ${vote} (${Math.round(Number(data.supportRatio ?? 0) * 100)}% support).`
-      : `Quorum not met (${String(data.supportStakeEth ?? 0)} + ${String(data.againstStakeEth ?? 0)} STT vs ${String(data.quorumEth ?? 0)} STT required).`);
+      ? `${proposalId}: quorum is met with ${supportPct}% support. A ${vote} vote is recommended.`
+      : `${proposalId}: quorum has not been reached yet.`);
 
-  const lines = [
-    `Vote: ${vote}`,
+  const thinking = "Reviewing vote participation and stake weighting.";
+
+  const recommendation = quorumReached
+    ? `Lean ${vote}, unless your voting policy says otherwise.`
+    : "Hold off on a final decision until more stakeholders participate.";
+
+  const detailLines = [
+    `Recommended vote: ${vote}`,
     `Quorum: ${quorumReached ? "met" : "not met"} (${String(data.participationPct ?? 0)}% participation)`,
-    `Stakes: ${String(data.supportStakeEth ?? 0)} STT for · ${String(data.againstStakeEth ?? 0)} STT against`,
+    `Stake for: ${String(data.supportStakeEth ?? 0)} STT · against: ${String(data.againstStakeEth ?? 0)} STT`,
   ];
-  if (data.llmSummary) lines.push(String(data.llmSummary));
-
-  const thinking = quorumReached
-    ? "Reviewed quorum, participation, and stake-weighted support for the proposal."
-    : "Checked quorum requirements — participation is below the threshold needed for a binding outcome.";
+  if (data.llmSummary) detailLines.push(String(data.llmSummary));
 
   return {
     role: "GOVERNANCE",
     intent,
-    headline,
+    headline: `Vote on ${proposalId}`,
     summary,
     thinking,
-    recommendation: quorumReached
-      ? `Cast ${vote} unless your mandate requires otherwise; monitor late votes that could shift the outcome.`
-      : "Wait for more participation before treating the vote as decisive.",
-    sections: [{ title: "Proposal analysis", lines }],
+    recommendation,
+    sections: [{ title: "Proposal analysis", lines: detailLines }],
     metrics: {
       recommendedVote: vote,
       quorumReached,
@@ -238,26 +256,32 @@ function buildGovernanceReport(intent: TaskIntent | string, data: Record<string,
 function buildRiskReport(intent: TaskIntent | string, data: Record<string, unknown>): SkillReport {
   const level = String(data.riskLevel ?? "UNKNOWN");
   const score = Number(data.compositeScore);
-  const headline = `Fleet risk: ${level}`;
-  const summary = String(data.summary) || String(data.recommendation) || `Composite score ${score}/100.`;
+  const agentRec = String(data.recommendation ?? "").trim();
+  const levelLabel = level.charAt(0) + level.slice(1).toLowerCase();
+
+  const summary =
+    String(data.summary) ||
+    `Fleet health is ${levelLabel.toLowerCase()} (score ${score}/100).`;
+
+  const thinking = "Checking fleet health and circuit-breaker status.";
+
+  const recommendation =
+    agentRec ||
+    (level === "LOW" || level === "MEDIUM"
+      ? "Conditions look stable. You can continue with normal activity."
+      : "Consider pausing new requests until fleet health improves.");
 
   const factorLines = Array.isArray(data.riskFactors)
     ? (data.riskFactors as Array<{ name: string; score: number }>).map((f) => `${f.name}: ${f.score}/100`)
     : [];
 
-  const thinking = "Scored fleet health from circuit breaker status, agent reserves, and recent failure signals.";
-
   return {
     role: "RISK_MGMT",
     intent,
-    headline,
+    headline: `Risk: ${levelLabel}`,
     summary,
     thinking,
-    recommendation:
-      String(data.recommendation ?? "") ||
-      (level === "LOW" || level === "MEDIUM"
-        ? "Fleet risk is acceptable for routine task submission; keep monitoring breaker status."
-        : "Reduce exposure or pause new tasks until fleet health improves."),
+    recommendation: agentRec && agentRec !== summary ? agentRec : recommendation,
     sections: [
       {
         title: "Signals",
@@ -267,10 +291,6 @@ function buildRiskReport(intent: TaskIntent | string, data: Record<string, unkno
           `Consecutive failures: ${String(data.consecutiveFailures ?? 0)}`,
           ...factorLines,
         ],
-      },
-      {
-        title: "Guidance",
-        lines: [String(data.recommendation ?? "Review fleet status before submitting tasks.")],
       },
     ],
     metrics: {
