@@ -100,6 +100,14 @@ node scripts/print-railway-env.cjs   # copy new TASK_MARKET_ADDR into Railway
 
 After deploy: update Railway API + all agent services with new `TASK_MARKET_ADDR`, bump `INDEXER_START_BLOCK` to the new deployment block, redeploy API/agents, verify `/v1/health`.
 
+4. **Re-register the fleet** on the new `AgentRegistry` (fresh deploy = empty registry):
+
+```bash
+node scripts/register-agents-on-registry.cjs
+```
+
+Each agent wallet needs ≥0.6 STT (0.5 stake + gas). Fund first if needed: `npm run fund:fleet -- 2 --top-up`. Addresses: `backend/env/fleet.addresses.json`.
+
 **API:** `POST /v1/tasks/:id/execution` now requires a **reporter wallet signature** over `(taskId, agent, target, payloadHash)` and only accepts payloads from the task’s authorized reporter after completion.
 
 ### Autonomous execution (additive)

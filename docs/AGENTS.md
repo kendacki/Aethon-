@@ -56,6 +56,15 @@ Agents register on-chain with manifest URI:
 
 `POST /v1/tasks/submit` uses the relayer to pay `rewardWei` on-chain. Fund `RELAYER_PRIVATE_KEY` (or `DEPLOYER_PK`) with enough STT for submitted task rewards.
 
+### 6. Register on AgentRegistry (required after contract redeploy)
+
+```bash
+cd backend
+node scripts/register-agents-on-registry.cjs
+```
+
+Registers each role from `env/agents/*.env` with 0.5 STT stake and sends an initial heartbeat. Skip if `isAgentActive` is already true.
+
 ---
 
 ## Run locally (Docker)

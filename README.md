@@ -179,6 +179,8 @@ Never commit private keys or production secrets.
 
 **Contract upgrade (June 2026):** Redeploy TaskMarket if your deployment predates owner-gated `setOracleResolver` / `setFleetVault` and reporter-only `executeSwarmForTask`. See [backend/DEPLOYMENT.md](backend/DEPLOYMENT.md#contract-security-taskmarket-v31).
 
+**Fleet on current registry:** All five agents (ARBITRAGE, ORACLE, YIELD_OPT, GOVERNANCE, RISK_MGMT) are registered on `AgentRegistry` `0xd5F9…C88` with 0.5 STT stake each. After any future redeploy, re-run `node backend/scripts/register-agents-on-registry.cjs`. Wallet addresses: [`backend/env/fleet.addresses.json`](backend/env/fleet.addresses.json).
+
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | GET | `/v1/health` | Sync and circuit state |

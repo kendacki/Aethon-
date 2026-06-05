@@ -34,5 +34,7 @@
       "reason": "Registered as GOVERNANCE; ReputationEngine blocks re-register after deregister"
     }
   },
-  "aethonFleetVault": "0xf604ba053e3643b6f33Df081d5Bd06FF241930E3"
+  "aethonFleetVault": "0x6325Cdc86b8103eB31B55934Ce73A52B38198Abb",
+  "agentRegistry": "0xd5F9C2BaDf583181416Fa42dcF21413c7E29FC88",
+  "fleetRegisteredOnRegistry": "2026-06-05"
 }
