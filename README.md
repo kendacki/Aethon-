@@ -97,11 +97,11 @@ Explorer: [shannon-explorer.somnia.network](https://shannon-explorer.somnia.netw
 
 | Contract | Address |
 |----------|---------|
-| **AgentRegistry** | [`0xA2BAdcce7612cC5729B6df596c660A738b94b60e`](https://shannon-explorer.somnia.network/address/0xA2BAdcce7612cC5729B6df596c660A738b94b60e) |
-| **TaskMarket** | [`0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8`](https://shannon-explorer.somnia.network/address/0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8) |
-| **CoalitionManager** | [`0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B`](https://shannon-explorer.somnia.network/address/0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B) |
-| **ReputationEngine** | [`0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab`](https://shannon-explorer.somnia.network/address/0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab) |
-| **CircuitBreaker** | [`0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0`](https://shannon-explorer.somnia.network/address/0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0) |
+| **AgentRegistry** | [`0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F`](https://shannon-explorer.somnia.network/address/0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F) |
+| **TaskMarket** | [`0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc`](https://shannon-explorer.somnia.network/address/0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc) |
+| **CoalitionManager** | [`0x55B189B30980c95Bfb2936de0ed11e54fC590648`](https://shannon-explorer.somnia.network/address/0x55B189B30980c95Bfb2936de0ed11e54fC590648) |
+| **ReputationEngine** | [`0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91`](https://shannon-explorer.somnia.network/address/0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91) |
+| **CircuitBreaker** | [`0x4Eed8B20f302b8A28f375F5b7FE33E2296803893`](https://shannon-explorer.somnia.network/address/0x4Eed8B20f302b8A28f375F5b7FE33E2296803893) |
 
 ### Somnia integration contracts
 
@@ -109,7 +109,7 @@ Explorer: [shannon-explorer.somnia.network](https://shannon-explorer.somnia.netw
 |----------|---------|
 | **Somnia Agents Platform** | [`0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776`](https://shannon-explorer.somnia.network/address/0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776) |
 | **SomniaAgentConsumer** (AETHON relay) | [`0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353`](https://shannon-explorer.somnia.network/address/0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353) |
-| **AethonFleetVault** | [`0xf604ba053e3643b6f33Df081d5Bd06FF241930E3`](https://shannon-explorer.somnia.network/address/0xf604ba053e3643b6f33Df081d5Bd06FF241930E3) |
+| **AethonFleetVault** | [`0x71bb54c9507387B716199D72858a1F4DEB8FfE1b`](https://shannon-explorer.somnia.network/address/0x71bb54c9507387B716199D72858a1F4DEB8FfE1b) |
 
 ### Somnia Agent Kit (reference — registry only)
 
@@ -125,7 +125,9 @@ Explorer: [shannon-explorer.somnia.network](https://shannon-explorer.somnia.netw
 |------|---------|
 | **Deployer / Relayer / Guardian** | `0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6` |
 
-Full JSON record: [`backend/deployments/somniaTestnet-50312.json`](backend/deployments/somniaTestnet-50312.json)
+Full JSON record: [`backend/deployments/somniaTestnet-50312.json`](backend/deployments/somniaTestnet-50312.json) (includes `deploymentBlock` **400735331** for indexer start)
+
+Previous stack addresses are archived under the `previous` key in that file.
 
 ---
 
@@ -259,19 +261,25 @@ Set root directory to `backend`. Required env vars (minimum):
 ```env
 DATABASE_URL=<from Railway Postgres>
 CORS_ORIGIN=https://aethon-lemon.vercel.app,http://localhost:5173
-AGENT_REGISTRY_ADDR=0xA2BAdcce7612cC5729B6df596c660A738b94b60e
-TASK_MARKET_ADDR=0x81Ccc866471FA1681F365E9a3c453C2fbD9886d8
-COALITION_MANAGER_ADDR=0x6e56476d64e6C324b2b1c92149466dF3aD76cE4B
-REPUTATION_ENGINE_ADDR=0x4949e8D1cc21dd5A10120738Dff4E0fDE7C29cab
-CIRCUIT_BREAKER_ADDR=0xaAA01CF5C744FBF0aDfc564c9b520782A50757C0
+AGENT_REGISTRY_ADDR=0x98b1Ea58222842fddA6351dB5b8e73BAC40EF52F
+TASK_MARKET_ADDR=0x8C9D76B82fB7bd5D56061CfA0Df0983028f314Fc
+COALITION_MANAGER_ADDR=0x55B189B30980c95Bfb2936de0ed11e54fC590648
+REPUTATION_ENGINE_ADDR=0xC02bEdcBeBFd05cDcB9E0C35afaed444A8979B91
+CIRCUIT_BREAKER_ADDR=0x4Eed8B20f302b8A28f375F5b7FE33E2296803893
+AETHON_FLEET_VAULT_ADDR=0x71bb54c9507387B716199D72858a1F4DEB8FfE1b
+SWARM_EXECUTION_ROUTER_ADDR=0x71bb54c9507387B716199D72858a1F4DEB8FfE1b
+INDEXER_START_BLOCK=400735331
 SOMNIA_RPC_URL=https://dream-rpc.somnia.network
 SOMNIA_AGENTS_ENABLED=true
 SOMNIA_AGENTS_PLATFORM_ADDR=0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776
 SOMNIA_AGENT_CONSUMER_ADDR=0xe542f4bE7Ae4c3BD7A6bC3EC5B6c4701Da74D353
 SOMNIA_KIT_REGISTRY_ADDR=0xC9f3452090EEB519467DEa4a390976D38C008347
 SOMNIA_VAULT_ENABLED=true
-AETHON_FLEET_VAULT_ADDR=0xf604ba053e3643b6f33Df081d5Bd06FF241930E3
 ```
+
+Copy-paste template: [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example).  
+Agent workers need the five `*_ADDR` contract vars above (not vault/indexer).  
+Also set `JWT_SECRET`, `RELAYER_PRIVATE_KEY`, and `API_KEY` in Railway — never commit those.
 
 Never commit `DEPLOYER_PK` or agent private keys.
 

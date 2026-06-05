@@ -267,7 +267,7 @@ export function TaskSubmitPanel({ onSubmitted }: TaskSubmitPanelProps) {
             </GlassSelect>
           </GlassField>
           <GlassField>
-            Escrow (STT)
+            Amount (STT)
             <GlassInput type="text" value={rewardEth} disabled readOnly aria-readonly />
           </GlassField>
         </FieldGrid>
