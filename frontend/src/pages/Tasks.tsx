@@ -113,20 +113,24 @@ const HistoryMetaSep = styled("span", {
 const HistoryAside = styled("div", {
   display: "flex",
   flexDirection: "column",
-  alignItems: "flex-end",
+  alignItems: "center",
   justifyContent: "center",
   gap: "$2",
-  minWidth: "5.75rem",
+  width: "6.25rem",
   flexShrink: 0,
 });
 
 const HistoryStatusSlot = styled("div", {
-  width: "100%",
   display: "flex",
-  justifyContent: "flex-end",
+  justifyContent: "center",
+  alignItems: "center",
+  width: "100%",
 });
 
 const HistoryAmount = styled("span", {
+  display: "block",
+  width: "100%",
+  textAlign: "center",
   fontWeight: 600,
   fontSize: "0.8125rem",
   lineHeight: 1.2,

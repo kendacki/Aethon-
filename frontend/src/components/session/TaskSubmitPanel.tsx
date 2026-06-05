@@ -169,43 +169,6 @@ const Preview = styled("div", {
   lineHeight: 1.55,
 });
 
-const ChatPreview = styled("details", {
-  marginTop: "$4",
-  fontSize: "0.8125rem",
-  borderRadius: "$md",
-  border: `1px solid ${GLASS.borderSoft}`,
-  background: "rgba(0,0,0,0.22)",
-  padding: "$3 $4",
-  "&[open] [data-expand-icon]": {
-    transform: "rotate(180deg)",
-  },
-});
-
-const PreviewSummary = styled("summary", {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "$3",
-  cursor: "pointer",
-  opacity: 0.78,
-  fontWeight: 600,
-  listStyle: "none",
-  fontSize: "0.75rem",
-  "&::-webkit-details-marker": { display: "none" },
-  "&:hover": { opacity: 0.92 },
-  "&:hover [data-expand-icon]": { opacity: 0.85 },
-});
-
-const PreviewExpandIcon = styled("span", {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-  opacity: 0.55,
-  color: "rgba(255,255,255,0.88)",
-  transition: "transform 200ms ease, opacity 150ms ease",
-});
-
 const FieldGrid = styled("div", {
   display: "grid",
   gap: "$4",
@@ -428,24 +391,6 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
               </ExampleChip>
             ))}
           </ExampleRow>
-
-          <ChatPreview>
-            <PreviewSummary aria-label="What happens next, expandable section">
-              <span>What happens next</span>
-              <PreviewExpandIcon data-expand-icon aria-hidden>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </PreviewExpandIcon>
-            </PreviewSummary>
-            <div style={{ marginTop: "0.75rem" }}>{previewBody}</div>
-          </ChatPreview>
         </ChatShell>
 
         <TaskSuccessModal
