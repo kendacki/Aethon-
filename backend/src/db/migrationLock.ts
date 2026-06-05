@@ -3,14 +3,26 @@ import { query } from "./client.js";
 /** Stable advisory lock id for Aethon schema migrations (single flight). */
 export const MIGRATION_ADVISORY_LOCK_KEY = 734829104;
 
+const LOCK_RETRY_MS = 2000;
+const LOCK_MAX_WAIT_MS = 90_000;
+
 export async function withMigrationLock<T>(fn: () => Promise<T>): Promise<T> {
-  const acquired = await query<{ locked: boolean }>(
-    `SELECT pg_try_advisory_lock($1) AS locked`,
-    [MIGRATION_ADVISORY_LOCK_KEY],
-  );
-  if (!acquired.rows[0]?.locked) {
+  const deadline = Date.now() + LOCK_MAX_WAIT_MS;
+  let acquired = false;
+  while (Date.now() < deadline) {
+    const res = await query<{ locked: boolean }>(
+      `SELECT pg_try_advisory_lock($1) AS locked`,
+      [MIGRATION_ADVISORY_LOCK_KEY],
+    );
+    if (res.rows[0]?.locked) {
+      acquired = true;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, LOCK_RETRY_MS));
+  }
+  if (!acquired) {
     throw new Error(
-      "Another migration is already running (advisory lock held). Retry shortly or run migrations from a single CI/CD step.",
+      "Migration lock timeout after 90s (another deploy may be running migrations). Retry shortly.",
     );
   }
   try {

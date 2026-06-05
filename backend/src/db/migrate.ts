@@ -54,6 +54,10 @@ export async function runMigrations(): Promise<void> {
 export const migrate = runMigrations;
 
 async function main(): Promise<void> {
+  if (process.env.SKIP_DB_MIGRATE === "true" || process.env.AETHON_RUNTIME === "agent") {
+    console.log("[DB] Skipping migrations (agent worker or SKIP_DB_MIGRATE=true)");
+    return;
+  }
   await runMigrations();
   await pool.end();
 }
@@ -64,7 +68,9 @@ const isDirectRun =
 
 if (isDirectRun) {
   main().catch((err) => {
-    console.error("[DB] Migration failed:", err instanceof Error ? err.message : err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const detail = err instanceof Error && err.stack ? err.stack : msg;
+    console.error("[DB] Migration failed:", msg || detail);
     process.exit(1);
   });
 }

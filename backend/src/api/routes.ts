@@ -256,11 +256,17 @@ tasksRouter.get("/:id/detail", async (req, res, next) => {
     const skillResults = await repo.getSkillResults(taskId);
     const { evaluateTaskOutcome } = await import("../shared/taskEvaluation.js");
     const { buildPortfolioBriefing } = await import("../shared/portfolioBriefing.js");
+    const { filterSkillResultsForDisplay } = await import("../shared/skillResultDisplay.js");
     const { INTENT_CATALOG } = await import("../shared/taskIntents.js");
     const mappedResults = skillResults.map((r) => ({
       agentType: r.agentType,
       result: r.result as { success?: boolean; data?: Record<string, unknown>; error?: string },
     }));
+    const displaySkillResults = filterSkillResultsForDisplay(
+      payload,
+      task.complexity,
+      mappedResults,
+    );
     const evaluation = evaluateTaskOutcome(payload, mappedResults);
     const catalog =
       payload?.intent && payload.intent in INTENT_CATALOG
@@ -271,7 +277,7 @@ tasksRouter.get("/:id/detail", async (req, res, next) => {
       data: {
         task,
         payload,
-        skillResults,
+        skillResults: displaySkillResults,
         evaluation,
         portfolioBriefing,
         catalog: catalog

@@ -159,6 +159,34 @@ function recommendationDistinct(body: string, recommendation: string): string {
   return recommendation;
 }
 
+function filterResultsForDisplay(
+  detail: TaskDetailResponse | null,
+  rows: TaskDetailResponse["skillResults"],
+): TaskDetailResponse["skillResults"] {
+  if (!detail || !rows.length) return rows;
+
+  const payload = detail.payload;
+  const complexity = detail.task.complexity;
+  const primaryRole = payload?.primaryRole;
+
+  let filtered = rows.filter((row) => {
+    if (row.result.success === false && /not in manifest/i.test(row.result.error ?? "")) {
+      return false;
+    }
+    return true;
+  });
+
+  const successful = filtered.filter((row) => row.result.success !== false);
+  if (successful.length) filtered = successful;
+
+  if (complexity === 1 && primaryRole) {
+    const primary = filtered.find((row) => row.agentType === primaryRole);
+    if (primary) return [primary];
+  }
+
+  return filtered.length ? filtered : rows.slice(0, 1);
+}
+
 export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultOutput {
   if (!detail) {
     return {
@@ -175,7 +203,9 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
   const isPending = status === "PENDING" || status === "ASSIGNED";
   const isFailed = status === "FAILED" || status === "EXPIRED";
 
-  if (detail.skillResults.length === 0) {
+  const skillRows = filterResultsForDisplay(detail, detail.skillResults);
+
+  if (skillRows.length === 0) {
     return {
       thinking: isPending ? "Analyzing your question with live market and fleet data." : "",
       body: isPending
@@ -196,7 +226,7 @@ export function formatTaskOutput(detail: TaskDetailResponse | null): TaskResultO
     return formatPortfolioBriefing(detail);
   }
 
-  const sections = detail.skillResults
+  const sections = skillRows
     .map((row) => extractSingleAgentReport(row.result.data ?? {}, row.result.error))
     .filter((s): s is TaskResultSection => s != null);
 

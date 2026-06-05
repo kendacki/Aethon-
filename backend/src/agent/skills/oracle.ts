@@ -24,22 +24,24 @@ export const executeOracle: SkillExecutor = async (payload, ctx) => {
     const currency = String(payload.params.currency ?? "usd");
     const maxStalenessSec = Number(payload.params.maxStalenessSec ?? 120);
 
-    let quote: SpotQuote;
+    let quote = await fetchSpotQuote(asset);
     const coingeckoUrl =
       asset === "ethereum"
         ? COINGECKO_SIMPLE_PRICE
         : `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset)}&vs_currencies=${encodeURIComponent(currency)}`;
-    if (ctx.somnia) {
+    if (ctx.somnia && process.env.ORACLE_PREFER_SOMNIA === "true") {
       try {
         const selector = `${asset}.${currency}`;
         const price = await ctx.somnia.fetchJsonUint(coingeckoUrl, selector, 8);
-        quote = { price, source: "somnia_json_api", fetchedAt: Math.floor(Date.now() / 1000), apiUrl: coingeckoUrl };
+        quote = {
+          price,
+          source: "somnia_json_api",
+          fetchedAt: Math.floor(Date.now() / 1000),
+          apiUrl: coingeckoUrl,
+        };
       } catch (err) {
-        console.warn("[ORACLE] Somnia JSON API failed, falling back to HTTP:", err);
-        quote = await fetchSpotQuote(asset);
+        console.warn("[ORACLE] Somnia JSON API unavailable, using HTTP quote:", err);
       }
-    } else {
-      quote = await fetchSpotQuote(asset);
     }
     const ageSec = Math.floor(Date.now() / 1000) - quote.fetchedAt;
     const stale = ageSec > maxStalenessSec;

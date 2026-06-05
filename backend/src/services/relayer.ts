@@ -30,7 +30,13 @@ export class TaskRelayer {
     this.market = new ethers.Contract(marketAddr, TASK_MARKET_ABI, this.wallet);
     this.processOutbox().catch(console.error);
     this.interval = setInterval(() => this.processOutbox().catch(console.error), 10_000);
-    console.log("[Relayer] Started:", this.wallet.address);
+    const addr = this.wallet.address;
+    console.log("[Relayer] Started:", addr);
+    if (addr.toLowerCase() === "0xba28d4122d23b64dca1af35b49d6da5c1d3cb2ec") {
+      console.warn(
+        "[Relayer] WARNING: Using retired RISK_MGMT wallet. Set RELAYER_PRIVATE_KEY to your funded deployer (see backend/env/fleet.addresses.json).",
+      );
+    }
   }
 
   stop(): void {

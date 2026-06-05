@@ -52,6 +52,7 @@ const CONSUMER_ABI = [
   "function invokeAgent(uint256 agentId, bytes payload) payable returns (uint256 requestId)",
   "function results(uint256 requestId) view returns (bytes)",
   "function statuses(uint256 requestId) view returns (uint8)",
+  "event SomniaRequestCreated(uint256 indexed requestId, uint256 indexed agentId, address indexed caller)",
   "event SomniaResponseStored(uint256 indexed requestId, uint8 status)",
 ] as const;
 

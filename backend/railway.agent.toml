@@ -1,4 +1,6 @@
 # Agent worker services — set AETHON_RUNTIME=agent on Railway (see docs/RAILWAY_AGENTS.md).
-# Railway uses backend/railway.toml; routing is via scripts/railway-start.cjs + AETHON_RUNTIME.
+# db/migrate.js exits immediately when AETHON_RUNTIME=agent (no Postgres on workers).
 
-AETHON_RUNTIME=agent
+[deploy]
+preDeployCommand = "npm run db:migrate:prod"
+startCommand = "node dist/railway-start.cjs"

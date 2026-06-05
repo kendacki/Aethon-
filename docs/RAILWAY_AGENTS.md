@@ -47,7 +47,7 @@ Ensure your **API** service has:
 AETHON_RUNTIME=api
 API_PUBLIC_URL=https://aethon-production-3f5a.up.railway.app
 API_BASE_URL=https://aethon-production-3f5a.up.railway.app/v1
-RELAYER_PRIVATE_KEY=<deployer key — funded for task rewards>
+RELAYER_PRIVATE_KEY=<deployer key — must be 0x2132…d6D6, NOT the retired RISK wallet>
 REACTIVITY_ENABLED=true
 AGENT_HEALTH_URLS={"ARBITRAGE":"https://aethon-agent-arbitrage-production.up.railway.app","ORACLE":"https://aethon-agent-oracle-production.up.railway.app","YIELD_OPT":"https://aethon-agent-yield-production.up.railway.app","GOVERNANCE":"https://aethon-agent-governance-production.up.railway.app","RISK_MGMT":"https://aethon-agent-risk-production.up.railway.app"}
 ```
