@@ -25,13 +25,13 @@ export const FLEET_ROLE_META: Record<AgentType, FleetRoleMeta> = {
     type: "YIELD_OPT",
     label: "Yield optimizer",
     shortLabel: "YLD",
-    description: "Builds a risk-adjusted vault allocation from the on-chain vault catalog.",
+    description: "Builds a risk adjusted vault allocation from the on-chain vault catalog.",
   },
   GOVERNANCE: {
     type: "GOVERNANCE",
     label: "Governance",
     shortLabel: "GOV",
-    description: "Evaluates proposal quorum and vote ratio; optional plain-language LLM summary.",
+    description: "Evaluates proposal quorum and vote ratio. Optional plain language summary.",
   },
   RISK_MGMT: {
     type: "RISK_MGMT",

@@ -37,8 +37,8 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     defaultMode: "single",
     primaryRole: "ORACLE",
     action: "fetch_price",
-    agentWork: "Oracle agent fetches live spot data, checks freshness, signs an attestation, and returns confidence.",
-    sources: ["CoinGecko simple/price API", "Somnia JSON oracle (when enabled)", "Deterministic fallback table"],
+    agentWork: "Oracle agent fetches live price data, checks freshness, signs an attestation, and returns confidence.",
+    sources: ["CoinGecko price API", "Somnia JSON oracle (when enabled)", "Deterministic fallback table"],
     successCriteria: [
       { id: "price_returned", label: "Price returned", description: "A numeric USD price is produced." },
       { id: "fresh_data", label: "Fresh data", description: "Quote age is within maxStalenessSec." },
@@ -48,7 +48,7 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
   ARBITRAGE_SCAN: {
     intent: "ARBITRAGE_SCAN",
     label: "Arbitrage scan",
-    description: "Cross-venue spread scan with gas-adjusted profit estimate.",
+    description: "Cross venue spread scan with gas adjusted profit estimate.",
     exampleQuery: "Scan Ethereum for DEX arbitrage above 15 bps with 1 ETH notional.",
     defaultMode: "single",
     primaryRole: "ARBITRAGE",
@@ -63,13 +63,13 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
   YIELD_STRATEGY: {
     intent: "YIELD_STRATEGY",
     label: "Yield strategy",
-    description: "Risk-adjusted vault allocation for a STT/ETH amount.",
+    description: "Vault allocation for STT or ETH based on your risk level.",
     exampleQuery: "Allocate 2 ETH across Somnia vaults with moderate risk tolerance.",
     defaultMode: "single",
     primaryRole: "YIELD_OPT",
     action: "optimize_yield",
-    agentWork: "Yield agent scores vaults by risk-adjusted APY and returns an allocation plan.",
-    sources: ["Aethon vault registry (on-chain catalog)", "Internal APY/risk model"],
+    agentWork: "Yield agent scores vaults by risk adjusted APY and returns an allocation plan.",
+    sources: ["Aethon vault registry (on-chain catalog)", "Internal APY and risk model"],
     successCriteria: [
       { id: "allocation_plan", label: "Allocation plan", description: "At least one vault allocation with expected APY." },
       { id: "risk_respected", label: "Risk respected", description: "Vaults match the stated risk tolerance." },
@@ -79,11 +79,11 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     intent: "GOVERNANCE_ANALYSIS",
     label: "Governance analysis",
     description: "Proposal quorum, participation, and recommended vote.",
-    exampleQuery: "Analyze AIP-12: 15 STT for, 4 STT against, quorum 10 STT.",
+    exampleQuery: "Analyze AIP 12: 15 STT for, 4 STT against, quorum 10 STT.",
     defaultMode: "single",
     primaryRole: "GOVERNANCE",
     action: "analyze_proposal",
-    agentWork: "Governance agent evaluates quorum and vote ratio; optional Somnia LLM plain-language summary.",
+    agentWork: "Governance agent evaluates quorum and vote ratio. Optional Somnia LLM summary.",
     sources: ["Task payload vote parameters", "Somnia LLM inference (optional)"],
     successCriteria: [
       { id: "vote_recommendation", label: "Vote recommendation", description: "FOR, AGAINST, or ABSTAIN with rationale." },
@@ -101,21 +101,21 @@ export const INTENT_CATALOG: Record<TaskIntent, IntentCatalogEntry> = {
     agentWork: "Risk agent reads circuit breaker, fleet stats API, and agent gas reserves.",
     sources: ["CircuitBreaker contract", "Aethon /v1/stats API", "Agent wallet balance on Somnia RPC"],
     successCriteria: [
-      { id: "risk_score", label: "Risk score", description: "Composite risk score 0–100 is returned." },
+      { id: "risk_score", label: "Risk score", description: "Composite risk score from 0 to 100 is returned." },
       { id: "fleet_signal", label: "Fleet signal", description: "Active agent count and circuit state are reported." },
     ],
   },
   PORTFOLIO_BRIEFING: {
     intent: "PORTFOLIO_BRIEFING",
     label: "Full portfolio briefing",
-    description: "All five specialists answer your question in one coordinated swarm run.",
+    description: "All five specialists answer your question in one swarm run.",
     exampleQuery:
-      "Brief me on ETH: live price, arbitrage spreads, yield options for 1 ETH, governance on AIP-1, and fleet risk.",
+      "Brief me on ETH: live price, arbitrage spreads, yield options for 1 ETH, governance on AIP 1, and fleet risk.",
     defaultMode: "swarm",
     primaryRole: "ARBITRAGE",
     action: "swarm_execute",
     agentWork:
-      "Each fleet role runs its skill against your query; the lead agent aggregates signed results for on-chain completion.",
+      "Each fleet role runs its skill on your query. The lead agent aggregates signed results for on-chain completion.",
     sources: [
       "CoinGecko + Somnia oracle",
       "DEX spread model",

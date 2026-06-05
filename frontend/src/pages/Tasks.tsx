@@ -227,8 +227,8 @@ export default function TasksPage() {
               }}
             >
               {signedIn
-                ? "Type a question like ChatGPT — agents run it on-chain with live sources and measurable success criteria."
-                : "Browse task history below. Sign in to submit queries to the autonomous fleet."}
+                ? "Ask a question. Agents run it on-chain and return results you can verify."
+                : "Past tasks are below. Sign in to submit a new one."}
             </p>
           </HeroItem>
         </AnimatedPageHero>
@@ -286,7 +286,7 @@ export default function TasksPage() {
               ))}
             </FilterRow>
 
-            {loading && tasks.length === 0 && <p style={{ opacity: 0.72, fontSize: "0.875rem" }}>Loading history…</p>}
+            {loading && tasks.length === 0 && <p style={{ opacity: 0.72, fontSize: "0.875rem" }}>Loading history...</p>}
 
             <HistoryList>
               <AnimatePresence mode="popLayout">
@@ -341,7 +341,7 @@ export default function TasksPage() {
 
             {!loading && tasks.length === 0 && (
               <EmptyHistory>
-                <p style={{ margin: 0 }}>No tasks yet — ask the swarm using the composer above.</p>
+                <p style={{ margin: 0 }}>No tasks yet. Ask the swarm above.</p>
               </EmptyHistory>
             )}
 

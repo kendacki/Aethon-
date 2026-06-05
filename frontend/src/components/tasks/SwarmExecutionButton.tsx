@@ -41,9 +41,9 @@ export function SwarmExecutionButton({
         to: targetContract,
         data: executionPayload,
       });
-      toast.info("Transaction sent — waiting for confirmation…");
+      toast.info("Transaction sent. Waiting for confirmation...");
       await tx.wait();
-      toast.success("Swarm execution transaction confirmed.");
+      toast.success("Transaction confirmed.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Execution failed");
     } finally {
@@ -53,7 +53,7 @@ export function SwarmExecutionButton({
 
   return (
     <Button variant="primary" size="sm" disabled={disabled || sending} onClick={() => void handleExecute()}>
-      {sending ? "Signing…" : "Execute swarm calldata"}
+      {sending ? "Submitting..." : "Execute on-chain"}
     </Button>
   );
 }

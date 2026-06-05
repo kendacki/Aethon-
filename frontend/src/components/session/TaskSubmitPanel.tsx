@@ -332,7 +332,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
         taskId,
       });
 
-      toast.success("Task accepted — agents will work your request.");
+      toast.success("Task accepted. Agents are working on your request.");
       onSubmitted?.();
     } catch (err) {
       if (!isCorrectChain) {
@@ -356,7 +356,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
         <strong>Sources:</strong> {catalog.sources.join(" · ")}
       </p>
       <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-        <strong>Success:</strong> {catalog.successCriteria.map((c) => c.label).join(" · ")}
+        <strong>Checks:</strong> {catalog.successCriteria.map((c) => c.label).join(" · ")}
       </p>
       {effectiveMode === "single" && (
         <p style={{ margin: "0.5rem 0 0", opacity: 0.75 }}>
@@ -410,7 +410,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
               value={userQuery}
               disabled={!signedIn}
               onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="Ask about prices, yield, governance, risk, or request a full portfolio briefing…"
+              placeholder="Ask about price, yield, governance, risk, or a full briefing..."
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -444,7 +444,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
                 disabled={!canSubmit || submitting}
                 onClick={() => void handleSubmit()}
                 aria-label={submitting ? "Submitting task" : "Run task on Somnia"}
-                title={submitting ? "Signing & submitting…" : "Run task on Somnia"}
+                title={submitting ? "Submitting..." : "Run task on Somnia"}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path
@@ -479,7 +479,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
           </ExampleRow>
 
           <ChatPreview>
-            <summary>What the swarm will do</summary>
+            <summary>What agents will do</summary>
             <div style={{ marginTop: "0.75rem" }}>{previewBody}</div>
           </ChatPreview>
 
@@ -502,8 +502,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
         <div style={{ marginBottom: "1.25rem" }}>
           <div style={{ fontWeight: 700, fontSize: "1.125rem", fontFamily: "$primary" }}>Ask the swarm</div>
           <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72, fontFamily: "$secondary", lineHeight: 1.55 }}>
-            Describe what you want in plain language. The fleet maps your request to on-chain work, live data sources,
-            and measurable success criteria — swarm vs single agent is only how dispatch is routed.
+            Describe what you want. The fleet turns it into on-chain work with live data and clear success checks.
           </p>
           {signedIn && (
             <div style={{ marginTop: "0.75rem" }}>
@@ -572,7 +571,7 @@ export function TaskSubmitPanel({ onSubmitted, variant = "panel" }: TaskSubmitPa
 
         <Actions>
           <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit || submitting}>
-            {submitting ? "Signing & submitting…" : "Run task on Somnia"}
+            {submitting ? "Submitting..." : "Run task on Somnia"}
           </Button>
           {blockReason && <span style={{ fontSize: "0.75rem", opacity: 0.65 }}>{blockReason}</span>}
         </Actions>

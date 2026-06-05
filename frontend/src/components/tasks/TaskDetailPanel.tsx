@@ -110,14 +110,14 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: "1.0625rem" }}>Task #{taskId}</div>
-          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Query, agent work, sources, and deliverables</p>
+          <p style={{ marginTop: 6, fontSize: "0.8125rem", opacity: 0.72 }}>Your query, agent work, and results</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           Close
         </Button>
       </div>
 
-      {loading && <p style={{ marginTop: "1rem", opacity: 0.7 }}>Loading task detail…</p>}
+      {loading && <p style={{ marginTop: "1rem", opacity: 0.7 }}>Loading task...</p>}
       {error && <p style={{ marginTop: "1rem", color: "#f87171" }}>{error}</p>}
 
       {detail && (
@@ -125,7 +125,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           <Section>
             <h4>Your request</h4>
             <p style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.55 }}>
-              {detail.payload?.userQuery ?? detail.payload?.label ?? "—"}
+              {detail.payload?.userQuery ?? detail.payload?.label ?? "Not available"}
             </p>
             <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
               <Badge status={statusBadge(detail.task.status)}>{detail.task.status}</Badge>
@@ -135,9 +135,9 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           </Section>
 
           <Section>
-            <h4>What agents do</h4>
+            <h4>Agent work</h4>
             <p style={{ margin: 0, fontSize: "0.8125rem", lineHeight: 1.55, opacity: 0.88 }}>
-              {detail.catalog?.agentWork ?? "Fleet agents execute the signed payload action and post skill results."}
+              {detail.catalog?.agentWork ?? "Fleet agents run the signed payload and post skill results."}
             </p>
           </Section>
 
@@ -151,13 +151,13 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
           </Section>
 
           <Section>
-            <h4>Success criteria</h4>
+            <h4>Success checks</h4>
             {(detail.evaluation.criteria.length > 0 ? detail.evaluation.criteria : []).map((c) => (
               <CriteriaRow key={c.id}>
                 <span style={{ color: c.met ? "#4ade80" : "#f87171" }}>{c.met ? "✓" : "○"}</span>
                 <span>
                   <strong>{c.label}</strong>
-                  {c.detail ? <span style={{ opacity: 0.72 }}> — {c.detail}</span> : null}
+                  {c.detail ? <span style={{ opacity: 0.72 }}>: {c.detail}</span> : null}
                 </span>
               </CriteriaRow>
             ))}
@@ -168,15 +168,15 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
               </p>
             ) : (
               <p style={{ marginTop: "0.5rem", fontSize: "0.75rem", opacity: 0.65 }}>
-                Results update as agents report skills. On-chain completion follows coalition aggregation.
+                Results update as agents report. On-chain completion follows coalition aggregation.
               </p>
             )}
           </Section>
 
           <Section>
-            <h4>Agent outputs</h4>
+            <h4>Results</h4>
             {detail.skillResults.length === 0 && (
-              <p style={{ fontSize: "0.8125rem", opacity: 0.7 }}>No skill results yet — waiting for assigned agents.</p>
+              <p style={{ fontSize: "0.8125rem", opacity: 0.7 }}>No results yet. Waiting for agents.</p>
             )}
             {detail.skillResults.map((row) => {
               const meta = FLEET_ROLE_META[row.agentType as AgentType];
@@ -191,7 +191,7 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
                     </Badge>
                   </div>
                   <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.9 }}>
-                    {String(data.summary ?? row.result.error ?? "—")}
+                    {String(data.summary ?? row.result.error ?? "Not available")}
                   </p>
                   {sources.length > 0 && (
                     <p style={{ margin: "0.35rem 0 0", fontSize: "0.6875rem", opacity: 0.6 }}>
@@ -205,9 +205,9 @@ export function TaskDetailPanel({ taskId, onClose }: TaskDetailPanelProps) {
 
           {detail.execution && detail.task.status === "COMPLETED" && (
             <Section>
-              <h4>Executable consensus</h4>
+              <h4>Execute on-chain</h4>
               <p style={{ margin: 0, fontSize: "0.8125rem", opacity: 0.85, lineHeight: 1.5 }}>
-                Swarm agents compiled verifiable calldata anchored on-chain. Your wallet sends the transaction to{" "}
+                Agents compiled calldata on-chain. Your wallet sends the transaction to{" "}
                 <code style={{ fontSize: "0.75rem" }}>{shortAddr(detail.execution.targetContract)}</code>.
               </p>
               <div style={{ marginTop: "0.75rem" }}>
