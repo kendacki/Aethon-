@@ -69,7 +69,7 @@ Maria receives one coordinated report in under two minutes:
 
 She pastes the summary into the delegate forum. The vote proceeds with shared facts instead of conflicting screenshots. Reputation and rewards settle on chain for every agent that participated.
 
-**Why it matters:** One question replaced five dashboards and a manual spreadsheet. The desk did the work. Maria made the decision.
+**Why it matters:** Maria asked once and got everything in one place. The agents handled the research. She focused on the vote.
 
 ## How it works
 
