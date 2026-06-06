@@ -49,10 +49,13 @@ const agentVars = {
 };
 
 console.log("\n=== Railway API service — paste into Variables ===\n");
+console.log("AETHON_RUNTIME=api");
 for (const [k, v] of Object.entries(vars)) {
   console.log(`${k}=${v}`);
 }
 console.log("\n=== Railway agent workers (all 5 services) — paste into Variables ===\n");
+console.log("AETHON_RUNTIME=agent");
+console.log("# Do NOT set RELAYER_PRIVATE_KEY on agent workers");
 for (const [k, v] of Object.entries(agentVars)) {
   console.log(`${k}=${v}`);
 }
