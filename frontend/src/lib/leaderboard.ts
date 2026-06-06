@@ -1,4 +1,5 @@
 import type { Agent } from "../api/client";
+import { dedupeFleetByRole } from "./fleetAgentStatus";
 
 export const LEADERBOARD_PAGE_SIZE = 20;
 
@@ -28,14 +29,33 @@ export function isLastRankOnPage(rank: number, page: number, pageSize: number, t
   return rank === end && total > 1;
 }
 
-/** Highest reputation on the current page (matches API sort: reputation desc). */
-export function pageTopReputation(agents: Agent[]): number | null {
-  if (!agents.length) return null;
-  return agents[0]?.reputation ?? null;
+/** Match API / DB order: reputation desc, then stake desc, then address asc. */
+export function compareLeaderboardAgents(a: Agent, b: Agent): number {
+  if (b.reputation !== a.reputation) return b.reputation - a.reputation;
+  try {
+    const stakeA = BigInt(a.stake || "0");
+    const stakeB = BigInt(b.stake || "0");
+    if (stakeB > stakeA) return 1;
+    if (stakeB < stakeA) return -1;
+  } catch {
+    /* ignore invalid stake */
+  }
+  return a.address.localeCompare(b.address);
 }
 
-/** Lowest reputation on the current page. */
+/** One agent per role, ranked highest reputation first (for leaderboard + podium). */
+export function rankAgentsForLeaderboard(agents: Agent[]): Agent[] {
+  return [...dedupeFleetByRole(agents)].sort(compareLeaderboardAgents);
+}
+
+/** Highest reputation on the current ranked page. */
+export function pageTopReputation(agents: Agent[]): number | null {
+  if (!agents.length) return null;
+  return Math.max(...agents.map((a) => a.reputation));
+}
+
+/** Lowest reputation on the current ranked page. */
 export function pageBottomReputation(agents: Agent[]): number | null {
   if (!agents.length) return null;
-  return agents[agents.length - 1]?.reputation ?? null;
+  return Math.min(...agents.map((a) => a.reputation));
 }

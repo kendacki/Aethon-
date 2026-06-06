@@ -9,7 +9,7 @@ import { Badge, Card, PageWrap } from "../components/ui";
 import { ICON_LG, IconPodiumMedal } from "../components/icons";
 import { motion } from "framer-motion";
 import { fleetRoleLabel } from "../config/fleetRoles";
-import { dedupeFleetByRole, healthByRoleMap, isAgentOperational } from "../lib/fleetAgentStatus";
+import { healthByRoleMap, isAgentOperational } from "../lib/fleetAgentStatus";
 import { buildPodiumSlots } from "../lib/leaderboardPodium";
 import {
   globalRank,
@@ -17,6 +17,7 @@ import {
   LEADERBOARD_PAGE_SIZE,
   pageBottomReputation,
   pageTopReputation,
+  rankAgentsForLeaderboard,
   rankRangeLabel,
   rankTier,
   type RankTier,
@@ -246,7 +247,7 @@ export default function LeaderboardPage() {
   const { data: fleetHealth } = useFetch(() => api.fleetHealth(), []);
 
   const healthMap = useMemo(() => healthByRoleMap(fleetHealth ?? null), [fleetHealth]);
-  const agents = useMemo(() => dedupeFleetByRole(data?.data ?? []), [data?.data]);
+  const agents = useMemo(() => rankAgentsForLeaderboard(data?.data ?? []), [data?.data]);
   const total = data?.pagination.total ?? agents.length;
 
   const onlineOnPage = useMemo(

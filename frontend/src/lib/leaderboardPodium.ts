@@ -7,12 +7,15 @@ export type PodiumSlot = {
   medal: "gold" | "silver" | "bronze";
 };
 
+/** Expects topThree sorted by reputation desc: [1st, 2nd, 3rd]. */
 export function buildPodiumSlots(topThree: Agent[]): PodiumSlot[] {
   if (topThree.length < 3) return [];
 
+  const [gold, silver, bronze] = topThree;
+
   return [
-    { agent: topThree[1], rank: 2, medal: "silver" },
-    { agent: topThree[0], rank: 1, medal: "gold" },
-    { agent: topThree[2], rank: 3, medal: "bronze" },
+    { agent: silver, rank: 2, medal: "silver" },
+    { agent: gold, rank: 1, medal: "gold" },
+    { agent: bronze, rank: 3, medal: "bronze" },
   ];
 }
