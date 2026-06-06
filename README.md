@@ -125,18 +125,18 @@ Full deployment record: [`backend/deployments/somniaTestnet-50312.json`](backend
 
 ## Production fleet status (June 2026)
 
-Verified on Somnia testnet (chain 50312). Minimum recommended balance: **0.5 STT** gas + **0.5 STT** registry stake per agent; **2+ STT** on relayer for task rewards.
+Last verified: **2026-06-06** on Somnia testnet (chain 50312). Minimum recommended balance: **0.5 STT** gas + **0.5 STT** registry stake per agent; **2+ STT** on relayer for task rewards.
 
 ### Wallets and balances
 
 | Role | Address | STT balance | On-chain |
 |------|---------|-------------|----------|
-| **Relayer / deployer** | [`0x2132…d6D6`](https://shannon-explorer.somnia.network/address/0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6) | ~5.4 | Task reward payouts (API only) |
-| **ARBITRAGE** | [`0x0eec…8037`](https://shannon-explorer.somnia.network/address/0x0eec621450cA9a0445DBdadC0624FDD5cc888037) | ~9.4 | Registered, online |
-| **ORACLE** | [`0xfc50…482C`](https://shannon-explorer.somnia.network/address/0xfc501c679aFb3689191448f92621ACD49e86482C) | ~9.4 | Registered, online |
-| **YIELD_OPT** | [`0x6BDe…4F9e`](https://shannon-explorer.somnia.network/address/0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e) | ~8.5 | Registered, online |
-| **GOVERNANCE** | [`0xBaB3…C9d0`](https://shannon-explorer.somnia.network/address/0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0) | ~8.5 | Registered, online |
-| **RISK_MGMT** | [`0x2522…60bB`](https://shannon-explorer.somnia.network/address/0x25229e52bd699F82C1dcF3257bC3299fC98960bB) | ~9.4 | Registered, online |
+| **Relayer / deployer** | [`0x2132…d6D6`](https://shannon-explorer.somnia.network/address/0x2132c6aEd2EDaC0e6aD59Cb17C5cc7697064d6D6) | 5.44 | Task reward payouts (API only) |
+| **ARBITRAGE** | [`0x0eec…8037`](https://shannon-explorer.somnia.network/address/0x0eec621450cA9a0445DBdadC0624FDD5cc888037) | 9.42 | Registered, active, online |
+| **ORACLE** | [`0xfc50…482C`](https://shannon-explorer.somnia.network/address/0xfc501c679aFb3689191448f92621ACD49e86482C) | 9.38 | Registered, active, online |
+| **YIELD_OPT** | [`0x6BDe…4F9e`](https://shannon-explorer.somnia.network/address/0x6BDe11143f5aE057eBFbc24Ce6189D99cd0B4F9e) | 8.51 | Registered, active, online |
+| **GOVERNANCE** | [`0xBaB3…C9d0`](https://shannon-explorer.somnia.network/address/0xBaB3E5C546B005794BE59A2D359a28e57EC6C9d0) | 8.47 | Registered, active, online |
+| **RISK_MGMT** | [`0x2522…60bB`](https://shannon-explorer.somnia.network/address/0x25229e52bd699F82C1dcF3257bC3299fC98960bB) | 9.44 | Registered, active, online |
 
 Retired wallet `0xBA28…CB2EC` must **not** be used for relayer or agents.
 
@@ -144,12 +144,12 @@ Retired wallet `0xBA28…CB2EC` must **not** be used for relayer or agents.
 
 | Service | URL | Expected |
 |---------|-----|----------|
-| **API** | [aethon-production-3f5a.up.railway.app](https://aethon-production-3f5a.up.railway.app/v1/health) | `AETHON_RUNTIME=api`, returns JSON health |
-| **ARBITRAGE** | [aethon-agent-arbitrage-production.up.railway.app](https://aethon-agent-arbitrage-production.up.railway.app) | `AETHON_RUNTIME=agent`, status HEALTHY or DEGRADED |
-| **ORACLE** | [aethon-agent-oracle-production.up.railway.app](https://aethon-agent-oracle-production.up.railway.app) | same |
-| **YIELD_OPT** | [aethon-agent-yield-production.up.railway.app](https://aethon-agent-yield-production.up.railway.app) | same |
-| **GOVERNANCE** | [aethon-agent-governance-production.up.railway.app](https://aethon-agent-governance-production.up.railway.app) | same |
-| **RISK_MGMT** | [aethon-agent-risk-production.up.railway.app](https://aethon-agent-risk-production.up.railway.app) | same |
+| **API** | [aethon-production-3f5a.up.railway.app](https://aethon-production-3f5a.up.railway.app/v1/health) | `AETHON_RUNTIME=api`, returns JSON health (**fix required if 503**) |
+| **ARBITRAGE** | [aethon-agent-arbitrage-production.up.railway.app/health](https://aethon-agent-arbitrage-production.up.railway.app/health) | Live, correct wallet; DEGRADED until API is fixed |
+| **ORACLE** | [aethon-agent-oracle-production.up.railway.app/health](https://aethon-agent-oracle-production.up.railway.app/health) | same |
+| **YIELD_OPT** | [aethon-agent-yield-production.up.railway.app/health](https://aethon-agent-yield-production.up.railway.app/health) | same |
+| **GOVERNANCE** | [aethon-agent-governance-production.up.railway.app/health](https://aethon-agent-governance-production.up.railway.app/health) | same |
+| **RISK_MGMT** | [aethon-agent-risk-production.up.railway.app/health](https://aethon-agent-risk-production.up.railway.app/health) | same |
 
 **API service checklist:** `AETHON_RUNTIME=api`, `RELAYER_PRIVATE_KEY` → deployer `0x2132…d6D6`, contract vars from [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example), `INDEXER_START_BLOCK=401587367`. Run `node backend/scripts/print-railway-env.cjs` after deploy.
 
