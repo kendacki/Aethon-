@@ -7,13 +7,6 @@ export function globalRank(page: number, index: number, pageSize = LEADERBOARD_P
   return page * pageSize + index + 1;
 }
 
-export function rankRangeLabel(page: number, pageSize: number, total: number): string {
-  if (total === 0) return "no wallets ranked";
-  const start = page * pageSize + 1;
-  const end = Math.min((page + 1) * pageSize, total);
-  return `rank ${start}–${end} of ${total}`;
-}
-
 export type RankTier = "leader" | "podium" | "field";
 
 /** Visual tier from role rank — role 1 is leader, roles 2–3 podium, rest field. */
