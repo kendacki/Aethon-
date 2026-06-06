@@ -1,4 +1,5 @@
 import type { Agent, AgentFleetHealth, FleetHealth } from "../api/client";
+import { ALL_AGENT_TYPES } from "../task/payload";
 
 export function healthByRoleMap(fleet: FleetHealth | null): Map<string, AgentFleetHealth> {
   const map = new Map<string, AgentFleetHealth>();
@@ -32,5 +33,14 @@ export function workerBadgeStatus(
 }
 
 export function countOperationalAgents(agents: Agent[], healthMap: Map<string, AgentFleetHealth>): number {
-  return agents.filter((a) => isAgentOperational(a, healthMap.get(a.agentType))).length;
+  return dedupeFleetByRole(agents).filter((a) => isAgentOperational(a, healthMap.get(a.agentType))).length;
+}
+
+/** One row per fleet role — hides retired duplicate registrations from the UI. */
+export function dedupeFleetByRole<T extends { agentType: string }>(agents: T[]): T[] {
+  const byRole = new Map<string, T>();
+  for (const agent of agents) {
+    if (!byRole.has(agent.agentType)) byRole.set(agent.agentType, agent);
+  }
+  return ALL_AGENT_TYPES.map((role) => byRole.get(role)).filter((a): a is T => !!a);
 }

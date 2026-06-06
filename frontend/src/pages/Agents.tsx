@@ -12,6 +12,7 @@ import { Badge, Card, Grid, PageWrap } from "../components/ui";
 import { IconAgent, ICON_LG } from "../components/icons";
 import { GlassFilterPill, GlassPageBand } from "../components/GlassPanel";
 import { fleetRoleLabel } from "../config/fleetRoles";
+import { dedupeFleetByRole } from "../lib/fleetAgentStatus";
 
 const TYPES = ["", "ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"] as const;
 
@@ -36,14 +37,20 @@ function GuestFleetGrid() {
       {loading && <p style={{ marginTop: "2rem", opacity: 0.65 }}>loading...</p>}
 
       <Grid cols={3} style={{ marginTop: "2rem" }} as={motion.div} variants={statsSequence} initial="hidden" whileInView="show" viewport={viewportOnce}>
-        {(data?.data.length ? data.data : (fleetHealth?.agents ?? []).map((a) => ({
-          address: a.address ?? "",
-          agentType: a.role,
-          stake: "0",
-          reputation: 100,
-          online: a.online,
-          lastHeartbeat: new Date().toISOString(),
-        }))).filter((a) => a.address).map((agent) => (
+        {dedupeFleetByRole(
+          data?.data.length
+            ? data.data
+            : (fleetHealth?.agents ?? []).map((a) => ({
+                address: a.address ?? "",
+                agentType: a.role,
+                stake: "0",
+                reputation: 100,
+                online: a.online,
+                lastHeartbeat: new Date().toISOString(),
+              })),
+        )
+          .filter((a) => a.address)
+          .map((agent) => (
           <StaggerItem key={agent.address} style={{ height: "100%" }}>
             <Link to={`/agents/${agent.address}`} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
               <Card style={{ cursor: "pointer", height: "100%" }}>

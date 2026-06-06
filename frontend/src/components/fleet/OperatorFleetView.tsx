@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { api, formatEth, shortAddr } from "../../api/client";
 import { useFetch } from "../../api/hooks";
 import { fleetStatusLabel } from "../../lib/formatText";
-import { countOperationalAgents, healthByRoleMap, isAgentOperational, workerBadgeStatus } from "../../lib/fleetAgentStatus";
+import { countOperationalAgents, dedupeFleetByRole, healthByRoleMap, isAgentOperational, workerBadgeStatus } from "../../lib/fleetAgentStatus";
 import { FLEET_ROLE_META, sortAgentsByRole, workerStatusLabel } from "../../config/fleetRoles";
 import { ALL_AGENT_TYPES, type AgentType } from "../../task/payload";
 import { ErrorBanner } from "../ErrorBanner";
@@ -186,18 +186,20 @@ export function OperatorFleetView() {
   const healthMap = useMemo(() => healthByRoleMap(fleetHealth), [fleetHealth]);
 
   const agents = useMemo(() => {
-    let list = sortAgentsByRole(data?.data ?? []);
+    let list = sortAgentsByRole(dedupeFleetByRole(data?.data ?? []));
     if (onlineOnly) {
       list = list.filter((a) => isAgentOperational(a, healthMap.get(a.agentType)));
     }
     return list;
   }, [data?.data, onlineOnly, healthMap]);
 
+  const fleetAgents = useMemo(() => dedupeFleetByRole(data?.data ?? []), [data?.data]);
+
   const onlineCount = useMemo(
-    () => countOperationalAgents(data?.data ?? [], healthMap),
-    [data?.data, healthMap],
+    () => countOperationalAgents(fleetAgents, healthMap),
+    [fleetAgents, healthMap],
   );
-  const totalAgents = data?.pagination.total ?? data?.data.length ?? 0;
+  const totalAgents = ALL_AGENT_TYPES.length;
   const totalStake = useMemo(() => {
     if (fleetHealth?.totalStakedWei) return formatEth(fleetHealth.totalStakedWei);
     if (stats?.tvl) return formatEth(stats.tvl);
@@ -236,7 +238,7 @@ export function OperatorFleetView() {
       <SummaryGrid>
         <SummaryCell>
           <SummaryValue>
-            {onlineCount}/{totalAgents || 5}
+            {onlineCount}/{totalAgents}
           </SummaryValue>
           <SummaryLabel>agents online</SummaryLabel>
         </SummaryCell>

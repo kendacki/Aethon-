@@ -1,5 +1,6 @@
 import { ALL_AGENT_TYPES, type AgentType } from "../shared/taskPayload.js";
 import { DEFAULT_FLEET_HEALTH_URLS } from "../config/fleetDefaults.js";
+import { isCanonicalFleetAgent } from "../config/fleetAddresses.js";
 import { readJsonFile } from "../config/resolveDataPath.js";
 import { repo } from "../db/repository.js";
 import { computeFleetTotalStakedWei, syncFleetFromChain } from "./fleetSync.js";
@@ -126,7 +127,11 @@ export async function getFleetHealth(): Promise<FleetHealthSummary> {
   const dbAgents = await repo.listAgents({ page: 0, pageSize: 50 });
   const byType = new Map<string, (typeof dbAgents.data)[0]>();
   for (const agent of dbAgents.data) {
-    if (!byType.has(agent.agentType)) byType.set(agent.agentType, agent);
+    if (isCanonicalFleetAgent(agent.address, agent.agentType)) {
+      byType.set(agent.agentType, agent);
+    } else if (!byType.has(agent.agentType)) {
+      byType.set(agent.agentType, agent);
+    }
   }
 
   const agents: FleetAgentHealth[] = await Promise.all(

@@ -1,11 +1,19 @@
 import { ethers } from "ethers";
 import type { AgentType } from "../shared/taskPayload.js";
 import { ALL_AGENT_TYPES } from "../shared/taskPayload.js";
-import { DEFAULT_FLEET_AGENTS, DEFAULT_RELAYER_ADDRESS } from "../config/fleetDefaults.js";
+import { DEFAULT_RELAYER_ADDRESS } from "../config/fleetDefaults.js";
+import {
+  getCanonicalFleetAddresses,
+  isCanonicalFleetAgent,
+  loadFleetAddressMap,
+  loadRetiredFleetAddresses,
+} from "../config/fleetAddresses.js";
 import { AgentVaultClient } from "../somnia/AgentVaultClient.js";
-import { readJsonFile } from "../config/resolveDataPath.js";
+import { query } from "../db/client.js";
 import { repo } from "../db/repository.js";
 import type { AgentRecord } from "./types.js";
+
+export { loadFleetAddressMap } from "../config/fleetAddresses.js";
 
 const AGENT_TYPES = ["ARBITRAGE", "ORACLE", "YIELD_OPT", "GOVERNANCE", "RISK_MGMT"];
 
@@ -16,34 +24,6 @@ const REGISTRY_ABI = [
 ];
 
 const REP_ABI = ["function getScore(address) view returns (uint256)"];
-
-export function loadFleetAddressMap(): Partial<Record<AgentType, string>> {
-  const fromEnv = process.env.FLEET_AGENTS_JSON?.trim();
-  if (fromEnv) {
-    try {
-      const parsed = JSON.parse(fromEnv) as Record<string, string>;
-      const map: Partial<Record<AgentType, string>> = {};
-      for (const role of ALL_AGENT_TYPES) {
-        if (parsed[role]) map[role] = parsed[role];
-      }
-      if (Object.keys(map).length > 0) return map;
-    } catch {
-      console.warn("[fleetSync] FLEET_AGENTS_JSON is not valid JSON");
-    }
-  }
-
-  const fileData = readJsonFile<{ agents?: Record<string, string> }>("fleet.addresses.json");
-  if (fileData?.agents) {
-    const map: Partial<Record<AgentType, string>> = {};
-    for (const role of ALL_AGENT_TYPES) {
-      const addr = fileData.agents[role];
-      if (addr) map[role] = addr;
-    }
-    if (Object.keys(map).length > 0) return map;
-  }
-
-  return { ...DEFAULT_FLEET_AGENTS };
-}
 
 async function fetchAgentFromChain(
   provider: ethers.JsonRpcProvider,
@@ -72,6 +52,28 @@ async function fetchAgentFromChain(
   };
 }
 
+/** Remove retired wallets and duplicate role rows (e.g. old RISK_MGMT) from the agents table. */
+export async function pruneNonCanonicalFleetAgents(): Promise<number> {
+  const canonical = new Set(getCanonicalFleetAddresses());
+  const retired = loadRetiredFleetAddresses();
+  const rows = await query<{ address: string }>(`SELECT address FROM agents`);
+  let removed = 0;
+
+  for (const row of rows.rows) {
+    const addr = row.address.toLowerCase();
+    if (retired.has(addr) || !canonical.has(addr)) {
+      await query(`DELETE FROM agents WHERE address = $1`, [addr]);
+      removed += 1;
+    }
+  }
+
+  if (removed > 0) {
+    console.log(`[fleetSync] Pruned ${removed} non-canonical agent row(s) from database`);
+  }
+
+  return removed;
+}
+
 /** Refresh fleet agent rows from chain (isAgentActive respects 120s heartbeat TTL). */
 export async function syncFleetFromChain(): Promise<AgentRecord[]> {
   const rpc = process.env.SOMNIA_RPC_URL ?? "https://dream-rpc.somnia.network";
@@ -95,6 +97,10 @@ export async function syncFleetFromChain(): Promise<AgentRecord[]> {
     }
   }
 
+  await pruneNonCanonicalFleetAgents().catch((err) => {
+    console.warn("[fleetSync] prune failed:", err instanceof Error ? err.message : err);
+  });
+
   if (updated.length === 0) {
     console.warn("[fleetSync] No agents synced — check AGENT_REGISTRY_ADDR and fleet addresses");
   }
@@ -102,10 +108,10 @@ export async function syncFleetFromChain(): Promise<AgentRecord[]> {
   return updated;
 }
 
-/** Unique fleet + relayer + any DB-registered agent addresses (swarm and individual). */
+/** Unique fleet + relayer wallet addresses for stake totals (canonical fleet only). */
 export function collectFleetWalletAddresses(
   fleet: Partial<Record<AgentType, string>>,
-  dbAddresses: string[] = [],
+  _dbAddresses: string[] = [],
 ): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -119,11 +125,10 @@ export function collectFleetWalletAddresses(
 
   for (const role of ALL_AGENT_TYPES) add(fleet[role]);
   add(DEFAULT_RELAYER_ADDRESS);
-  for (const addr of dbAddresses) add(addr);
   return out;
 }
 
-/** Sum on-chain registry stake + fleet vault reserves across all swarm/individual wallets. */
+/** Sum on-chain registry stake + fleet vault reserves across canonical fleet wallets. */
 export async function computeFleetTotalStakedWei(): Promise<string> {
   const registryAddr = process.env.AGENT_REGISTRY_ADDR;
   if (!registryAddr) return "0";
@@ -133,11 +138,7 @@ export async function computeFleetTotalStakedWei(): Promise<string> {
   const registry = new ethers.Contract(registryAddr, REGISTRY_ABI, provider);
   const vault = AgentVaultClient.fromEnv(provider);
 
-  const dbAgents = await repo.listAgents({ page: 0, pageSize: 100 });
-  const addresses = collectFleetWalletAddresses(
-    loadFleetAddressMap(),
-    dbAgents.data.map((a) => a.address),
-  );
+  const addresses = collectFleetWalletAddresses(loadFleetAddressMap());
 
   let total = 0n;
   for (const address of addresses) {
@@ -159,3 +160,5 @@ export async function computeFleetTotalStakedWei(): Promise<string> {
 
   return total.toString();
 }
+
+export { isCanonicalFleetAgent, getCanonicalFleetAddresses, loadRetiredFleetAddresses };

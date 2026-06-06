@@ -7,10 +7,20 @@ import type {
   TaskRecord,
   TaskStatus,
 } from "../services/types.js";
+import { getCanonicalFleetAddresses } from "../config/fleetAddresses.js";
 import { query } from "./client.js";
 
 function paginate<T>(items: T[], page: number, pageSize: number, total: number): PaginatedResult<T> {
   return { data: items, pagination: { page, pageSize, total } };
+}
+
+function canonicalAgentsClause(startIndex: number, params: unknown[]): { clause: string; nextIndex: number } {
+  const canonical = getCanonicalFleetAddresses();
+  if (canonical.length === 0) {
+    return { clause: "", nextIndex: startIndex };
+  }
+  params.push(canonical);
+  return { clause: `address = ANY($${startIndex}::text[])`, nextIndex: startIndex + 1 };
 }
 
 export const repo = {
@@ -46,6 +56,11 @@ export const repo = {
     const conditions: string[] = [];
     const params: unknown[] = [];
     let i = 1;
+    const canonical = canonicalAgentsClause(i, params);
+    if (canonical.clause) {
+      conditions.push(canonical.clause);
+      i = canonical.nextIndex;
+    }
     if (opts.type) {
       conditions.push(`agent_type = $${i++}`);
       params.push(opts.type);
@@ -69,13 +84,19 @@ export const repo = {
   async listLeaderboard(opts: PaginationParams): Promise<PaginatedResult<AgentRecord>> {
     const page = opts.page ?? 0;
     const pageSize = opts.pageSize ?? 20;
-    const countR = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM agents`);
+    const params: unknown[] = [];
+    let i = 1;
+    const canonical = canonicalAgentsClause(i, params);
+    const where = canonical.clause ? `WHERE ${canonical.clause}` : "";
+    i = canonical.nextIndex;
+    const countR = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM agents ${where}`, params);
     const total = Number(countR.rows[0]?.count ?? 0);
+    params.push(pageSize, page * pageSize);
     const r = await query(
-      `SELECT * FROM agents
+      `SELECT * FROM agents ${where}
        ORDER BY reputation DESC, stake::numeric DESC, address ASC
-       LIMIT $1 OFFSET $2`,
-      [pageSize, page * pageSize]
+       LIMIT $${i++} OFFSET $${i}`,
+      params
     );
     return paginate(r.rows.map(rowToAgent), page, pageSize, total);
   },
@@ -266,9 +287,13 @@ export const repo = {
   },
 
   async getStats(circuitPaused: boolean, blockNumber: number, chainId: number): Promise<GlobalStats> {
+    const canonical = getCanonicalFleetAddresses();
+    const agentFilter = canonical.length > 0 ? `WHERE address = ANY($1::text[])` : "";
+    const agentParams = canonical.length > 0 ? [canonical] : [];
     const [agentsR, tasksR, tvlR] = await Promise.all([
       query<{ total: string; active: string }>(
-        `SELECT COUNT(*)::text AS total, COUNT(*) FILTER (WHERE online)::text AS active FROM agents`
+        `SELECT COUNT(*)::text AS total, COUNT(*) FILTER (WHERE online)::text AS active FROM agents ${agentFilter}`,
+        agentParams,
       ),
       query<{ total: string; completed: string; finished: string }>(
         `SELECT COUNT(*)::text AS total,
@@ -276,7 +301,10 @@ export const repo = {
                 COUNT(*) FILTER (WHERE status IN ('COMPLETED','FAILED','EXPIRED'))::text AS finished
          FROM tasks`
       ),
-      query<{ tvl: string }>(`SELECT COALESCE(SUM(stake::numeric), 0)::text AS tvl FROM agents`),
+      query<{ tvl: string }>(
+        `SELECT COALESCE(SUM(stake::numeric), 0)::text AS tvl FROM agents ${agentFilter}`,
+        agentParams,
+      ),
     ]);
     const completed = Number(tasksR.rows[0]?.completed ?? 0);
     const finished = Number(tasksR.rows[0]?.finished ?? 0);
