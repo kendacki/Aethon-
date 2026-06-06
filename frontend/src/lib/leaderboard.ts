@@ -1,15 +1,14 @@
 import type { Agent } from "../api/client";
-import { dedupeFleetByRole } from "./fleetAgentStatus";
 
 export const LEADERBOARD_PAGE_SIZE = 20;
 
-/** Global rank: 1 = highest reputation, total = lowest. */
+/** Global wallet rank on the paginated list: 1 = first row, total = last. */
 export function globalRank(page: number, index: number, pageSize = LEADERBOARD_PAGE_SIZE): number {
   return page * pageSize + index + 1;
 }
 
 export function rankRangeLabel(page: number, pageSize: number, total: number): string {
-  if (total === 0) return "no agents ranked";
+  if (total === 0) return "no wallets ranked";
   const start = page * pageSize + 1;
   const end = Math.min((page + 1) * pageSize, total);
   return `rank ${start}–${end} of ${total}`;
@@ -17,10 +16,10 @@ export function rankRangeLabel(page: number, pageSize: number, total: number): s
 
 export type RankTier = "leader" | "podium" | "field";
 
-/** Visual tier from global position — rank 1 is leader, 2–3 podium, rest field. */
-export function rankTier(rank: number): RankTier {
-  if (rank === 1) return "leader";
-  if (rank <= 3) return "podium";
+/** Visual tier from role rank — role 1 is leader, roles 2–3 podium, rest field. */
+export function rankTier(roleRank: number): RankTier {
+  if (roleRank === 1) return "leader";
+  if (roleRank <= 3) return "podium";
   return "field";
 }
 
@@ -29,7 +28,7 @@ export function isLastRankOnPage(rank: number, page: number, pageSize: number, t
   return rank === end && total > 1;
 }
 
-/** Match API / DB order: reputation desc, then stake desc, then address asc. */
+/** Match API order: role reputation desc, role stake desc, agent type asc, address asc. */
 export function compareLeaderboardAgents(a: Agent, b: Agent): number {
   if (b.reputation !== a.reputation) return b.reputation - a.reputation;
   try {
@@ -40,21 +39,40 @@ export function compareLeaderboardAgents(a: Agent, b: Agent): number {
   } catch {
     /* ignore invalid stake */
   }
+  if (a.agentType !== b.agentType) return a.agentType.localeCompare(b.agentType);
   return a.address.localeCompare(b.address);
 }
 
-/** One agent per role, ranked highest reputation first (for leaderboard + podium). */
-export function rankAgentsForLeaderboard(agents: Agent[]): Agent[] {
-  return [...dedupeFleetByRole(agents)].sort(compareLeaderboardAgents);
+/** All wallets sorted for display (reputation/stake are role aggregates from API). */
+export function sortLeaderboardAgents(agents: Agent[]): Agent[] {
+  return [...agents].sort(compareLeaderboardAgents);
 }
 
-/** Highest reputation on the current ranked page. */
+/** One representative wallet per role for the top three roles by aggregate reputation. */
+export function topThreeRolesForPodium(agents: Agent[]): Agent[] {
+  const sorted = sortLeaderboardAgents(agents);
+  const seen = new Set<string>();
+  const roles: Agent[] = [];
+  for (const agent of sorted) {
+    if (seen.has(agent.agentType)) continue;
+    seen.add(agent.agentType);
+    roles.push(agent);
+    if (roles.length >= 3) break;
+  }
+  return roles;
+}
+
+export function roleRankOf(agent: Agent): number {
+  return agent.roleRank ?? 99;
+}
+
+/** Highest role aggregate reputation on the current page. */
 export function pageTopReputation(agents: Agent[]): number | null {
   if (!agents.length) return null;
   return Math.max(...agents.map((a) => a.reputation));
 }
 
-/** Lowest reputation on the current ranked page. */
+/** Lowest role aggregate reputation on the current page. */
 export function pageBottomReputation(agents: Agent[]): number | null {
   if (!agents.length) return null;
   return Math.min(...agents.map((a) => a.reputation));

@@ -80,25 +80,55 @@ export const repo = {
     return paginate(r.rows.map(rowToAgent), page, pageSize, total);
   },
 
-  /** Ranked list: highest reputation first, then stake, then address for stable ties. */
+  /** All wallets ranked by role aggregate reputation/stake (highest role first). */
   async listLeaderboard(opts: PaginationParams): Promise<PaginatedResult<AgentRecord>> {
     const page = opts.page ?? 0;
     const pageSize = opts.pageSize ?? 20;
-    const params: unknown[] = [];
-    let i = 1;
-    const canonical = canonicalAgentsClause(i, params);
-    const where = canonical.clause ? `WHERE ${canonical.clause}` : "";
-    i = canonical.nextIndex;
-    const countR = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM agents ${where}`, params);
+    const countR = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM agents`);
     const total = Number(countR.rows[0]?.count ?? 0);
-    params.push(pageSize, page * pageSize);
     const r = await query(
-      `SELECT * FROM agents ${where}
-       ORDER BY reputation DESC, stake::numeric DESC, address ASC
-       LIMIT $${i++} OFFSET $${i}`,
-      params
+       `WITH role_totals AS (
+         SELECT agent_type,
+                SUM(reputation)::int AS role_reputation,
+                COALESCE(SUM(stake::numeric), 0)::text AS role_stake,
+                BOOL_OR(online) AS role_online
+         FROM agents
+         GROUP BY agent_type
+       ),
+       role_ranks AS (
+         SELECT agent_type,
+                ROW_NUMBER() OVER (
+                  ORDER BY role_reputation DESC, role_stake::numeric DESC, agent_type ASC
+                )::int AS role_rank
+         FROM role_totals
+       )
+       SELECT a.address,
+              a.agent_type,
+              a.stake AS wallet_stake,
+              a.reputation AS wallet_reputation,
+              a.online,
+              a.last_heartbeat,
+              a.metadata_uri,
+              r.role_reputation,
+              r.role_stake,
+              r.role_online,
+              rr.role_rank
+       FROM agents a
+       INNER JOIN role_totals r ON r.agent_type = a.agent_type
+       INNER JOIN role_ranks rr ON rr.agent_type = a.agent_type
+       ORDER BY r.role_reputation DESC,
+                r.role_stake::numeric DESC,
+                a.agent_type ASC,
+                a.address ASC
+       LIMIT $1 OFFSET $2`,
+      [pageSize, page * pageSize]
     );
-    return paginate(r.rows.map(rowToAgent), page, pageSize, total);
+    return paginate(r.rows.map(rowToLeaderboardAgent), page, pageSize, total);
+  },
+
+  async listAgentAddresses(): Promise<string[]> {
+    const r = await query<{ address: string }>(`SELECT address FROM agents ORDER BY address ASC`);
+    return r.rows.map((row) => row.address as string);
   },
 
   async upsertTask(task: TaskRecord): Promise<void> {
@@ -523,6 +553,21 @@ export const repo = {
     );
   },
 };
+
+function rowToLeaderboardAgent(row: Record<string, unknown>): AgentRecord {
+  return {
+    address: row.address as string,
+    agentType: row.agent_type as string,
+    stake: row.role_stake as string,
+    reputation: row.role_reputation as number,
+    online: (row.role_online as boolean) ?? (row.online as boolean),
+    lastHeartbeat: row.last_heartbeat ? (row.last_heartbeat as Date).toISOString() : new Date().toISOString(),
+    metadataURI: (row.metadata_uri as string) ?? undefined,
+    walletStake: row.wallet_stake as string,
+    walletReputation: row.wallet_reputation as number,
+    roleRank: row.role_rank as number,
+  };
+}
 
 function rowToAgent(row: Record<string, unknown>): AgentRecord {
   return {

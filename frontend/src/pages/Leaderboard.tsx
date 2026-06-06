@@ -17,9 +17,11 @@ import {
   LEADERBOARD_PAGE_SIZE,
   pageBottomReputation,
   pageTopReputation,
-  rankAgentsForLeaderboard,
   rankRangeLabel,
   rankTier,
+  roleRankOf,
+  sortLeaderboardAgents,
+  topThreeRolesForPodium,
   type RankTier,
 } from "../lib/leaderboard";
 import { styled } from "../stitches.config";
@@ -183,8 +185,8 @@ function AgentRankCard({
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ fontSize: emphasize ? "1.625rem" : "1.375rem", fontWeight: 800 }}>{agent.reputation}</div>
-          <div style={{ fontSize: "0.6875rem", opacity: 0.55, marginTop: 2 }}>reputation</div>
-          <div style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: 6 }}>{formatEth(agent.stake)}</div>
+          <div style={{ fontSize: "0.6875rem", opacity: 0.55, marginTop: 2 }}>role reputation</div>
+          <div style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: 6 }}>{formatEth(agent.stake)} role stake</div>
           <Badge status={operational ? "online" : "offline"} style={{ marginTop: 8 }}>
             {operational ? "online" : "offline"}
           </Badge>
@@ -229,8 +231,8 @@ function PodiumCard({
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontSize: "1.375rem", fontWeight: 800 }}>{agent.reputation}</div>
-            <div style={{ fontSize: "0.6875rem", opacity: 0.55, marginTop: 2 }}>reputation</div>
-            <div style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: 6 }}>{formatEth(agent.stake)}</div>
+            <div style={{ fontSize: "0.6875rem", opacity: 0.55, marginTop: 2 }}>role reputation</div>
+            <div style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: 6 }}>{formatEth(agent.stake)} role stake</div>
             <Badge status={operational ? "online" : "offline"} style={{ marginTop: 8 }}>
               {operational ? "online" : "offline"}
             </Badge>
@@ -247,7 +249,7 @@ export default function LeaderboardPage() {
   const { data: fleetHealth } = useFetch(() => api.fleetHealth(), []);
 
   const healthMap = useMemo(() => healthByRoleMap(fleetHealth ?? null), [fleetHealth]);
-  const agents = useMemo(() => rankAgentsForLeaderboard(data?.data ?? []), [data?.data]);
+  const agents = useMemo(() => sortLeaderboardAgents(data?.data ?? []), [data?.data]);
   const total = data?.pagination.total ?? agents.length;
 
   const onlineOnPage = useMemo(
@@ -258,10 +260,9 @@ export default function LeaderboardPage() {
   const topReputation = pageTopReputation(agents);
   const bottomReputation = pageBottomReputation(agents);
 
-  const showPodium = page === 0 && agents.length >= 3;
-  const podiumSlots = showPodium ? buildPodiumSlots(agents.slice(0, 3)) : [];
-  const listAgents = showPodium ? agents.slice(3) : agents;
-  const listOffset = showPodium ? 3 : 0;
+  const showPodium = page === 0 && topThreeRolesForPodium(agents).length >= 3;
+  const podiumSlots = showPodium ? buildPodiumSlots(topThreeRolesForPodium(agents)) : [];
+  const listAgents = agents;
 
   return (
     <PageWrap>
@@ -279,11 +280,11 @@ export default function LeaderboardPage() {
             <SummaryGrid>
               <SummaryCell>
                 <SummaryValue>{total || "—"}</SummaryValue>
-                <SummaryLabel>agents ranked</SummaryLabel>
+                <SummaryLabel>wallets ranked</SummaryLabel>
               </SummaryCell>
               <SummaryCell>
                 <SummaryValue>{topReputation ?? "—"}</SummaryValue>
-                <SummaryLabel>{page === 0 ? "top reputation" : "highest on page"}</SummaryLabel>
+                <SummaryLabel>{page === 0 ? "top role reputation" : "highest on page"}</SummaryLabel>
               </SummaryCell>
               <SummaryCell>
                 <SummaryValue>
@@ -334,9 +335,9 @@ export default function LeaderboardPage() {
                   viewport={viewportOnce}
                 >
                   {listAgents.map((agent, i) => {
-                    const index = listOffset + i;
-                    const rank = globalRank(page, index);
-                    const tier = rankTier(rank);
+                    const rank = globalRank(page, i);
+                    const roleRank = roleRankOf(agent);
+                    const tier = rankTier(roleRank);
                     const operational = isAgentOperational(agent, healthMap.get(agent.agentType));
                     const lowestOnPage = isLastRankOnPage(rank, page, LEADERBOARD_PAGE_SIZE, total);
 
@@ -344,7 +345,7 @@ export default function LeaderboardPage() {
                       <StaggerItem key={agent.address}>
                         <AgentRankCard
                           agent={agent}
-                          rank={rank}
+                          rank={roleRank}
                           tier={tier}
                           operational={operational}
                           lowestOnPage={lowestOnPage}

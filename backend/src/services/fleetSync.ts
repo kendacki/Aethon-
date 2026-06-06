@@ -52,26 +52,50 @@ async function fetchAgentFromChain(
   };
 }
 
-/** Remove retired wallets and duplicate role rows (e.g. old RISK_MGMT) from the agents table. */
+/** Mark retired / duplicate wallets offline — keep rows for leaderboard role aggregation. */
 export async function pruneNonCanonicalFleetAgents(): Promise<number> {
   const canonical = new Set(getCanonicalFleetAddresses());
   const retired = loadRetiredFleetAddresses();
   const rows = await query<{ address: string }>(`SELECT address FROM agents`);
-  let removed = 0;
+  let updated = 0;
 
   for (const row of rows.rows) {
     const addr = row.address.toLowerCase();
     if (retired.has(addr) || !canonical.has(addr)) {
-      await query(`DELETE FROM agents WHERE address = $1`, [addr]);
-      removed += 1;
+      await query(`UPDATE agents SET online = false, updated_at = NOW() WHERE address = $1`, [addr]);
+      updated += 1;
     }
   }
 
-  if (removed > 0) {
-    console.log(`[fleetSync] Pruned ${removed} non-canonical agent row(s) from database`);
+  if (updated > 0) {
+    console.log(`[fleetSync] Marked ${updated} non-canonical agent wallet(s) offline (kept for leaderboard history)`);
   }
 
-  return removed;
+  return updated;
+}
+
+/** Refresh every known wallet from chain so role totals stay current. */
+export async function syncAllAgentsForLeaderboard(): Promise<number> {
+  const rpc = process.env.SOMNIA_RPC_URL ?? "https://dream-rpc.somnia.network";
+  const provider = new ethers.JsonRpcProvider(rpc);
+  const addresses = await repo.listAgentAddresses();
+  let updated = 0;
+
+  for (const address of addresses) {
+    try {
+      const record = await fetchAgentFromChain(provider, address);
+      if (!record) continue;
+      await repo.upsertAgent(record);
+      updated += 1;
+    } catch (err) {
+      console.warn(
+        `[fleetSync] leaderboard refresh failed for ${address}:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  return updated;
 }
 
 /** Refresh fleet agent rows from chain (isAgentActive respects 120s heartbeat TTL). */

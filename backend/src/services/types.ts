@@ -8,6 +8,11 @@ export interface AgentRecord {
   online: boolean;
   lastHeartbeat: string;
   metadataURI?: string;
+  /** Per-wallet values when leaderboard returns role aggregates in stake/reputation. */
+  walletStake?: string;
+  walletReputation?: number;
+  /** Global rank of this agent role by aggregate reputation (1 = highest). */
+  roleRank?: number;
 }
 
 export interface TaskRecord {

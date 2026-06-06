@@ -13,7 +13,7 @@ import {
   verifyExecutionSignature,
 } from "../services/coalitionVerify.js";
 import { getAgentHealthByAddress, getFleetHealth } from "../services/fleetHealth.js";
-import { syncFleetFromChain } from "../services/fleetSync.js";
+import { syncFleetFromChain, syncAllAgentsForLeaderboard } from "../services/fleetSync.js";
 import { validateTaskPayload } from "../shared/taskPayload.js";
 import { getSomniaCompatibilityReport } from "../services/somniaCompat.js";
 import { searchKnowledge, storeObservation } from "../knowledge/repository.js";
@@ -488,6 +488,9 @@ leaderboardRouter.get("/", async (req, res, next) => {
   try {
     await syncFleetFromChain().catch((err) => {
       console.warn("[leaderboard] chain sync failed:", err instanceof Error ? err.message : err);
+    });
+    await syncAllAgentsForLeaderboard().catch((err) => {
+      console.warn("[leaderboard] wallet refresh failed:", err instanceof Error ? err.message : err);
     });
     const { page, pageSize } = parsePagination(req);
     const result = await repo.listLeaderboard({ page, pageSize });
