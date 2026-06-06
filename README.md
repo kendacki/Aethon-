@@ -151,7 +151,7 @@ Retired wallet `0xBA28…CB2EC` must **not** be used for relayer or agents.
 | **GOVERNANCE** | [aethon-agent-governance-production.up.railway.app/health](https://aethon-agent-governance-production.up.railway.app/health) | same |
 | **RISK_MGMT** | [aethon-agent-risk-production.up.railway.app/health](https://aethon-agent-risk-production.up.railway.app/health) | same |
 
-**API service checklist:** `AETHON_RUNTIME=api`, `RELAYER_PRIVATE_KEY` → deployer `0x2132…d6D6`, contract vars from [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example), `INDEXER_START_BLOCK=401587367`. Run `node backend/scripts/print-railway-env.cjs` after deploy.
+**API service checklist:** `AETHON_RUNTIME=api`, `RELAYER_PRIVATE_KEY` → deployer `0x2132…d6D6`, contract vars from [`backend/env/railway-contracts-50312.env.example`](backend/env/railway-contracts-50312.env.example), `INDEXER_START_BLOCK=401587367`. **Remove** `AGENT_PRIVATE_KEY` and `AGENT_TYPE` from the API service (causes AgentCore HALT spam). Run `node backend/scripts/print-railway-env.cjs` after deploy.
 
 **Agent workers:** `AETHON_RUNTIME=agent`, role-specific `AGENT_PRIVATE_KEY` from `backend/env/agents/*.env`. **Do not** set `RELAYER_PRIVATE_KEY` on agents.
 

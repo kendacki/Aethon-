@@ -1,33 +1,18 @@
 #!/usr/bin/env node
 /**
  * Railway entrypoint — lives in dist/ after build (see copy-assets.cjs).
- * API:  AETHON_RUNTIME=api (default) or non-agent Railway service name
- * Agent: AETHON_RUNTIME=agent + AGENT_TYPE + AGENT_PRIVATE_KEY on aethon-agent-* services
+ * API:  non-agent Railway service name (default)
+ * Agent: aethon-agent-* services with AGENT_TYPE + AGENT_PRIVATE_KEY
  */
 const { spawn } = require("child_process");
 const fs = require("fs");
 const http = require("http");
 const os = require("os");
 const path = require("path");
+const { resolveRuntime } = require("./resolve-runtime.cjs");
 
 const distDir = __dirname;
 const healthFile = process.env.AGENT_HEALTH_FILE ?? path.join(os.tmpdir(), "aethon-agent-health.json");
-
-/** Prefer Railway service identity over a mis-set AETHON_RUNTIME on the API service. */
-function resolveRuntime() {
-  const serviceName = (process.env.RAILWAY_SERVICE_NAME ?? "").toLowerCase();
-  const publicDomain = (process.env.RAILWAY_PUBLIC_DOMAIN ?? "").toLowerCase();
-
-  if (serviceName.includes("agent")) {
-    return "agent";
-  }
-
-  if (serviceName || publicDomain) {
-    return "api";
-  }
-
-  return (process.env.AETHON_RUNTIME ?? "api").toLowerCase() === "agent" ? "agent" : "api";
-}
 
 const requestedRuntime = (process.env.AETHON_RUNTIME ?? "api").toLowerCase();
 const runtime = resolveRuntime();
@@ -63,9 +48,25 @@ function isAgentHealthPath(url) {
   );
 }
 
+function buildChildEnv() {
+  const childEnv = { ...process.env, AETHON_RUNTIME: runtime };
+  if (runtime === "api") {
+    if (childEnv.AGENT_PRIVATE_KEY) {
+      console.warn(
+        "[railway-start] Removing AGENT_PRIVATE_KEY from API runtime — delete it from Railway Variables on the API service",
+      );
+      delete childEnv.AGENT_PRIVATE_KEY;
+    }
+    if (childEnv.AGENT_TYPE) {
+      delete childEnv.AGENT_TYPE;
+    }
+  }
+  return childEnv;
+}
+
 if (runtime === "agent") {
   if (!process.env.AGENT_PRIVATE_KEY) {
-    console.error("[railway-start] AETHON_RUNTIME=agent requires AGENT_PRIVATE_KEY");
+    console.error("[railway-start] Agent worker requires AGENT_PRIVATE_KEY");
     process.exit(1);
   }
   const port = Number(process.env.PORT ?? 8080);
@@ -99,7 +100,7 @@ if (runtime === "agent") {
 
 const child = spawn(process.execPath, [entry], {
   stdio: "inherit",
-  env: { ...process.env, AETHON_RUNTIME: runtime },
+  env: buildChildEnv(),
 });
 child.on("exit", (code, signal) => {
   if (signal) process.kill(process.pid, signal);

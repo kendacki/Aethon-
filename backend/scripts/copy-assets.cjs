@@ -21,6 +21,12 @@ copyFile(
   "railway-start.cjs to dist/",
 );
 
+copyFile(
+  path.join(root, "scripts", "resolve-runtime.cjs"),
+  path.join(root, "dist", "resolve-runtime.cjs"),
+  "resolve-runtime.cjs to dist/",
+);
+
 const envDir = path.join(root, "env");
 const distEnvDir = path.join(root, "dist", "env");
 if (fs.existsSync(envDir)) {

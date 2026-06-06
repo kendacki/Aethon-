@@ -53,8 +53,18 @@ export async function runMigrations(): Promise<void> {
 /** @deprecated Use runMigrations. Kept for backwards compatibility. */
 export const migrate = runMigrations;
 
+/** Match scripts/resolve-runtime.cjs — used so preDeploy migrations run on the API service. */
+function resolveAethonRuntime(): "api" | "agent" {
+  const serviceName = (process.env.RAILWAY_SERVICE_NAME ?? "").toLowerCase();
+  const publicDomain = (process.env.RAILWAY_PUBLIC_DOMAIN ?? "").toLowerCase();
+  if (serviceName.includes("agent")) return "agent";
+  if (serviceName || publicDomain) return "api";
+  return process.env.AETHON_RUNTIME === "agent" ? "agent" : "api";
+}
+
 async function main(): Promise<void> {
-  if (process.env.SKIP_DB_MIGRATE === "true" || process.env.AETHON_RUNTIME === "agent") {
+  const runtime = resolveAethonRuntime();
+  if (process.env.SKIP_DB_MIGRATE === "true" || runtime === "agent") {
     console.log("[DB] Skipping migrations (agent worker or SKIP_DB_MIGRATE=true)");
     return;
   }
