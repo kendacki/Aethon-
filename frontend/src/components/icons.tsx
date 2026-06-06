@@ -160,6 +160,75 @@ export function IconMedal({ size = ICON_MD, ...props }: IconProps) {
   );
 }
 
+const MEDAL = {
+  gold: {
+    ribbonL: "#B8860B",
+    ribbonR: "#FFD700",
+    diskL: "#C9A227",
+    diskR: "#FFE566",
+    core: "#FFB800",
+    rim: "#8B6914",
+    star: "#FFF8E7",
+  },
+  silver: {
+    ribbonL: "#6B7280",
+    ribbonR: "#D1D5DB",
+    diskL: "#9CA3AF",
+    diskR: "#F3F4F6",
+    core: "#E5E7EB",
+    rim: "#4B5563",
+    star: "#FFFFFF",
+  },
+  bronze: {
+    ribbonL: "#8B4513",
+    ribbonR: "#CD7F32",
+    diskL: "#A0522D",
+    diskR: "#E8A86B",
+    core: "#C6763A",
+    rim: "#6B3E1F",
+    star: "#FFF0E0",
+  },
+} as const;
+
+export type PodiumMedalTier = keyof typeof MEDAL;
+
+function PodiumMedalSvg({ tier, size = ICON_MD, ...props }: IconProps & { tier: PodiumMedalTier }) {
+  const c = MEDAL[tier];
+  return (
+    <svg {...base(size)} {...props}>
+      <GroundShadow />
+      <path d="M17 8 L24 20 L31 8 Z" fill={c.ribbonL} />
+      <path d="M19 8 L24 20 L29 8 H31 L24 22 L17 8 Z" fill={c.ribbonR} />
+      <circle cx="24" cy="31" r="11" fill={c.diskL} />
+      <path d="M24 20 A11 11 0 0 1 35 31 L24 31 Z" fill={c.diskR} />
+      <circle cx="24" cy="31" r="8.5" fill={c.rim} />
+      <circle cx="24" cy="31" r="7" fill={c.core} />
+      <path
+        d="M24 25.5 L25.4 29.2 H29.2 L26.1 31.4 L27.5 35.1 L24 32.9 L20.5 35.1 L21.9 31.4 L18.8 29.2 H22.6 Z"
+        fill={c.star}
+      />
+    </svg>
+  );
+}
+
+export function IconMedalGold(props: IconProps) {
+  return <PodiumMedalSvg tier="gold" {...props} />;
+}
+
+export function IconMedalSilver(props: IconProps) {
+  return <PodiumMedalSvg tier="silver" {...props} />;
+}
+
+export function IconMedalBronze(props: IconProps) {
+  return <PodiumMedalSvg tier="bronze" {...props} />;
+}
+
+export function IconPodiumMedal({ rank, ...props }: IconProps & { rank: 1 | 2 | 3 }) {
+  if (rank === 1) return <IconMedalGold {...props} />;
+  if (rank === 2) return <IconMedalSilver {...props} />;
+  return <IconMedalBronze {...props} />;
+}
+
 export function IconCoalition({ size = ICON_MD, ...props }: IconProps) {
   return (
     <svg {...base(size)} {...props}>

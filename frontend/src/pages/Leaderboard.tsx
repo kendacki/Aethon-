@@ -6,10 +6,11 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, s
 import { PageContentWide, SectionHeading, SectionHeadingMeta, SectionHeadingTitle, SubpageHero } from "../components/layout/SubpageLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, PageWrap } from "../components/ui";
-import { IconMedal, ICON_LG } from "../components/icons";
+import { ICON_LG, ICON_XL, IconPodiumMedal } from "../components/icons";
 import { motion } from "framer-motion";
 import { fleetRoleLabel } from "../config/fleetRoles";
 import { dedupeFleetByRole, healthByRoleMap, isAgentOperational } from "../lib/fleetAgentStatus";
+import { buildPodiumSlots } from "../lib/leaderboardPodium";
 import {
   globalRank,
   isLastRankOnPage,
@@ -52,10 +53,48 @@ const SummaryLabel = styled("div", {
 
 const PodiumGrid = styled("div", {
   display: "grid",
-  gap: "$3",
+  gap: "$4",
   gridTemplateColumns: "1fr",
-  "@md": { gridTemplateColumns: "1fr 1.15fr 1fr", alignItems: "end" },
+  "@md": {
+    gridTemplateColumns: "1fr 1.2fr 1fr",
+    alignItems: "end",
+    gap: "$3",
+  },
   marginBottom: "$5",
+});
+
+const PodiumColumn = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "$3",
+  width: "100%",
+  variants: {
+    medal: {
+      gold: {
+        "@md": { transform: "translateY(-12px)" },
+      },
+      silver: {
+        "@md": { transform: "translateY(4px)" },
+      },
+      bronze: {
+        "@md": { transform: "translateY(8px)" },
+      },
+    },
+  },
+});
+
+const PodiumMedalWrap = styled("div", {
+  display: "flex",
+  justifyContent: "center",
+  lineHeight: 0,
+  variants: {
+    medal: {
+      gold: { filter: "drop-shadow(0 0 14px rgba(255, 196, 0, 0.35))" },
+      silver: { filter: "drop-shadow(0 0 10px rgba(192, 192, 192, 0.2))" },
+      bronze: { filter: "drop-shadow(0 0 10px rgba(205, 127, 50, 0.25))" },
+    },
+  },
 });
 
 const tierBorder: Record<RankTier, string> = {
@@ -71,10 +110,10 @@ const tierGlow: Record<RankTier, string | undefined> = {
 };
 
 function RankBadge({ rank, tier }: { rank: number; tier: RankTier }) {
-  if (rank <= 3) {
+  if (rank === 1 || rank === 2 || rank === 3) {
     return (
-      <div style={{ fontSize: "1.5rem", fontWeight: 800, width: 40, display: "flex", justifyContent: "center" }}>
-        <IconMedal size={ICON_LG} />
+      <div style={{ width: 40, display: "flex", justifyContent: "center" }}>
+        <IconPodiumMedal rank={rank as 1 | 2 | 3} size={ICON_LG} />
       </div>
     );
   }
@@ -92,6 +131,7 @@ function AgentRankCard({
   operational,
   emphasize,
   lowestOnPage,
+  hideRankBadge,
 }: {
   agent: Agent;
   rank: number;
@@ -99,6 +139,7 @@ function AgentRankCard({
   operational: boolean;
   emphasize?: boolean;
   lowestOnPage?: boolean;
+  hideRankBadge?: boolean;
 }) {
   const label = fleetRoleLabel(agent.agentType);
 
@@ -116,7 +157,7 @@ function AgentRankCard({
           opacity: lowestOnPage ? 0.88 : 1,
         }}
       >
-        <RankBadge rank={rank} tier={tier} />
+        {!hideRankBadge && <RankBadge rank={rank} tier={tier} />}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700 }}>{label}</div>
           <div style={{ fontSize: "0.75rem", opacity: 0.65, fontFamily: "monospace", marginTop: 4 }}>
@@ -139,17 +180,32 @@ function AgentRankCard({
   );
 }
 
-function PodiumCard({ agent, rank, operational }: { agent: Agent; rank: number; operational: boolean }) {
-  const tier = rankTier(rank);
-  const emphasize = rank === 1;
+function PodiumCard({
+  agent,
+  rank,
+  operational,
+  medal,
+}: {
+  agent: Agent;
+  rank: 1 | 2 | 3;
+  operational: boolean;
+  medal: "gold" | "silver" | "bronze";
+}) {
+  const medalSize = medal === "gold" ? ICON_XL : ICON_LG;
   return (
-    <AgentRankCard
-      agent={agent}
-      rank={rank}
-      tier={tier}
-      operational={operational}
-      emphasize={emphasize}
-    />
+    <PodiumColumn medal={medal}>
+      <PodiumMedalWrap medal={medal} aria-hidden>
+        <IconPodiumMedal rank={rank} size={medalSize} />
+      </PodiumMedalWrap>
+      <AgentRankCard
+        agent={agent}
+        rank={rank}
+        tier={rankTier(rank)}
+        operational={operational}
+        emphasize={rank === 1}
+        hideRankBadge
+      />
+    </PodiumColumn>
   );
 }
 
@@ -171,7 +227,7 @@ export default function LeaderboardPage() {
   const bottomReputation = pageBottomReputation(agents);
 
   const showPodium = page === 0 && agents.length >= 3;
-  const podiumAgents = showPodium ? agents.slice(0, 3) : [];
+  const podiumSlots = showPodium ? buildPodiumSlots(agents.slice(0, 3)) : [];
   const listAgents = showPodium ? agents.slice(3) : agents;
   const listOffset = showPodium ? 3 : 0;
 
@@ -226,18 +282,15 @@ export default function LeaderboardPage() {
 
                 {showPodium && (
                   <PodiumGrid>
-                    {[podiumAgents[1], podiumAgents[0], podiumAgents[2]].filter(Boolean).map((agent) => {
-                      const index = agents.indexOf(agent);
-                      const rank = globalRank(page, index);
-                      return (
-                        <PodiumCard
-                          key={agent.address}
-                          agent={agent}
-                          rank={rank}
-                          operational={isAgentOperational(agent, healthMap.get(agent.agentType))}
-                        />
-                      );
-                    })}
+                    {podiumSlots.map(({ agent, rank, medal }) => (
+                      <PodiumCard
+                        key={agent.address}
+                        agent={agent}
+                        rank={rank}
+                        medal={medal}
+                        operational={isAgentOperational(agent, healthMap.get(agent.agentType))}
+                      />
+                    ))}
                   </PodiumGrid>
                 )}
 
