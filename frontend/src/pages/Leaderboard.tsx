@@ -6,7 +6,7 @@ import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, s
 import { PageContentWide, SectionHeading, SectionHeadingMeta, SectionHeadingTitle, SubpageHero } from "../components/layout/SubpageLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, PageWrap } from "../components/ui";
-import { ICON_LG, ICON_XL, IconPodiumMedal } from "../components/icons";
+import { ICON_LG, IconPodiumMedal } from "../components/icons";
 import { motion } from "framer-motion";
 import { fleetRoleLabel } from "../config/fleetRoles";
 import { dedupeFleetByRole, healthByRoleMap, isAgentOperational } from "../lib/fleetAgentStatus";
@@ -56,8 +56,8 @@ const PodiumGrid = styled("div", {
   gap: "$4",
   gridTemplateColumns: "1fr",
   "@md": {
-    gridTemplateColumns: "1fr 1.2fr 1fr",
-    alignItems: "end",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    alignItems: "stretch",
     gap: "$3",
   },
   marginBottom: "$5",
@@ -69,24 +69,17 @@ const PodiumColumn = styled("div", {
   alignItems: "center",
   gap: "$3",
   width: "100%",
-  variants: {
-    medal: {
-      gold: {
-        "@md": { transform: "translateY(-12px)" },
-      },
-      silver: {
-        "@md": { transform: "translateY(4px)" },
-      },
-      bronze: {
-        "@md": { transform: "translateY(8px)" },
-      },
-    },
-  },
+  minWidth: 0,
+  height: "100%",
 });
 
 const PodiumMedalWrap = styled("div", {
   display: "flex",
+  alignItems: "center",
   justifyContent: "center",
+  width: 48,
+  height: 48,
+  flexShrink: 0,
   lineHeight: 0,
   variants: {
     medal: {
@@ -95,6 +88,26 @@ const PodiumMedalWrap = styled("div", {
       bronze: { filter: "drop-shadow(0 0 10px rgba(205, 127, 50, 0.25))" },
     },
   },
+});
+
+const PodiumCardShell = styled(Card, {
+  width: "100%",
+  minHeight: 152,
+  height: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: "$4",
+  padding: "$4 $5",
+  boxSizing: "border-box",
+});
+
+const PodiumCardLink = styled(Link, {
+  width: "100%",
+  flex: 1,
+  display: "flex",
+  textDecoration: "none",
+  color: "inherit",
+  minWidth: 0,
 });
 
 const tierBorder: Record<RankTier, string> = {
@@ -191,20 +204,38 @@ function PodiumCard({
   operational: boolean;
   medal: "gold" | "silver" | "bronze";
 }) {
-  const medalSize = medal === "gold" ? ICON_XL : ICON_LG;
+  const tier = rankTier(rank);
+  const label = fleetRoleLabel(agent.agentType);
+
   return (
-    <PodiumColumn medal={medal}>
+    <PodiumColumn>
       <PodiumMedalWrap medal={medal} aria-hidden>
-        <IconPodiumMedal rank={rank} size={medalSize} />
+        <IconPodiumMedal rank={rank} size={ICON_LG} />
       </PodiumMedalWrap>
-      <AgentRankCard
-        agent={agent}
-        rank={rank}
-        tier={rankTier(rank)}
-        operational={operational}
-        emphasize={rank === 1}
-        hideRankBadge
-      />
+      <PodiumCardLink to={`/agents/${agent.address}`}>
+        <PodiumCardShell
+          style={{
+            borderColor: tierBorder[tier],
+            boxShadow: tierGlow[tier],
+            cursor: "pointer",
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700 }}>{label}</div>
+            <div style={{ fontSize: "0.75rem", opacity: 0.65, fontFamily: "monospace", marginTop: 4 }}>
+              {shortAddr(agent.address)}
+            </div>
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div style={{ fontSize: "1.375rem", fontWeight: 800 }}>{agent.reputation}</div>
+            <div style={{ fontSize: "0.6875rem", opacity: 0.55, marginTop: 2 }}>reputation</div>
+            <div style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: 6 }}>{formatEth(agent.stake)}</div>
+            <Badge status={operational ? "online" : "offline"} style={{ marginTop: 8 }}>
+              {operational ? "online" : "offline"}
+            </Badge>
+          </div>
+        </PodiumCardShell>
+      </PodiumCardLink>
     </PodiumColumn>
   );
 }
