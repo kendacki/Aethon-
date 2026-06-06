@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { api, formatEth, shortAddr, type Agent } from "../api/client";
 import { useFetch } from "../api/hooks";
 import { AnimatedPageHero, AnimatedSection, HeroItem, PageMotion, StaggerItem, statsSequence, viewportOnce } from "../components/motion/PageMotion";
-import { PageContentWide, SectionHeading, SectionHeadingMeta, SectionHeadingTitle, SubpageHero } from "../components/layout/SubpageLayout";
+import { PageContentWide, SectionHeading, SectionHeadingTitle, SubpageHero } from "../components/layout/SubpageLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Badge, Card, PageWrap } from "../components/ui";
 import { ICON_LG, IconPodiumMedal } from "../components/icons";
@@ -17,7 +17,6 @@ import {
   LEADERBOARD_PAGE_SIZE,
   pageBottomReputation,
   pageTopReputation,
-  rankRangeLabel,
   rankTier,
   roleRankOf,
   sortLeaderboardAgents,
@@ -304,7 +303,6 @@ export default function LeaderboardPage() {
               <>
                 <SectionHeading>
                   <SectionHeadingTitle>{page === 0 ? "top performers" : "lower ranks"}</SectionHeadingTitle>
-                  <SectionHeadingMeta>{rankRangeLabel(page, LEADERBOARD_PAGE_SIZE, total)}</SectionHeadingMeta>
                 </SectionHeading>
 
                 {page > 0 && bottomReputation !== null && topReputation !== null && (
@@ -366,9 +364,7 @@ export default function LeaderboardPage() {
                 >
                   previous
                 </button>
-                <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>
-                  page {page + 1} · {rankRangeLabel(page, LEADERBOARD_PAGE_SIZE, total)}
-                </span>
+                <span style={{ opacity: 0.65, fontSize: "0.875rem" }}>page {page + 1}</span>
                 <button
                   disabled={(page + 1) * LEADERBOARD_PAGE_SIZE >= data.pagination.total}
                   onClick={() => setPage((p) => p + 1)}
