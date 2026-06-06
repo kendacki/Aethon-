@@ -8,3 +8,7 @@ startCommand = "node dist/railway-start.cjs"
 healthcheckPath = "/v1/health/live"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
+
+# Default for API service; agent workers override via service name (aethon-agent-*).
+[variables]
+AETHON_RUNTIME = "api"
